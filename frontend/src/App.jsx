@@ -27,7 +27,7 @@ export default function App() {
       </Route>
 
       <Route element={<PublicLayout />}>
-        <Route path="/menu/:cafeId" element={<PublicMenuPage />} />
+        <Route path="/menu/:slug" element={<PublicMenuPage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />
