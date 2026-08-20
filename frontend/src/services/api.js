@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_URL, TOKEN_STORAGE_KEY } from '../utils/constants.js';
+import { API_URL, TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '../utils/constants.js';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -16,7 +16,30 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  if (config.data instanceof FormData) {
+    if (typeof config.headers.delete === 'function') {
+      config.headers.delete('Content-Type');
+    } else {
+      delete config.headers['Content-Type'];
+    }
+  }
+
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+    if (error.response?.status === 401 && !isLoginRequest) {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
+      window.dispatchEvent(new Event('auth:unauthorized'));
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export default api;

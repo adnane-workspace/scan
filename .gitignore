@@ -38,3 +38,7 @@ Thumbs.db
 *.local
 .cache/
 coverage/
+
+# Uploaded product images
+backend/uploads/products/*
+!backend/uploads/products/.gitkeep

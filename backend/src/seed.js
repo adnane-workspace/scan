@@ -31,7 +31,7 @@ async function seed() {
 
   const admin = await User.create({
     name: 'Admin',
-    email: 'admin123',
+    email: 'admin@example.com',
     passwordHash,
     role: 'admin',
     cafeId: cafe._id,

@@ -8,11 +8,12 @@ import LoginPage from './pages/LoginPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import ProductsPage from './pages/ProductsPage.jsx';
 import PublicMenuPage from './pages/PublicMenuPage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
@@ -22,6 +23,7 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="products" element={<ProductsPage />} />
         <Route path="categories" element={<CategoriesPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       <Route element={<PublicLayout />}>

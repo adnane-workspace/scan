@@ -16,7 +16,12 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters'),
   JWT_EXPIRES_IN: z.string().default('7d'),
-  CLIENT_URL: z.string().url().default('http://localhost:5173'),
+  CLIENT_URL: z.string().min(1).default('http://localhost:5173'),
+  CLOUDINARY_CLOUD_NAME: z.string().optional().default(''),
+  CLOUDINARY_API_KEY: z.string().optional().default(''),
+  CLOUDINARY_API_SECRET: z.string().optional().default(''),
+  CLOUDINARY_FOLDER: z.string().optional().default('digital-menu'),
+  PUBLIC_BASE_URL: z.string().url().default('http://localhost:5000'),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -27,3 +32,15 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+const extraDevOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+];
+
+export const clientOrigins = [
+  ...env.CLIENT_URL.split(',').map((origin) => origin.trim()).filter(Boolean),
+  ...(env.NODE_ENV === 'development' ? extraDevOrigins : []),
+];

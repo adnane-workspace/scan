@@ -1,0 +1,55 @@
+import { asyncHandler } from '../middleware/asyncHandler.js';
+import {
+  createCategory,
+  deleteCategory,
+  getCategoryById,
+  listCategories,
+  updateCategory,
+} from '../services/category.service.js';
+
+export const create = asyncHandler(async (req, res) => {
+  const category = await createCategory(req.user, req.validated.body);
+
+  res.status(201).json({
+    success: true,
+    message: 'Category created',
+    data: { category },
+  });
+});
+
+export const list = asyncHandler(async (req, res) => {
+  const categories = await listCategories(req.user);
+
+  res.status(200).json({
+    success: true,
+    data: { categories },
+  });
+});
+
+export const getById = asyncHandler(async (req, res) => {
+  const category = await getCategoryById(req.user, req.validated.params.id);
+
+  res.status(200).json({
+    success: true,
+    data: { category },
+  });
+});
+
+export const update = asyncHandler(async (req, res) => {
+  const category = await updateCategory(req.user, req.validated.params.id, req.validated.body);
+
+  res.status(200).json({
+    success: true,
+    message: 'Category updated',
+    data: { category },
+  });
+});
+
+export const remove = asyncHandler(async (req, res) => {
+  await deleteCategory(req.user, req.validated.params.id);
+
+  res.status(200).json({
+    success: true,
+    message: 'Category deleted',
+  });
+});
