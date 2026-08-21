@@ -1,18 +1,21 @@
 import { useState } from 'react';
-import { Link, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import PopularProducts from '../components/dashboard/PopularProducts.jsx';
+import QrCodeModal from '../components/dashboard/QrCodeModal.jsx';
 import RecentProducts from '../components/dashboard/RecentProducts.jsx';
 import StatCard from '../components/dashboard/StatCard.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { updateProduct } from '../services/product.service.js';
+import { getPublicMenuUrl } from '../utils/constants.js';
 import { firstName } from '../utils/format.js';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { stats, loading, error, refreshStats } = useOutletContext();
   const [actionError, setActionError] = useState('');
-  const menuPath = stats.cafe?.slug ? `/menu/${stats.cafe.slug}` : '/menu/cafe';
+  const [isQrOpen, setIsQrOpen] = useState(false);
+  const menuUrl = getPublicMenuUrl(stats.cafe?.slug);
   const greetingName = firstName(user?.name);
 
   async function handleToggleAvailable(product) {
@@ -43,15 +46,15 @@ export default function DashboardPage() {
           <p className="text-body-lg text-on-surface-variant">Voici l&apos;état de votre menu aujourd&apos;hui.</p>
         </div>
         <div className="relative z-10">
-          <Link
-            to={menuPath}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95"
+          <button
+            type="button"
+            disabled={!menuUrl}
+            onClick={() => setIsQrOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
           >
             <MaterialIcon name="qr_code_scanner" />
             Générer le QR Code
-          </Link>
+          </button>
         </div>
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute right-40 -bottom-20 h-48 w-48 rounded-full bg-tertiary/10 blur-2xl" />
@@ -86,6 +89,14 @@ export default function DashboardPage() {
         </div>
         <PopularProducts products={stats.recentProducts} loading={loading} />
       </div>
+
+      <QrCodeModal
+        open={isQrOpen}
+        cafeName={stats.cafe?.name}
+        menuUrl={menuUrl}
+        slug={stats.cafe?.slug}
+        onClose={() => setIsQrOpen(false)}
+      />
     </div>
   );
 }
