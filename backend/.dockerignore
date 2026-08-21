@@ -1,0 +1,12 @@
+node_modules
+.env
+.env.*
+!.env.example
+tests
+coverage
+eslint.config.js
+*.md
+uploads/products/*
+!uploads/products/.gitkeep
+.git
+.gitignore

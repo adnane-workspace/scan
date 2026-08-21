@@ -17,9 +17,9 @@ async function startServer() {
     console.warn('Starting API without database in development mode.');
   }
 
-  app.listen(env.PORT, () => {
-    console.log(`API running on http://localhost:${env.PORT}`);
-    console.log(`Health check: http://localhost:${env.PORT}/api/health`);
+  app.listen(env.PORT, '0.0.0.0', () => {
+    console.log(`API running on http://0.0.0.0:${env.PORT}`);
+    console.log(`Health check: http://0.0.0.0:${env.PORT}/api/health`);
   });
 }
 

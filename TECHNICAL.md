@@ -278,10 +278,24 @@ Santé : `GET http://localhost:5000/api/health`.
 
 ---
 
+## Déploiement
+
+Guide pas à pas : [`DEPLOY.md`](DEPLOY.md).
+
+- **Frontend** : Vercel, root directory `frontend`, SPA rewrite dans [`frontend/vercel.json`](frontend/vercel.json).
+- **API** : Render **Docker**, image [`backend/Dockerfile`](backend/Dockerfile), Blueprint [`render.yaml`](render.yaml).
+- **MongoDB** : Atlas (`MONGODB_URI`).
+- **Images** : Cloudinary (mêmes clés qu’en local).
+
+CORS prod : `CLIENT_URL` = origine Vercel. QR prod : `VITE_PUBLIC_APP_URL` = même origine (figé au build Vite).
+
+---
+
 ## Non implémenté
 
 - Page Settings café (nom, slug, logo, adresse).
 - Suppression Cloudinary à la suppression d’un document.
 - QR stocké / API QR.
 - Commandes, panier, paiements.
-- Déploiement (prévu ensuite : mêmes `CLOUDINARY_*` + `VITE_PUBLIC_APP_URL` de prod).
+
+---
