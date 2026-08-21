@@ -1,13 +1,10 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import bcrypt from 'bcrypt';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
-import { env } from './config/env.js';
 import { Cafe } from './models/Cafe.js';
 import { Category } from './models/Category.js';
 import { Product } from './models/Product.js';
 import { User } from './models/User.js';
-import { uploadsDir } from './services/storage.service.js';
+import { uploadProductImage } from './services/storage.service.js';
 
 const DEMO_PASSWORD = 'DemoAdmin123!';
 
@@ -166,27 +163,26 @@ const catalog = [
   },
 ];
 
-async function downloadPhoto(file, url) {
-  await fs.mkdir(uploadsDir, { recursive: true });
-  const dest = path.join(uploadsDir, file);
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-
-  await fs.writeFile(dest, Buffer.from(await response.arrayBuffer()));
-  return `${env.PUBLIC_BASE_URL}/uploads/products/${file}`;
+function publicIdFromFile(file) {
+  return file.replace(/\.[^.]+$/, '');
 }
 
 async function resolveImage(product) {
   try {
-    const localUrl = await downloadPhoto(product.file, product.photo);
-    console.log(`Photo: ${product.name} → ${product.file}`);
-    return localUrl;
+    const response = await fetch(product.photo);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const url = await uploadProductImage(
+      { buffer: Buffer.from(await response.arrayBuffer()), mimetype: 'image/jpeg' },
+      { publicId: publicIdFromFile(product.file) },
+    );
+    console.log(`Photo: ${product.name} → ${url}`);
+    return url;
   } catch (error) {
-    console.warn(`Photo distante pour ${product.name}: ${error.message}`);
+    console.warn(`Photo Cloudinary pour ${product.name}: ${error.message}`);
     return product.photo;
   }
 }
