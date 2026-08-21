@@ -1,41 +1,91 @@
-import { useOutletContext } from 'react-router-dom';
-import CategorySummary from '../components/dashboard/CategorySummary.jsx';
-import MenuPreviewCard from '../components/dashboard/MenuPreviewCard.jsx';
+import { useState } from 'react';
+import { Link, useOutletContext } from 'react-router-dom';
+import PopularProducts from '../components/dashboard/PopularProducts.jsx';
 import RecentProducts from '../components/dashboard/RecentProducts.jsx';
 import StatCard from '../components/dashboard/StatCard.jsx';
+import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { updateProduct } from '../services/product.service.js';
+import { firstName } from '../utils/format.js';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { stats, loading, error } = useOutletContext();
+  const { stats, loading, error, refreshStats } = useOutletContext();
+  const [actionError, setActionError] = useState('');
+  const menuPath = stats.cafe?.slug ? `/menu/${stats.cafe.slug}` : '/menu/cafe';
+  const greetingName = firstName(user?.name);
+
+  async function handleToggleAvailable(product) {
+    setActionError('');
+
+    try {
+      await updateProduct(product._id, { available: !product.available });
+      await refreshStats();
+    } catch (err) {
+      setActionError(err.response?.data?.message || 'Impossible de mettre à jour la disponibilité');
+    }
+  }
+
+  const availableRatio =
+    stats.totalProducts > 0 ? Math.round((stats.availableProducts / stats.totalProducts) * 100) : 0;
 
   return (
-    <section className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Dashboard</h1>
-        <p className="mt-2 text-slate-600">Bonjour, {user?.name || 'Admin'} 👋</p>
-      </header>
-
-      {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+    <div className="flex w-full flex-col space-y-stack-lg">
+      {error || actionError ? (
+        <p className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error">
+          {actionError || error}
+        </p>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Produits" value={stats.totalProducts} icon="🍔" loading={loading} />
-        <StatCard label="Total Catégories" value={stats.totalCategories} icon="🏷️" loading={loading} />
-        <StatCard label="Produits disponibles" value={stats.availableProducts} icon="✅" loading={loading} />
-        <StatCard label="Produits indisponibles" value={stats.unavailableProducts} icon="🚫" loading={loading} />
+      <div className="relative flex w-full flex-col gap-6 overflow-hidden rounded-2xl bg-surface-container-high p-stack-lg shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative z-10 flex max-w-2xl flex-col gap-2">
+          <h1 className="font-display text-display-md font-bold text-on-surface">Bonjour, {greetingName}.</h1>
+          <p className="text-body-lg text-on-surface-variant">Voici l&apos;état de votre menu aujourd&apos;hui.</p>
+        </div>
+        <div className="relative z-10">
+          <Link
+            to={menuPath}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95"
+          >
+            <MaterialIcon name="qr_code_scanner" />
+            Générer le QR Code
+          </Link>
+        </div>
+        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute right-40 -bottom-20 h-48 w-48 rounded-full bg-tertiary/10 blur-2xl" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <RecentProducts products={stats.recentProducts} loading={loading} />
-        </div>
-        <div className="space-y-6">
-          <MenuPreviewCard cafe={stats.cafe} />
-          <CategorySummary categories={stats.categories} loading={loading} />
-        </div>
+      <div className="grid w-full grid-cols-1 gap-gutter md:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total Produits" value={stats.totalProducts} icon="inventory_2" loading={loading} />
+        <StatCard
+          label="Catégories"
+          value={stats.totalCategories}
+          icon="category"
+          tone="tertiary"
+          loading={loading}
+        />
+        <StatCard
+          label="Produits disponibles"
+          value={stats.availableProducts}
+          icon="trending_up"
+          wide
+          loading={loading}
+          trend={loading ? undefined : `${availableRatio}%`}
+        />
       </div>
-    </section>
+
+      <div className="grid w-full grid-cols-1 gap-gutter xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <RecentProducts
+            products={stats.recentProducts}
+            loading={loading}
+            onToggleAvailable={handleToggleAvailable}
+          />
+        </div>
+        <PopularProducts products={stats.recentProducts} loading={loading} />
+      </div>
+    </div>
   );
 }

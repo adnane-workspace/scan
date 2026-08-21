@@ -14,7 +14,7 @@ function toPublicProduct(product) {
 }
 
 export async function getPublicMenu(slug) {
-  const cafe = await Cafe.findOne({ slug }).select('name description logo isActive');
+  const cafe = await Cafe.findOne({ slug }).select('name description logo address phone isActive');
 
   if (!cafe) {
     throw new ApiError(404, 'Menu introuvable');
@@ -48,6 +48,8 @@ export async function getPublicMenu(slug) {
       name: cafe.name,
       description: cafe.description || '',
       logo: cafe.logo || '',
+      address: cafe.address || '',
+      phone: cafe.phone || '',
     },
     categories: categories
       .map((category) => ({

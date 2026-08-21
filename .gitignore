@@ -1,6 +1,8 @@
 # Dependencies
 node_modules/
 .cursor/
+stitch-assets/
+next.md*
 # Environment and secrets
 .env
 .env.local

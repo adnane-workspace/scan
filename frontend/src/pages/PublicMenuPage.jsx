@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import CategoryNavigation from '../components/menu/CategoryNavigation.jsx';
-import CategorySection from '../components/menu/CategorySection.jsx';
-import MenuHeader from '../components/menu/MenuHeader.jsx';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import CategoryGridCard from '../components/menu/CategoryGridCard.jsx';
+import PublicProductCard from '../components/menu/PublicProductCard.jsx';
 import { getPublicMenu } from '../services/menu.service.js';
+
+const categoryGridClass = 'grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+const contentClass = 'mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8';
 
 function setPageMeta({ title, description }) {
   document.title = title;
@@ -21,38 +23,28 @@ function setPageMeta({ title, description }) {
 
 function MenuStatus({ title, message }) {
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-3xl">☕</div>
-      <h1 className="text-2xl font-semibold text-stone-900">{title}</h1>
-      <p className="mt-2 max-w-sm text-sm text-stone-500">{message}</p>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
+      <h1 className="text-xl font-semibold text-neutral-900 md:text-2xl">{title}</h1>
+      <p className="mt-2 max-w-md text-sm text-neutral-500 md:text-base">{message}</p>
     </div>
   );
 }
 
 function MenuSkeleton() {
   return (
-    <div className="animate-pulse px-4 py-8">
-      <div className="mx-auto h-20 w-20 rounded-full bg-stone-200" />
-      <div className="mx-auto mt-4 h-8 w-48 rounded-lg bg-stone-200" />
-      <div className="mx-auto mt-3 h-4 w-64 rounded bg-stone-100" />
-      <div className="mt-8 flex gap-2">
-        <div className="h-9 w-20 rounded-full bg-stone-200" />
-        <div className="h-9 w-24 rounded-full bg-stone-200" />
-        <div className="h-9 w-20 rounded-full bg-stone-200" />
-      </div>
-      <div className="mt-8 space-y-4">
-        <div className="h-24 rounded-2xl bg-stone-100" />
-        <div className="h-24 rounded-2xl bg-stone-100" />
-        <div className="h-24 rounded-2xl bg-stone-100" />
+    <div className={`${contentClass} animate-pulse`}>
+      <div className={categoryGridClass}>
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div key={index} className="aspect-[4/5] rounded-xl bg-neutral-200 sm:rounded-2xl" />
+        ))}
       </div>
     </div>
   );
 }
 
 export default function PublicMenuPage() {
-  const { slug } = useParams();
+  const { slug, categoryId } = useParams();
   const [menu, setMenu] = useState(null);
-  const [activeId, setActiveId] = useState('');
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState(null);
 
@@ -69,7 +61,6 @@ export default function PublicMenuPage() {
         }
 
         setMenu(data);
-        setActiveId(data.categories[0]?.id || '');
         setPageMeta({
           title: `${data.cafe.name} — Menu`,
           description: data.cafe.description || `Menu de ${data.cafe.name}`,
@@ -96,13 +87,10 @@ export default function PublicMenuPage() {
     };
   }, [slug]);
 
-  function handleSelectCategory(categoryId) {
-    setActiveId(categoryId);
-    document.getElementById(`category-${categoryId}`)?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }
+  const selectedCategory = useMemo(
+    () => menu?.categories?.find((category) => String(category.id) === String(categoryId)) || null,
+    [menu, categoryId],
+  );
 
   if (loading) {
     return <MenuSkeleton />;
@@ -117,21 +105,50 @@ export default function PublicMenuPage() {
   }
 
   if (!menu?.categories?.length) {
+    return <MenuStatus title="Menu vide" message="Le menu est actuellement vide." />;
+  }
+
+  if (categoryId && !selectedCategory) {
     return (
-      <>
-        <MenuHeader cafe={menu.cafe} />
-        <MenuStatus title="Menu vide" message="Le menu est actuellement vide." />
-      </>
+      <div className={contentClass}>
+        <Link to={`/menu/${slug}`} className="text-sm text-neutral-600 hover:text-neutral-900">
+          ← Nos catégories
+        </Link>
+        <MenuStatus title="Catégorie introuvable" message="Cette catégorie n'est plus disponible." />
+      </div>
+    );
+  }
+
+  if (selectedCategory) {
+    return (
+      <div className="min-h-screen">
+        <div className={contentClass}>
+          <Link to={`/menu/${slug}`} className="text-sm text-neutral-600 hover:text-neutral-900">
+            ← Nos catégories
+          </Link>
+          <h1 className="mt-3 mb-6 text-2xl font-semibold tracking-tight uppercase md:text-3xl">
+            {selectedCategory.name}
+          </h1>
+          <div className={categoryGridClass}>
+            {selectedCategory.products.map((product) => (
+              <PublicProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div>
-      <MenuHeader cafe={menu.cafe} />
-      <CategoryNavigation categories={menu.categories} activeId={activeId} onSelect={handleSelectCategory} />
-      {menu.categories.map((category) => (
-        <CategorySection key={category.id} category={category} />
-      ))}
+    <div className="min-h-screen">
+      <div className={contentClass}>
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight md:text-3xl">Nos catégories</h1>
+        <div className={categoryGridClass}>
+          {menu.categories.map((category) => (
+            <CategoryGridCard key={category.id} category={category} slug={slug} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
