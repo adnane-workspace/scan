@@ -13,7 +13,7 @@ export default function PublicProductCard({ product }) {
         )}
       </div>
       <div className="px-3 py-3 text-center sm:px-4 sm:py-4">
-        <h3 className="text-sm font-bold tracking-wide text-black uppercase sm:text-base">{product.name}</h3>
+        <h3 className="line-clamp-2 text-sm font-bold tracking-wide text-black uppercase sm:text-base">{product.name}</h3>
         <p className="mt-1 text-sm text-neutral-700">{formatPrice(product.price)}</p>
       </div>
     </article>

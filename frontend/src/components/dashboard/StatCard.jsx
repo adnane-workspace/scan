@@ -45,7 +45,7 @@ export default function StatCard({
   return (
     <article
       className={`group relative flex flex-col gap-stack-sm overflow-hidden rounded-xl bg-surface-container p-stack-md shadow-sm transition-shadow hover:shadow-md ${
-        wide ? 'md:col-span-2 lg:col-span-2' : ''
+        wide ? 'md:col-span-2 xl:col-span-2' : ''
       }`}
     >
       <div className="z-10 mb-2 flex items-center justify-between">

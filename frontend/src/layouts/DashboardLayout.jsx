@@ -93,7 +93,7 @@ export default function DashboardLayout() {
         </aside>
 
         <div className="lg:pl-72">
-          <header className="fixed top-0 right-0 left-0 z-40 flex h-20 items-center justify-between bg-surface/80 px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl sm:px-6 lg:left-72 lg:px-container">
+          <header className="fixed top-0 right-0 left-0 z-40 flex h-[calc(5rem+env(safe-area-inset-top))] items-center justify-between bg-surface/80 px-4 pt-[env(safe-area-inset-top)] shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl sm:px-6 lg:left-72 lg:px-container">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
@@ -124,7 +124,7 @@ export default function DashboardLayout() {
             </div>
           </header>
 
-          <main className="min-h-screen bg-background px-4 pt-24 pb-stack-lg sm:px-6 lg:px-container">
+          <main className="min-h-screen bg-background px-4 pt-[calc(6rem+env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 lg:px-container">
             <Outlet context={{ stats, loading, error, refreshStats: () => loadStats(true) }} />
           </main>
         </div>

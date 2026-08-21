@@ -27,6 +27,48 @@ function countByCategory(products) {
   return counts;
 }
 
+function CategoryIdentity({ category }) {
+  return (
+    <div className="flex min-w-0 items-center gap-4">
+      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-container text-primary shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10" />
+        <MaterialIcon name={categoryIcon(category.name)} className="relative z-10 text-[24px]" />
+      </div>
+      <div className="min-w-0">
+        <h3 className="truncate text-lg font-semibold tracking-tight text-on-surface md:text-headline-md">
+          {category.name}
+        </h3>
+        <p className="mt-1 truncate text-label-md font-medium text-on-surface-variant">
+          {category.description || 'Aucune description'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CategoryActions({ category, onEdit, onDelete }) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <button
+        type="button"
+        title="Modifier"
+        onClick={() => onEdit(category)}
+        className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
+      >
+        <MaterialIcon name="edit" className="text-[20px]" />
+      </button>
+      <button
+        type="button"
+        title="Supprimer"
+        onClick={() => onDelete(category)}
+        className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-error-container hover:text-on-error-container"
+      >
+        <MaterialIcon name="delete" className="text-[20px]" />
+      </button>
+    </div>
+  );
+}
+
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [productCounts, setProductCounts] = useState(new Map());
@@ -218,11 +260,25 @@ export default function CategoriesPage() {
     setDragIndex(null);
   }
 
+  async function moveCategory(index, delta) {
+    const nextIndex = index + delta;
+
+    if (reordering || nextIndex < 0 || nextIndex >= categories.length) {
+      return;
+    }
+
+    const next = [...categories];
+    const [moved] = next.splice(index, 1);
+    next.splice(nextIndex, 0, moved);
+    setCategories(next);
+    await persistOrder(next);
+  }
+
   return (
     <div className="relative flex w-full flex-col">
       <div className="relative z-10 mb-stack-lg flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="mb-1 font-display text-display-md font-bold tracking-tight text-on-surface sm:text-display-lg">
+          <h1 className="mb-1 font-display text-display-md font-bold tracking-tight text-on-surface lg:text-display-lg">
             Catégories
           </h1>
           <p className="max-w-2xl text-on-surface-variant">
@@ -247,97 +303,120 @@ export default function CategoriesPage() {
 
       <div className="relative overflow-hidden rounded-2xl bg-surface shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-surface-bright/50 via-transparent to-surface-bright/50" />
-        <div className="relative z-10 overflow-x-auto">
+        <div className="relative z-10">
           {loading ? (
             <p className="px-6 py-8 text-sm text-on-surface-variant">Chargement des catégories...</p>
           ) : categories.length === 0 ? (
             <p className="px-6 py-8 text-sm text-on-surface-variant">Aucune catégorie pour le moment.</p>
           ) : (
-            <table className="w-full border-collapse text-left">
-              <thead>
-                <tr className="bg-surface-container-lowest/50 text-label-md font-medium tracking-wider text-on-surface-variant uppercase">
-                  <th className="w-16 rounded-tl-2xl px-6 py-4 text-center">
-                    <MaterialIcon name="drag_indicator" className="text-[18px] text-outline" />
-                  </th>
-                  <th className="px-6 py-4">Ordre</th>
-                  <th className="px-6 py-4">Catégorie</th>
-                  <th className="px-6 py-4 text-right">Produits</th>
-                  <th className="rounded-tr-2xl px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              <ul className="space-y-3 p-3 md:hidden">
                 {categories.map((category, index) => {
                   const count = productCounts.get(String(category._id)) || 0;
 
                   return (
-                    <tr
-                      key={category._id}
-                      draggable={!reordering}
-                      onDragStart={(event) => handleDragStart(event, index)}
-                      onDragOver={handleDragOver}
-                      onDrop={(event) => handleDrop(event, index)}
-                      onDragEnd={handleDragEnd}
-                      className={`group cursor-grab border-b-0 transition-colors duration-200 hover:bg-surface-container-lowest/80 active:cursor-grabbing ${
-                        dragIndex === index ? 'relative z-50 scale-[1.01] bg-surface-container-highest opacity-50 shadow-lg' : ''
-                      }`}
-                    >
-                      <td className="px-6 py-5 text-center align-middle">
-                        <MaterialIcon
-                          name="drag_handle"
-                          className="text-[20px] text-outline-variant transition-colors group-hover:text-primary/70"
-                        />
-                      </td>
-                      <td className="w-24 px-6 py-5 align-middle">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant">
-                          {index + 1}
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 align-middle">
-                        <div className="flex items-center gap-4">
-                          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-container text-primary shadow-sm">
-                            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10" />
-                            <MaterialIcon name={categoryIcon(category.name)} className="relative z-10 text-[24px]" />
+                    <li key={category._id} className="rounded-xl bg-surface-container-lowest p-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-label-lg font-semibold text-on-surface-variant">
+                            {index + 1}
                           </div>
-                          <div>
-                            <h3 className="text-headline-md font-semibold tracking-tight text-on-surface">
-                              {category.name}
-                            </h3>
-                            <p className="mt-1 text-label-md font-medium text-on-surface-variant">
-                              {category.description || 'Aucune description'}
-                            </p>
-                          </div>
+                          <CategoryIdentity category={category} />
                         </div>
-                      </td>
-                      <td className="px-6 py-5 text-right align-middle">
-                        <div className="inline-flex items-center rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
+                        <div className="flex shrink-0 flex-col">
+                          <button
+                            type="button"
+                            aria-label={`Monter ${category.name}`}
+                            disabled={reordering || index === 0}
+                            onClick={() => moveCategory(index, -1)}
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
+                          >
+                            <MaterialIcon name="keyboard_arrow_up" />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Descendre ${category.name}`}
+                            disabled={reordering || index === categories.length - 1}
+                            onClick={() => moveCategory(index, 1)}
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
+                          >
+                            <MaterialIcon name="keyboard_arrow_down" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between gap-3">
+                        <span className="rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
                           {count} article{count > 1 ? 's' : ''}
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 text-right align-middle">
-                        <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100">
-                          <button
-                            type="button"
-                            title="Modifier"
-                            onClick={() => startEdit(category)}
-                            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
-                          >
-                            <MaterialIcon name="edit" className="text-[20px]" />
-                          </button>
-                          <button
-                            type="button"
-                            title="Supprimer"
-                            onClick={() => handleDelete(category)}
-                            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-error-container hover:text-on-error-container"
-                          >
-                            <MaterialIcon name="delete" className="text-[20px]" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                        </span>
+                        <CategoryActions category={category} onEdit={startEdit} onDelete={handleDelete} />
+                      </div>
+                    </li>
                   );
                 })}
-              </tbody>
-            </table>
+              </ul>
+
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full border-collapse text-left">
+                  <thead>
+                    <tr className="bg-surface-container-lowest/50 text-label-md font-medium tracking-wider text-on-surface-variant uppercase">
+                      <th className="w-16 rounded-tl-2xl px-6 py-4 text-center">
+                        <MaterialIcon name="drag_indicator" className="text-[18px] text-outline" />
+                      </th>
+                      <th className="px-6 py-4">Ordre</th>
+                      <th className="px-6 py-4">Catégorie</th>
+                      <th className="px-6 py-4 text-right">Produits</th>
+                      <th className="rounded-tr-2xl px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories.map((category, index) => {
+                      const count = productCounts.get(String(category._id)) || 0;
+
+                      return (
+                        <tr
+                          key={category._id}
+                          draggable={!reordering}
+                          onDragStart={(event) => handleDragStart(event, index)}
+                          onDragOver={handleDragOver}
+                          onDrop={(event) => handleDrop(event, index)}
+                          onDragEnd={handleDragEnd}
+                          className={`group cursor-grab border-b-0 transition-colors duration-200 hover:bg-surface-container-lowest/80 active:cursor-grabbing ${
+                            dragIndex === index
+                              ? 'relative z-50 scale-[1.01] bg-surface-container-highest opacity-50 shadow-lg'
+                              : ''
+                          }`}
+                        >
+                          <td className="px-6 py-5 text-center align-middle">
+                            <MaterialIcon
+                              name="drag_handle"
+                              className="text-[20px] text-outline-variant transition-colors group-hover:text-primary/70"
+                            />
+                          </td>
+                          <td className="w-24 px-6 py-5 align-middle">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant">
+                              {index + 1}
+                            </div>
+                          </td>
+                          <td className="px-6 py-5 align-middle">
+                            <CategoryIdentity category={category} />
+                          </td>
+                          <td className="px-6 py-5 text-right align-middle">
+                            <div className="inline-flex items-center rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
+                              {count} article{count > 1 ? 's' : ''}
+                            </div>
+                          </td>
+                          <td className="px-6 py-5 text-right align-middle">
+                            <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity duration-200 lg:opacity-0 lg:group-hover:opacity-100">
+                              <CategoryActions category={category} onEdit={startEdit} onDelete={handleDelete} />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>

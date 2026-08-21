@@ -4,8 +4,10 @@ import CategoryGridCard from '../components/menu/CategoryGridCard.jsx';
 import PublicProductCard from '../components/menu/PublicProductCard.jsx';
 import { getPublicMenu } from '../services/menu.service.js';
 
-const categoryGridClass = 'grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
-const contentClass = 'mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8';
+const categoryGridClass =
+  'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+const contentClass =
+  'mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8';
 
 function setPageMeta({ title, description }) {
   document.title = title;

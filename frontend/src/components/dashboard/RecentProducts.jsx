@@ -4,6 +4,24 @@ import { categoryBadgeClass, formatPrice } from '../../utils/format.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import AvailabilityToggle from './AvailabilityToggle.jsx';
 
+function ProductThumb({ product }) {
+  return (
+    <div className="h-10 w-10 overflow-hidden rounded-md bg-surface-container-highest">
+      {product.image ? (
+        <img
+          src={product.image}
+          alt=""
+          className={`h-full w-full object-cover ${product.available ? '' : 'grayscale'}`}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
+          <MaterialIcon name="image" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function RecentProducts({ products, loading, onToggleAvailable }) {
   const [pendingId, setPendingId] = useState(null);
 
@@ -38,74 +56,89 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
       ) : products.length === 0 ? (
         <p className="text-sm text-on-surface-variant">Aucun produit disponible.</p>
       ) : (
-        <div className="w-full overflow-x-auto pb-4">
-          <table className="w-full min-w-[600px] border-collapse text-left">
-            <thead>
-              <tr className="bg-surface-container-low text-on-surface-variant">
-                <th className="rounded-l-lg p-4 text-label-md font-medium tracking-wider uppercase">
-                  Nom du Produit
-                </th>
-                <th className="p-4 text-label-md font-medium tracking-wider uppercase">Catégorie</th>
-                <th className="p-4 text-label-md font-medium tracking-wider uppercase">Prix</th>
-                <th className="rounded-r-lg p-4 text-center text-label-md font-medium tracking-wider uppercase">
-                  Disponibilité
-                </th>
-              </tr>
-            </thead>
-            <tbody className="text-on-surface">
-              {products.map((product) => (
-                <tr
-                  key={product._id}
-                  className={`border-b-4 border-transparent transition-colors hover:bg-surface-container-low/50 ${
-                    product.available ? '' : 'opacity-60'
-                  }`}
-                >
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 overflow-hidden rounded-md bg-surface-container-highest">
-                        {product.image ? (
-                          <img
-                            src={product.image}
-                            alt=""
-                            className={`h-full w-full object-cover ${product.available ? '' : 'grayscale'}`}
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
-                            <MaterialIcon name="image" />
-                          </div>
-                        )}
-                      </div>
-                      <span
-                        className={`text-body-lg font-medium ${product.available ? '' : 'line-through'}`}
-                      >
-                        {product.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-label-md ${categoryBadgeClass(
-                        product.categoryName,
-                        product.available,
-                      )}`}
-                    >
-                      {product.categoryName || 'Sans catégorie'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-label-lg font-semibold tracking-[0.05em]">{formatPrice(product.price)}</td>
-                  <td className="p-4 text-center">
-                    <AvailabilityToggle
-                      checked={Boolean(product.available)}
-                      disabled={pendingId === product._id}
-                      label={`Disponibilité de ${product.name}`}
-                      onChange={() => handleToggle(product)}
-                    />
-                  </td>
+        <>
+          <ul className="divide-y divide-outline-variant/20 md:hidden">
+            {products.map((product) => (
+              <li
+                key={product._id}
+                className={`flex items-center gap-3 py-3 ${product.available ? '' : 'opacity-60'}`}
+              >
+                <ProductThumb product={product} />
+                <div className="min-w-0 flex-1">
+                  <p className={`truncate font-medium ${product.available ? '' : 'line-through'}`}>
+                    {product.name}
+                  </p>
+                  <p className="truncate text-sm text-on-surface-variant">
+                    {product.categoryName || 'Sans catégorie'} · {formatPrice(product.price)}
+                  </p>
+                </div>
+                <AvailabilityToggle
+                  checked={Boolean(product.available)}
+                  disabled={pendingId === product._id}
+                  label={`Disponibilité de ${product.name}`}
+                  onChange={() => handleToggle(product)}
+                />
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden w-full overflow-x-auto pb-4 md:block">
+            <table className="w-full min-w-[600px] border-collapse text-left">
+              <thead>
+                <tr className="bg-surface-container-low text-on-surface-variant">
+                  <th className="rounded-l-lg p-4 text-label-md font-medium tracking-wider uppercase">
+                    Nom du Produit
+                  </th>
+                  <th className="p-4 text-label-md font-medium tracking-wider uppercase">Catégorie</th>
+                  <th className="p-4 text-label-md font-medium tracking-wider uppercase">Prix</th>
+                  <th className="rounded-r-lg p-4 text-center text-label-md font-medium tracking-wider uppercase">
+                    Disponibilité
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="text-on-surface">
+                {products.map((product) => (
+                  <tr
+                    key={product._id}
+                    className={`border-b-4 border-transparent transition-colors hover:bg-surface-container-low/50 ${
+                      product.available ? '' : 'opacity-60'
+                    }`}
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <ProductThumb product={product} />
+                        <span className={`text-body-lg font-medium ${product.available ? '' : 'line-through'}`}>
+                          {product.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-label-md ${categoryBadgeClass(
+                          product.categoryName,
+                          product.available,
+                        )}`}
+                      >
+                        {product.categoryName || 'Sans catégorie'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-label-lg font-semibold tracking-[0.05em]">
+                      {formatPrice(product.price)}
+                    </td>
+                    <td className="p-4 text-center">
+                      <AvailabilityToggle
+                        checked={Boolean(product.available)}
+                        disabled={pendingId === product._id}
+                        label={`Disponibilité de ${product.name}`}
+                        onChange={() => handleToggle(product)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </section>
   );

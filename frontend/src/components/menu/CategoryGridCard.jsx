@@ -18,7 +18,7 @@ export default function CategoryGridCard({ category, slug }) {
         <div className="h-full w-full bg-neutral-300" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
-      <span className="absolute inset-x-3 bottom-3 text-left text-xs font-bold tracking-wide text-white uppercase sm:inset-x-4 sm:bottom-4 sm:text-sm md:text-base">
+      <span className="absolute inset-x-3 bottom-3 line-clamp-2 text-left text-xs font-bold tracking-wide text-white uppercase sm:inset-x-4 sm:bottom-4 sm:text-sm md:text-base">
         {category.name}
       </span>
     </Link>

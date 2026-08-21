@@ -57,7 +57,7 @@ export default function DashboardPage() {
         <div className="absolute right-40 -bottom-20 h-48 w-48 rounded-full bg-tertiary/10 blur-2xl" />
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-gutter md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Produits" value={stats.totalProducts} icon="inventory_2" loading={loading} />
         <StatCard
           label="Catégories"

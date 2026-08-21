@@ -22,7 +22,7 @@ const emptyForm = {
 };
 
 const selectClass =
-  'appearance-none cursor-pointer rounded-lg bg-surface-container-highest py-2 pr-10 pl-4 text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant outline-none transition-shadow focus:ring-2 focus:ring-primary';
+  'w-full appearance-none cursor-pointer rounded-lg bg-surface-container-highest py-2 pr-10 pl-4 text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant outline-none transition-shadow focus:ring-2 focus:ring-primary sm:w-auto';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -276,7 +276,7 @@ export default function ProductsPage() {
             type="text"
           />
         </div>
-        <div className="flex w-full items-center gap-3 sm:w-auto">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <div className="relative w-full sm:w-auto">
             <select
               value={categoryFilter}
