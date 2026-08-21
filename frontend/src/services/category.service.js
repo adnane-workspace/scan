@@ -19,3 +19,11 @@ export async function deleteCategory(id) {
   const { data } = await api.delete(`/categories/${id}`);
   return data;
 }
+
+export async function uploadCategoryImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const { data } = await api.post('/categories/upload', formData);
+  return data.data.url;
+}

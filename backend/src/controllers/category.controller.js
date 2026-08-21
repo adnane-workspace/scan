@@ -1,4 +1,5 @@
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { ApiError } from '../utils/ApiError.js';
 import {
   createCategory,
   deleteCategory,
@@ -6,6 +7,7 @@ import {
   listCategories,
   updateCategory,
 } from '../services/category.service.js';
+import { uploadProductImage } from '../services/storage.service.js';
 
 export const create = asyncHandler(async (req, res) => {
   const category = await createCategory(req.user, req.validated.body);
@@ -51,5 +53,19 @@ export const remove = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Category deleted',
+  });
+});
+
+export const uploadImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(400, 'Image file is required');
+  }
+
+  const url = await uploadProductImage(req.file);
+
+  res.status(201).json({
+    success: true,
+    message: 'Image uploaded',
+    data: { url },
   });
 });

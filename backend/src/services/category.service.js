@@ -15,6 +15,7 @@ function toCategoryResponse(category) {
     cafeId: category.cafeId,
     name: category.name,
     description: category.description,
+    image: category.image || '',
     order: category.order,
     createdAt: category.createdAt,
     updatedAt: category.updatedAt,
@@ -38,6 +39,7 @@ export async function createCategory(user, payload) {
     cafeId,
     name: payload.name,
     description: payload.description ?? '',
+    image: payload.image ?? '',
     order: payload.order ?? 0,
   });
 
@@ -69,6 +71,10 @@ export async function updateCategory(user, categoryId, payload) {
 
   if (payload.description !== undefined) {
     category.description = payload.description;
+  }
+
+  if (payload.image !== undefined) {
+    category.image = payload.image;
   }
 
   if (payload.order !== undefined) {

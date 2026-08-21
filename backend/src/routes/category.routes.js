@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { create, getById, list, remove, update } from '../controllers/category.controller.js';
+import { create, getById, list, remove, update, uploadImage } from '../controllers/category.controller.js';
 import { authenticate, requireAdmin } from '../middleware/authMiddleware.js';
+import { handleUploadError, productImageUpload } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
 import {
   categoryIdSchema,
@@ -14,6 +15,7 @@ categoryRouter.use(authenticate, requireAdmin);
 
 categoryRouter.post('/', validate(createCategorySchema), create);
 categoryRouter.get('/', list);
+categoryRouter.post('/upload', productImageUpload.single('image'), handleUploadError, uploadImage);
 categoryRouter.get('/:id', validate(categoryIdSchema), getById);
 categoryRouter.put('/:id', validate(updateCategorySchema), update);
 categoryRouter.delete('/:id', validate(categoryIdSchema), remove);

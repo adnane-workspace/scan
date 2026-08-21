@@ -16,6 +16,8 @@ const catalog = [
     name: 'Cafés',
     description: 'Expressos et boissons chaudes à base de café.',
     order: 1,
+    photo: PHOTO('photo-1514432324607-a09d9b4aefdd'),
+    file: 'seed-category-cafes.jpg',
     products: [
       {
         name: 'Espresso',
@@ -55,6 +57,8 @@ const catalog = [
     name: 'Boissons',
     description: 'Boissons froides et rafraîchissements.',
     order: 2,
+    photo: PHOTO('photo-1600271886742-f049cd451bba'),
+    file: 'seed-category-boissons.jpg',
     products: [
       {
         name: "Jus d'orange",
@@ -94,6 +98,8 @@ const catalog = [
     name: 'Viennoiseries',
     description: 'Pains et pâtisseries du matin.',
     order: 3,
+    photo: PHOTO('photo-1555507036-ab1f4038808a'),
+    file: 'seed-category-viennoiseries.jpg',
     products: [
       {
         name: 'Croissant',
@@ -125,6 +131,8 @@ const catalog = [
     name: 'Desserts',
     description: 'Douceurs et pâtisseries.',
     order: 4,
+    photo: PHOTO('photo-1565958011703-44f9829ba187'),
+    file: 'seed-category-desserts.jpg',
     products: [
       {
         name: 'Cheesecake',
@@ -222,6 +230,11 @@ async function seed() {
       cafeId: cafe._id,
       name: categoryData.name,
       description: categoryData.description,
+      image: await resolveImage({
+        photo: categoryData.photo,
+        file: categoryData.file,
+        name: categoryData.name,
+      }),
       order: categoryData.order,
     });
 

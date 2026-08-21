@@ -23,6 +23,11 @@ const categorySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    image: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   {
     timestamps: true,

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 export default function CategoryGridCard({ category, slug }) {
-  const cover = category.products.find((product) => product.image)?.image || '';
+  const cover = category.image || category.products.find((product) => product.image)?.image || '';
 
   return (
     <Link

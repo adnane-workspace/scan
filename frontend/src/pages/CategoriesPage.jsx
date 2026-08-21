@@ -6,6 +6,7 @@ import {
   deleteCategory,
   listCategories,
   updateCategory,
+  uploadCategoryImage,
 } from '../services/category.service.js';
 import { getProducts } from '../services/product.service.js';
 import { categoryIcon } from '../utils/format.js';
@@ -13,6 +14,7 @@ import { categoryIcon } from '../utils/format.js';
 const emptyForm = {
   name: '',
   description: '',
+  image: '',
   order: 0,
 };
 
@@ -31,8 +33,14 @@ function CategoryIdentity({ category }) {
   return (
     <div className="flex min-w-0 items-center gap-4">
       <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-container text-primary shadow-sm">
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10" />
-        <MaterialIcon name={categoryIcon(category.name)} className="relative z-10 text-[24px]" />
+        {category.image ? (
+          <img src={category.image} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10" />
+            <MaterialIcon name={categoryIcon(category.name)} className="relative z-10 text-[24px]" />
+          </>
+        )}
       </div>
       <div className="min-w-0">
         <h3 className="truncate text-lg font-semibold tracking-tight text-on-surface md:text-headline-md">
@@ -77,6 +85,7 @@ export default function CategoriesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [reordering, setReordering] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
   const [error, setError] = useState('');
@@ -138,6 +147,7 @@ export default function CategoriesPage() {
     setForm({
       name: category.name,
       description: category.description || '',
+      image: category.image || '',
       order: category.order ?? 0,
     });
     setFormError('');
@@ -159,6 +169,7 @@ export default function CategoriesPage() {
     const payload = {
       name: form.name.trim(),
       description: form.description.trim(),
+      image: form.image.trim(),
       order: Number.isNaN(form.order) ? 0 : form.order,
     };
 
@@ -175,6 +186,27 @@ export default function CategoriesPage() {
       setFormError(err.response?.data?.message || 'Impossible d\'enregistrer la catégorie');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleImageChange(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    setUploading(true);
+    setFormError('');
+
+    try {
+      const url = await uploadCategoryImage(file);
+      setForm((current) => ({ ...current, image: url }));
+    } catch (err) {
+      setFormError(err.response?.data?.message || 'Impossible d\'envoyer l\'image');
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -426,10 +458,13 @@ export default function CategoriesPage() {
         editing={Boolean(editingId)}
         form={form}
         saving={saving}
+        uploading={uploading}
         error={formError}
         onClose={closeForm}
         onChange={handleChange}
         onSubmit={handleSubmit}
+        onImageChange={handleImageChange}
+        onClearImage={() => setForm((current) => ({ ...current, image: '' }))}
       />
     </div>
   );

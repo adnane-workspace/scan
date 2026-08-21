@@ -25,7 +25,7 @@ export async function getPublicMenu(slug) {
   }
 
   const [categories, products] = await Promise.all([
-    Category.find({ cafeId: cafe._id }).sort({ order: 1, name: 1 }).select('name order'),
+    Category.find({ cafeId: cafe._id }).sort({ order: 1, name: 1 }).select('name image order'),
     Product.find({ cafeId: cafe._id, available: true })
       .sort({ order: 1, name: 1 })
       .select('name description price image categoryId order'),
@@ -55,6 +55,7 @@ export async function getPublicMenu(slug) {
       .map((category) => ({
         id: category._id,
         name: category.name,
+        image: category.image || '',
         products: productsByCategory.get(String(category._id)) || [],
       }))
       .filter((category) => category.products.length > 0),

@@ -8,10 +8,13 @@ export default function CategoryFormModal({
   editing,
   form,
   saving,
+  uploading,
   error,
   onClose,
   onChange,
   onSubmit,
+  onImageChange,
+  onClearImage,
 }) {
   if (!open) {
     return null;
@@ -75,10 +78,43 @@ export default function CategoryFormModal({
               placeholder="Servi de 7h à 11h"
             />
           </label>
+          <div>
+            <p className="text-sm font-medium text-on-surface">Photo</p>
+            <div className="mt-2 flex flex-wrap items-center gap-4">
+              {form.image ? (
+                <img src={form.image} alt="Aperçu catégorie" className="h-24 w-24 rounded-lg object-cover" />
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-surface-container-highest text-on-surface-variant">
+                  <MaterialIcon name="image" />
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <label className="inline-flex cursor-pointer rounded-xl bg-primary px-4 py-2 text-label-lg font-semibold tracking-[0.05em] text-on-primary">
+                  {uploading ? 'Envoi...' : 'Choisir une photo'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={onImageChange}
+                    disabled={uploading}
+                  />
+                </label>
+                {form.image ? (
+                  <button
+                    type="button"
+                    onClick={onClearImage}
+                    className="text-sm font-medium text-error hover:underline"
+                  >
+                    Retirer la photo
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
           <div className="mt-2 flex flex-wrap gap-3">
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploading}
               className="rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md disabled:opacity-60"
             >
               {saving ? 'Enregistrement...' : editing ? 'Mettre à jour' : 'Créer'}
