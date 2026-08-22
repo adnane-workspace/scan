@@ -1,0 +1,74 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+}
+
+model Cafe {
+  id          String     @id @default(uuid())
+  name        String     @db.VarChar(120)
+  description String     @default("") @db.VarChar(500)
+  logo        String     @default("")
+  address     String     @default("") @db.VarChar(200)
+  phone       String     @default("") @db.VarChar(30)
+  slug        String     @unique @db.VarChar(80)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  users       User[]
+  categories  Category[]
+  products    Product[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(80)
+  email        String   @unique @db.VarChar(160)
+  passwordHash String
+  role         UserRole @default(admin)
+  cafeId       String?
+  cafe         Cafe?    @relation(fields: [cafeId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  cafeId      String
+  cafe        Cafe      @relation(fields: [cafeId], references: [id], onDelete: Cascade)
+  name        String    @db.VarChar(80)
+  description String    @default("") @db.VarChar(300)
+  image       String    @default("")
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@index([cafeId, order])
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  cafeId      String
+  cafe        Cafe     @relation(fields: [cafeId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String   @db.VarChar(120)
+  description String   @default("") @db.VarChar(500)
+  price       Decimal  @db.Decimal(10, 2)
+  image       String   @default("")
+  available   Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([cafeId, categoryId, order])
+}

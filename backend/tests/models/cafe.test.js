@@ -1,13 +1,15 @@
-import { Cafe } from '../../src/models/Cafe.js';
+import { prisma } from '../../src/config/prisma.js';
 
 describe('Cafe', () => {
   it('creates a valid cafe', async () => {
-    const cafe = await Cafe.create({
-      name: 'Café Central',
-      slug: 'cafe-central',
-      description: 'Cafe de demonstration',
-      address: '12 Rue de la Paix',
-      phone: '+33 1 23 45 67 89',
+    const cafe = await prisma.cafe.create({
+      data: {
+        name: 'Café Central',
+        slug: 'cafe-central',
+        description: 'Cafe de demonstration',
+        address: '12 Rue de la Paix',
+        phone: '+33 1 23 45 67 89',
+      },
     });
 
     expect(cafe.name).toBe('Café Central');
@@ -18,23 +20,29 @@ describe('Cafe', () => {
 
   it('requires a slug', async () => {
     await expect(
-      Cafe.create({
-        name: 'Café Central',
+      prisma.cafe.create({
+        data: {
+          name: 'Café Central',
+        },
       }),
-    ).rejects.toThrow(/Slug is required/);
+    ).rejects.toThrow(/slug/i);
   });
 
   it('enforces a unique slug', async () => {
-    await Cafe.create({
-      name: 'Café Central',
-      slug: 'cafe-central',
+    await prisma.cafe.create({
+      data: {
+        name: 'Café Central',
+        slug: 'cafe-central',
+      },
     });
 
     await expect(
-      Cafe.create({
-        name: 'Autre Café',
-        slug: 'Cafe-Central',
+      prisma.cafe.create({
+        data: {
+          name: 'Autre Café',
+          slug: 'cafe-central',
+        },
       }),
-    ).rejects.toMatchObject({ code: 11000 });
+    ).rejects.toMatchObject({ code: 'P2002' });
   });
 });

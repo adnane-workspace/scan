@@ -1,6 +1,6 @@
 # Digital Menu — documentation technique
 
-Menu digital par QR pour cafés. Monorepo **MERN**, JavaScript uniquement (pas de TypeScript).
+Menu digital par QR pour cafés. Monorepo **React + Express + PostgreSQL**, JavaScript uniquement (pas de TypeScript).
 
 Un client scanne un QR → ouvre `/menu/:slug`. Un admin authentifié gère catégories, produits, photos et génère le QR.
 
@@ -14,10 +14,10 @@ Hors périmètre actuel : panier, commandes, paiements, génération QR côté s
 | --- | --- |
 | Runtime | Node.js ≥ 20, ESM (`"type": "module"`) |
 | Frontend | React 19, Vite 8, React Router 7, Tailwind CSS 4, Axios, `qrcode` |
-| Backend | Express 5, Mongoose 8, Zod 4, JWT, bcrypt, Multer, Helmet, CORS |
-| Base | MongoDB |
+| Backend | Express 5, Prisma 6, Zod 4, JWT, bcrypt, Multer, Helmet, CORS |
+| Base | PostgreSQL 16 |
 | Images | Cloudinary (obligatoire en local et en prod) |
-| Tests | Jest + mongodb-memory-server (modèles backend) |
+| Tests | Jest + Prisma (modèles backend) |
 
 Workspaces npm : `frontend/`, `backend/`. Commandes depuis la racine.
 
@@ -36,9 +36,9 @@ scan/
 │       ├── context/          # Auth
 │       └── utils/
 ├── backend/
+│   ├── prisma/               # schéma + migrations
 │   ├── src/
-│   │   ├── config/           # env, MongoDB
-│   │   ├── models/
+│   │   ├── config/           # env, Prisma
 │   │   ├── routes/
 │   │   ├── controllers/
 │   │   ├── services/
@@ -57,7 +57,7 @@ scan/
 Flux d’une requête API :
 
 ```
-Route → validate(Zod) → Controller → Service → Model
+Route → validate(Zod) → Controller → Service → Prisma
                               ↓
                          ApiError / JSON
 ```
@@ -66,7 +66,7 @@ Route → validate(Zod) → Controller → Service → Model
 - **Validators** : Zod (`req.validated.body` / `params`).
 - **Controllers** : HTTP only (`asyncHandler`).
 - **Services** : règles métier, isolation par `req.user.cafeId`.
-- **Models** : Mongoose.
+- **Prisma** : tables Postgres, IDs UUID. Les réponses admin gardent `_id`.
 
 Le serveur charge `backend/.env` via [`backend/src/config/env.js`](backend/src/config/env.js). Variables invalides → `process.exit(1)`.
 
@@ -95,17 +95,17 @@ erDiagram
     string email UK
     string passwordHash
     string role
-    ObjectId cafeId
+    uuid cafeId
   }
   Category {
-    ObjectId cafeId
+    uuid cafeId
     string name
     string image
     number order
   }
   Product {
-    ObjectId cafeId
-    ObjectId categoryId
+    uuid cafeId
+    uuid categoryId
     string name
     number price
     string image
@@ -115,7 +115,7 @@ erDiagram
 ```
 
 - `User.role` : `admin` uniquement pour l’instant.
-- `passwordHash` : jamais renvoyé (`select: false` + transform `toJSON`).
+- `passwordHash` : jamais renvoyé par l’API (select sans ce champ).
 - `Cafe.slug` : kebab-case, unique, URL publique.
 - `Cafe.isActive === false` → menu public **403**.
 - `Product.available === false` → masqué du menu public.
@@ -151,7 +151,7 @@ Réponse type :
 
 | Méthode | Route | Description |
 | --- | --- | --- |
-| GET | `/health` | Santé API + MongoDB |
+| GET | `/health` | Santé API |
 | GET | `/menu/:slug` | Menu public (catégories + produits **disponibles**) |
 
 Menu 404 si slug inconnu, 403 si café inactif. Catégories sans produit disponible omises.
@@ -231,7 +231,7 @@ Actions : aperçu, PNG, copie du lien. Un QR `localhost` n’est pas scannable d
 | --- | --- |
 | `PORT` | Défaut `5000` |
 | `NODE_ENV` | `development` \| `production` |
-| `MONGODB_URI` | Ex. `mongodb://127.0.0.1:27017/digital-menu` |
+| `DATABASE_URL` | Ex. `postgresql://postgres:TON_MDP@127.0.0.1:5432/digital-menu` |
 | `JWT_SECRET` | ≥ 16 caractères |
 | `JWT_EXPIRES_IN` | Ex. `7d` |
 | `CLIENT_URL` | Origine CORS frontend (liste séparée par virgules) |
@@ -254,12 +254,15 @@ Ne jamais committer `.env`.
 
 ## Commandes
 
+Installer [PostgreSQL](https://www.postgresql.org/download/windows/) (user `postgres`). Dans `psql` ou pgAdmin, crée la base `digital-menu`. Mets le mot de passe dans `DATABASE_URL`.
+
 ```bash
 npm install
-npm run dev          # backend :5000 + frontend :5173
-npm run seed         # reset démo + images Cloudinary
+npm run db:migrate
+npm run seed
+npm run dev
 npm run lint
-npm test             # tests modèles backend
+npm test
 ```
 
 Seed : café **Café Central** (`cafe-central`), admin `admin@example.com` / `DemoAdmin123!`. **Efface** users, cafés, catégories, produits.
@@ -274,7 +277,7 @@ Santé : `GET http://localhost:5000/api/health`.
 - Isolation café via `cafeId`, jamais d’IDs d’un autre tenant.
 - Erreurs métier : `ApiError(status, message)`.
 - Nouveaux endpoints admin : validator Zod + `authenticate` + `requireAdmin`.
-- Images : upload Cloudinary puis URL dans le document Mongo.
+- Images : upload Cloudinary puis URL dans Postgres.
 
 ---
 

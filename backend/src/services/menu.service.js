@@ -1,20 +1,29 @@
-import { Cafe } from '../models/Cafe.js';
-import { Category } from '../models/Category.js';
-import { Product } from '../models/Product.js';
+import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 
 function toPublicProduct(product) {
   return {
-    id: product._id,
+    id: product.id,
     name: product.name,
     description: product.description || '',
-    price: product.price,
+    price: Number(product.price),
     image: product.image || '',
   };
 }
 
 export async function getPublicMenu(slug) {
-  const cafe = await Cafe.findOne({ slug }).select('name description logo address phone isActive');
+  const cafe = await prisma.cafe.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      logo: true,
+      address: true,
+      phone: true,
+      isActive: true,
+    },
+  });
 
   if (!cafe) {
     throw new ApiError(404, 'Menu introuvable');
@@ -25,16 +34,30 @@ export async function getPublicMenu(slug) {
   }
 
   const [categories, products] = await Promise.all([
-    Category.find({ cafeId: cafe._id }).sort({ order: 1, name: 1 }).select('name image order'),
-    Product.find({ cafeId: cafe._id, available: true })
-      .sort({ order: 1, name: 1 })
-      .select('name description price image categoryId order'),
+    prisma.category.findMany({
+      where: { cafeId: cafe.id },
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+      select: { id: true, name: true, image: true, order: true },
+    }),
+    prisma.product.findMany({
+      where: { cafeId: cafe.id, available: true },
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        image: true,
+        categoryId: true,
+        order: true,
+      },
+    }),
   ]);
 
   const productsByCategory = new Map();
 
   for (const product of products) {
-    const key = String(product.categoryId);
+    const key = product.categoryId;
 
     if (!productsByCategory.has(key)) {
       productsByCategory.set(key, []);
@@ -53,10 +76,10 @@ export async function getPublicMenu(slug) {
     },
     categories: categories
       .map((category) => ({
-        id: category._id,
+        id: category.id,
         name: category.name,
         image: category.image || '',
-        products: productsByCategory.get(String(category._id)) || [],
+        products: productsByCategory.get(category.id) || [],
       }))
       .filter((category) => category.products.length > 0),
   };

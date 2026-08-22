@@ -1,9 +1,6 @@
 import bcrypt from 'bcrypt';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
-import { Cafe } from './models/Cafe.js';
-import { Category } from './models/Category.js';
-import { Product } from './models/Product.js';
-import { User } from './models/User.js';
+import { prisma } from './config/prisma.js';
 import { uploadProductImage } from './services/storage.service.js';
 
 const DEMO_PASSWORD = 'DemoAdmin123!';
@@ -198,56 +195,62 @@ async function resolveImage(product) {
 async function seed() {
   await connectDatabase();
 
-  await Promise.all([
-    User.deleteMany({}),
-    Cafe.deleteMany({}),
-    Category.deleteMany({}),
-    Product.deleteMany({}),
-  ]);
+  await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.cafe.deleteMany();
 
-  const cafe = await Cafe.create({
-    name: 'Café Central',
-    description: 'Café de démonstration pour le menu digital.',
-    logo: '',
-    address: '12 Rue de la Paix, 75002 Paris',
-    phone: '+33 1 23 45 67 89',
-    slug: 'cafe-central',
-    isActive: true,
+  const cafe = await prisma.cafe.create({
+    data: {
+      name: 'Café Central',
+      description: 'Café de démonstration pour le menu digital.',
+      logo: '',
+      address: '12 Rue de la Paix, 75002 Paris',
+      phone: '+33 1 23 45 67 89',
+      slug: 'cafe-central',
+      isActive: true,
+    },
   });
 
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
 
-  const admin = await User.create({
-    name: 'Admin',
-    email: 'admin@example.com',
-    passwordHash,
-    role: 'admin',
-    cafeId: cafe._id,
+  const admin = await prisma.user.create({
+    data: {
+      name: 'Admin',
+      email: 'admin@example.com',
+      passwordHash,
+      role: 'admin',
+      cafeId: cafe.id,
+    },
   });
 
   for (const categoryData of catalog) {
-    const category = await Category.create({
-      cafeId: cafe._id,
-      name: categoryData.name,
-      description: categoryData.description,
-      image: await resolveImage({
-        photo: categoryData.photo,
-        file: categoryData.file,
+    const category = await prisma.category.create({
+      data: {
+        cafeId: cafe.id,
         name: categoryData.name,
-      }),
-      order: categoryData.order,
+        description: categoryData.description,
+        image: await resolveImage({
+          photo: categoryData.photo,
+          file: categoryData.file,
+          name: categoryData.name,
+        }),
+        order: categoryData.order,
+      },
     });
 
     for (const product of categoryData.products) {
-      await Product.create({
-        cafeId: cafe._id,
-        categoryId: category._id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        image: await resolveImage(product),
-        available: product.available !== false,
-        order: product.order,
+      await prisma.product.create({
+        data: {
+          cafeId: cafe.id,
+          categoryId: category.id,
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          image: await resolveImage(product),
+          available: product.available !== false,
+          order: product.order,
+        },
       });
     }
   }

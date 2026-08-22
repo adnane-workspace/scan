@@ -1,4 +1,4 @@
-import { Category } from '../models/Category.js';
+import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 
 function requireCafeId(user) {
@@ -11,7 +11,7 @@ function requireCafeId(user) {
 
 function toCategoryResponse(category) {
   return {
-    _id: category._id,
+    _id: category.id,
     cafeId: category.cafeId,
     name: category.name,
     description: category.description,
@@ -23,7 +23,9 @@ function toCategoryResponse(category) {
 }
 
 async function findOwnedCategory(cafeId, categoryId) {
-  const category = await Category.findOne({ _id: categoryId, cafeId });
+  const category = await prisma.category.findFirst({
+    where: { id: categoryId, cafeId },
+  });
 
   if (!category) {
     throw new ApiError(404, 'Category not found');
@@ -35,12 +37,14 @@ async function findOwnedCategory(cafeId, categoryId) {
 export async function createCategory(user, payload) {
   const cafeId = requireCafeId(user);
 
-  const category = await Category.create({
-    cafeId,
-    name: payload.name,
-    description: payload.description ?? '',
-    image: payload.image ?? '',
-    order: payload.order ?? 0,
+  const category = await prisma.category.create({
+    data: {
+      cafeId,
+      name: payload.name,
+      description: payload.description ?? '',
+      image: payload.image ?? '',
+      order: payload.order ?? 0,
+    },
   });
 
   return toCategoryResponse(category);
@@ -49,7 +53,10 @@ export async function createCategory(user, payload) {
 export async function listCategories(user) {
   const cafeId = requireCafeId(user);
 
-  const categories = await Category.find({ cafeId }).sort({ order: 1, name: 1 });
+  const categories = await prisma.category.findMany({
+    where: { cafeId },
+    orderBy: [{ order: 'asc' }, { name: 'asc' }],
+  });
 
   return categories.map(toCategoryResponse);
 }
@@ -63,32 +70,24 @@ export async function getCategoryById(user, categoryId) {
 
 export async function updateCategory(user, categoryId, payload) {
   const cafeId = requireCafeId(user);
-  const category = await findOwnedCategory(cafeId, categoryId);
+  await findOwnedCategory(cafeId, categoryId);
 
-  if (payload.name !== undefined) {
-    category.name = payload.name;
-  }
-
-  if (payload.description !== undefined) {
-    category.description = payload.description;
-  }
-
-  if (payload.image !== undefined) {
-    category.image = payload.image;
-  }
-
-  if (payload.order !== undefined) {
-    category.order = payload.order;
-  }
-
-  await category.save();
+  const category = await prisma.category.update({
+    where: { id: categoryId },
+    data: {
+      ...(payload.name !== undefined && { name: payload.name }),
+      ...(payload.description !== undefined && { description: payload.description }),
+      ...(payload.image !== undefined && { image: payload.image }),
+      ...(payload.order !== undefined && { order: payload.order }),
+    },
+  });
 
   return toCategoryResponse(category);
 }
 
 export async function deleteCategory(user, categoryId) {
   const cafeId = requireCafeId(user);
-  const category = await findOwnedCategory(cafeId, categoryId);
+  await findOwnedCategory(cafeId, categoryId);
 
-  await category.deleteOne();
+  await prisma.category.delete({ where: { id: categoryId } });
 }

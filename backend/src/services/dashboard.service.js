@@ -1,7 +1,4 @@
-import mongoose from 'mongoose';
-import { Cafe } from '../models/Cafe.js';
-import { Category } from '../models/Category.js';
-import { Product } from '../models/Product.js';
+import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 
 function requireCafeId(user) {
@@ -13,35 +10,48 @@ function requireCafeId(user) {
 }
 
 function toRecentProduct(product) {
-  const category = product.categoryId;
-
   return {
-    _id: product._id,
+    _id: product.id,
     name: product.name,
-    price: product.price,
+    price: Number(product.price),
     image: product.image,
     available: product.available,
-    categoryName: category?.name ?? null,
+    categoryName: product.category?.name ?? null,
     createdAt: product.createdAt,
   };
 }
 
 export async function getDashboardStats(user) {
   const cafeId = requireCafeId(user);
-  const cafeObjectId = new mongoose.Types.ObjectId(String(cafeId));
 
   const [totalProducts, totalCategories, availableProducts, recentProducts, categoryDocs, productCounts, cafe] =
     await Promise.all([
-      Product.countDocuments({ cafeId }),
-      Category.countDocuments({ cafeId }),
-      Product.countDocuments({ cafeId, available: true }),
-      Product.find({ cafeId }).populate('categoryId', 'name').sort({ createdAt: -1 }).limit(5),
-      Category.find({ cafeId }).sort({ order: 1, name: 1 }).select('name'),
-      Product.aggregate([{ $match: { cafeId: cafeObjectId } }, { $group: { _id: '$categoryId', count: { $sum: 1 } } }]),
-      Cafe.findById(cafeId).select('name slug'),
+      prisma.product.count({ where: { cafeId } }),
+      prisma.category.count({ where: { cafeId } }),
+      prisma.product.count({ where: { cafeId, available: true } }),
+      prisma.product.findMany({
+        where: { cafeId },
+        include: { category: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+      prisma.category.findMany({
+        where: { cafeId },
+        orderBy: [{ order: 'asc' }, { name: 'asc' }],
+        select: { id: true, name: true },
+      }),
+      prisma.product.groupBy({
+        by: ['categoryId'],
+        where: { cafeId },
+        _count: { _all: true },
+      }),
+      prisma.cafe.findUnique({
+        where: { id: cafeId },
+        select: { name: true, slug: true },
+      }),
     ]);
 
-  const countByCategory = new Map(productCounts.map((item) => [String(item._id), item.count]));
+  const countByCategory = new Map(productCounts.map((item) => [item.categoryId, item._count._all]));
 
   return {
     totalProducts,
@@ -50,9 +60,9 @@ export async function getDashboardStats(user) {
     unavailableProducts: totalProducts - availableProducts,
     recentProducts: recentProducts.map(toRecentProduct),
     categories: categoryDocs.map((category) => ({
-      _id: category._id,
+      _id: category.id,
       name: category.name,
-      productCount: countByCategory.get(String(category._id)) || 0,
+      productCount: countByCategory.get(category.id) || 0,
     })),
     cafe: cafe
       ? {

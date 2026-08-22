@@ -1,6 +1,6 @@
+import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { verifyToken } from '../utils/token.js';
-import { User } from '../models/User.js';
 import { asyncHandler } from './asyncHandler.js';
 
 export const authenticate = asyncHandler(async (req, _res, next) => {
@@ -24,13 +24,24 @@ export const authenticate = asyncHandler(async (req, _res, next) => {
     throw new ApiError(401, 'Invalid or expired token');
   }
 
-  const user = await User.findById(decoded.sub);
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.sub },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      cafeId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
 
   if (!user) {
     throw new ApiError(401, 'Authentication required');
   }
 
-  req.user = user;
+  req.user = { ...user, _id: user.id };
   next();
 });
 

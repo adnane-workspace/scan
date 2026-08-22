@@ -1,22 +1,10 @@
-import mongoose from 'mongoose';
-import { env } from './env.js';
+import { prisma } from './prisma.js';
 
 export async function connectDatabase() {
-  mongoose.set('strictQuery', true);
-
-  await mongoose.connect(env.MONGODB_URI);
-
-  console.log(`MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
+  await prisma.$connect();
+  console.log('PostgreSQL connected');
 }
 
 export async function disconnectDatabase() {
-  await mongoose.disconnect();
+  await prisma.$disconnect();
 }
-
-mongoose.connection.on('error', (error) => {
-  console.error('MongoDB connection error:', error.message);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.warn('MongoDB disconnected');
-});

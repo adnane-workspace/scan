@@ -1,5 +1,4 @@
-import { Category } from '../models/Category.js';
-import { Product } from '../models/Product.js';
+import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { normalizeImageUrl } from './storage.service.js';
 
@@ -12,17 +11,16 @@ function requireCafeId(user) {
 }
 
 function toProductResponse(product) {
-  const category = product.categoryId;
-  const categoryId = category?._id ?? category;
+  const category = product.category;
 
   return {
-    _id: product._id,
+    _id: product.id,
     cafeId: product.cafeId,
-    categoryId,
+    categoryId: product.categoryId,
     categoryName: category?.name ?? null,
     name: product.name,
     description: product.description,
-    price: product.price,
+    price: Number(product.price),
     image: product.image,
     available: product.available,
     order: product.order,
@@ -32,7 +30,9 @@ function toProductResponse(product) {
 }
 
 async function assertOwnedCategory(cafeId, categoryId) {
-  const category = await Category.findOne({ _id: categoryId, cafeId });
+  const category = await prisma.category.findFirst({
+    where: { id: categoryId, cafeId },
+  });
 
   if (!category) {
     throw new ApiError(404, 'Category not found');
@@ -42,7 +42,10 @@ async function assertOwnedCategory(cafeId, categoryId) {
 }
 
 async function findOwnedProduct(cafeId, productId) {
-  const product = await Product.findOne({ _id: productId, cafeId }).populate('categoryId', 'name');
+  const product = await prisma.product.findFirst({
+    where: { id: productId, cafeId },
+    include: { category: { select: { name: true } } },
+  });
 
   if (!product) {
     throw new ApiError(404, 'Product not found');
@@ -55,18 +58,19 @@ export async function createProduct(user, payload) {
   const cafeId = requireCafeId(user);
   await assertOwnedCategory(cafeId, payload.categoryId);
 
-  const product = await Product.create({
-    cafeId,
-    categoryId: payload.categoryId,
-    name: payload.name,
-    description: payload.description ?? '',
-    price: payload.price,
-    image: normalizeImageUrl(payload.image),
-    available: payload.available ?? true,
-    order: payload.order ?? 0,
+  const product = await prisma.product.create({
+    data: {
+      cafeId,
+      categoryId: payload.categoryId,
+      name: payload.name,
+      description: payload.description ?? '',
+      price: payload.price,
+      image: normalizeImageUrl(payload.image),
+      available: payload.available ?? true,
+      order: payload.order ?? 0,
+    },
+    include: { category: { select: { name: true } } },
   });
-
-  await product.populate('categoryId', 'name');
 
   return toProductResponse(product);
 }
@@ -74,9 +78,11 @@ export async function createProduct(user, payload) {
 export async function listProducts(user) {
   const cafeId = requireCafeId(user);
 
-  const products = await Product.find({ cafeId })
-    .populate('categoryId', 'name')
-    .sort({ order: 1, name: 1 });
+  const products = await prisma.product.findMany({
+    where: { cafeId },
+    include: { category: { select: { name: true } } },
+    orderBy: [{ order: 'asc' }, { name: 'asc' }],
+  });
 
   return products.map(toProductResponse);
 }
@@ -90,46 +96,32 @@ export async function getProductById(user, productId) {
 
 export async function updateProduct(user, productId, payload) {
   const cafeId = requireCafeId(user);
-  const product = await findOwnedProduct(cafeId, productId);
+  await findOwnedProduct(cafeId, productId);
 
   if (payload.categoryId !== undefined) {
     await assertOwnedCategory(cafeId, payload.categoryId);
-    product.categoryId = payload.categoryId;
   }
 
-  if (payload.name !== undefined) {
-    product.name = payload.name;
-  }
-
-  if (payload.description !== undefined) {
-    product.description = payload.description;
-  }
-
-  if (payload.price !== undefined) {
-    product.price = payload.price;
-  }
-
-  if (payload.image !== undefined) {
-    product.image = normalizeImageUrl(payload.image);
-  }
-
-  if (payload.available !== undefined) {
-    product.available = payload.available;
-  }
-
-  if (payload.order !== undefined) {
-    product.order = payload.order;
-  }
-
-  await product.save();
-  await product.populate('categoryId', 'name');
+  const product = await prisma.product.update({
+    where: { id: productId },
+    data: {
+      ...(payload.categoryId !== undefined && { categoryId: payload.categoryId }),
+      ...(payload.name !== undefined && { name: payload.name }),
+      ...(payload.description !== undefined && { description: payload.description }),
+      ...(payload.price !== undefined && { price: payload.price }),
+      ...(payload.image !== undefined && { image: normalizeImageUrl(payload.image) }),
+      ...(payload.available !== undefined && { available: payload.available }),
+      ...(payload.order !== undefined && { order: payload.order }),
+    },
+    include: { category: { select: { name: true } } },
+  });
 
   return toProductResponse(product);
 }
 
 export async function deleteProduct(user, productId) {
   const cafeId = requireCafeId(user);
-  const product = await findOwnedProduct(cafeId, productId);
+  await findOwnedProduct(cafeId, productId);
 
-  await product.deleteOne();
+  await prisma.product.delete({ where: { id: productId } });
 }

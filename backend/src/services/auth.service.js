@@ -1,11 +1,11 @@
 import bcrypt from 'bcrypt';
-import { User } from '../models/User.js';
+import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { generateToken } from '../utils/token.js';
 
 function toPublicUser(user) {
   return {
-    _id: user._id,
+    _id: user.id,
     name: user.name,
     email: user.email,
     role: user.role,
@@ -16,7 +16,9 @@ function toPublicUser(user) {
 }
 
 export async function login({ email, password }) {
-  const user = await User.findOne({ email }).select('+passwordHash');
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
 
   if (!user) {
     throw new ApiError(401, 'Invalid credentials');
@@ -33,9 +35,9 @@ export async function login({ email, password }) {
   }
 
   const token = generateToken({
-    sub: user._id.toString(),
+    sub: user.id,
     role: user.role,
-    cafeId: user.cafeId ? user.cafeId.toString() : null,
+    cafeId: user.cafeId,
   });
 
   return {
@@ -45,7 +47,18 @@ export async function login({ email, password }) {
 }
 
 export async function getCurrentUser(userId) {
-  const user = await User.findById(userId);
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      cafeId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
 
   if (!user) {
     throw new ApiError(401, 'Authentication required');

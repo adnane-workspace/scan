@@ -8,10 +8,15 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed": "node src/seed.js",
+    "db:generate": "prisma generate",
+    "vercel-build": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:push": "prisma db push",
     "lint": "eslint src",
-    "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --runInBand"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.10.1",
     "cors": "^2.8.5",
@@ -19,7 +24,6 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.17.1",
     "morgan": "^1.10.1",
     "multer": "^2.2.0",
     "zod": "^4.0.17"
@@ -29,6 +33,6 @@
     "eslint": "^9.33.0",
     "globals": "^16.3.0",
     "jest": "^30.0.5",
-    "mongodb-memory-server": "^10.1.4"
+    "prisma": "^6.19.3"
   }
 }

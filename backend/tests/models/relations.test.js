@@ -1,38 +1,45 @@
-import { Category } from '../../src/models/Category.js';
-import { Product } from '../../src/models/Product.js';
-import { User } from '../../src/models/User.js';
+import { prisma } from '../../src/config/prisma.js';
 import { createCafe, createCategory, createUser } from '../helpers.js';
 
 describe('relations', () => {
   it('associates an admin with a cafe', async () => {
     const cafe = await createCafe({ slug: 'cafe-central' });
-    const user = await createUser({ cafeId: cafe._id, email: 'admin@example.com' });
+    const user = await createUser({ cafeId: cafe.id, email: 'admin@example.com' });
 
-    const populated = await User.findById(user._id).populate('cafeId');
+    const populated = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { cafe: true },
+    });
 
-    expect(populated.cafeId._id.toString()).toBe(cafe._id.toString());
-    expect(populated.cafeId.slug).toBe('cafe-central');
+    expect(populated.cafe.id).toBe(cafe.id);
+    expect(populated.cafe.slug).toBe('cafe-central');
   });
 
   it('scopes categories and products to the same cafe', async () => {
     const cafe = await createCafe();
-    const category = await createCategory({ cafeId: cafe._id, name: 'Cafés' });
+    const category = await createCategory({ cafeId: cafe.id, name: 'Cafés' });
 
-    const product = await Product.create({
-      cafeId: cafe._id,
-      categoryId: category._id,
-      name: 'Espresso',
-      price: 2.2,
+    const product = await prisma.product.create({
+      data: {
+        cafeId: cafe.id,
+        categoryId: category.id,
+        name: 'Espresso',
+        price: 2.2,
+      },
     });
 
-    const populatedCategory = await Category.findById(category._id).populate('cafeId');
-    const populatedProduct = await Product.findById(product._id)
-      .populate('cafeId')
-      .populate('categoryId');
+    const populatedCategory = await prisma.category.findUnique({
+      where: { id: category.id },
+      include: { cafe: true },
+    });
+    const populatedProduct = await prisma.product.findUnique({
+      where: { id: product.id },
+      include: { cafe: true, category: true },
+    });
 
-    expect(populatedCategory.cafeId._id.toString()).toBe(cafe._id.toString());
-    expect(populatedProduct.cafeId._id.toString()).toBe(cafe._id.toString());
-    expect(populatedProduct.categoryId._id.toString()).toBe(category._id.toString());
-    expect(populatedProduct.cafeId._id.toString()).toBe(populatedProduct.categoryId.cafeId.toString());
+    expect(populatedCategory.cafe.id).toBe(cafe.id);
+    expect(populatedProduct.cafe.id).toBe(cafe.id);
+    expect(populatedProduct.category.id).toBe(category.id);
+    expect(populatedProduct.cafe.id).toBe(populatedProduct.category.cafeId);
   });
 });

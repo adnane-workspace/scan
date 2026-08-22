@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { uuidSchema } from './id.schema.js';
 
-const objectIdSchema = z.string().regex(/^[a-fA-F0-9]{24}$/, 'Invalid id');
+const objectIdSchema = uuidSchema;
 
 const imageSchema = z
   .string()
