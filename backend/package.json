@@ -8,8 +8,8 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed": "node src/seed.js",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
-    "vercel-build": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
     "lint": "eslint src",
@@ -26,13 +26,13 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "multer": "^2.2.0",
+    "prisma": "^6.19.3",
     "zod": "^4.0.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "eslint": "^9.33.0",
     "globals": "^16.3.0",
-    "jest": "^30.0.5",
-    "prisma": "^6.19.3"
+    "jest": "^30.0.5"
   }
 }
