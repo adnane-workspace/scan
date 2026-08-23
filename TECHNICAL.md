@@ -185,8 +185,6 @@ Dans Cloudinary : **Media Library → Home → `digital-menu`** (pas le dossier 
 
 Le seed upload avec des `public_id` stables (`seed-espresso`, `seed-category-cafes`, …) : un re-seed **écrase** les mêmes assets.
 
-`GET /uploads` existe encore pour d’éventuelles anciennes URLs locales.
-
 ---
 
 ## Frontend
@@ -239,7 +237,6 @@ Actions : aperçu, PNG, copie du lien. Un QR `localhost` n’est pas scannable d
 | `CLOUDINARY_API_KEY` | Obligatoire |
 | `CLOUDINARY_API_SECRET` | Obligatoire (~27 caractères) |
 | `CLOUDINARY_FOLDER` | Défaut `digital-menu` |
-| `PUBLIC_BASE_URL` | Anciennes URLs `/uploads` |
 
 Ne jamais committer `.env`.
 

@@ -3,6 +3,7 @@ node_modules/
 .cursor/
 stitch-assets/
 next.md*
+TECHNICAL.md*
 # Environment and secrets
 .env
 .env.local
@@ -40,7 +41,4 @@ Thumbs.db
 *.local
 .cache/
 coverage/
-
-# Uploaded product images
-backend/uploads/products/*
-!backend/uploads/products/.gitkeep
+.neon

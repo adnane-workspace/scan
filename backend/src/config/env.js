@@ -21,7 +21,6 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().trim().min(1, 'CLOUDINARY_API_KEY is required'),
   CLOUDINARY_API_SECRET: z.string().trim().min(1, 'CLOUDINARY_API_SECRET is required'),
   CLOUDINARY_FOLDER: z.string().trim().min(1).default('digital-menu'),
-  PUBLIC_BASE_URL: z.string().url().default('http://localhost:5000'),
 });
 
 const parsed = envSchema.safeParse(process.env);
