@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useOutletContext, useParams } from 'react-router-dom';
 import PasswordField from '../components/ui/PasswordField.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { useLocale } from '../hooks/useLocale.js';
 import { getPlatformCafe, resetPlatformCafePassword, updatePlatformCafe } from '../services/platform.service.js';
 import { formatDate } from '../utils/format.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
@@ -18,6 +19,7 @@ function Field({ label, value }) {
 export default function CafeDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { t, locale } = useLocale();
   const { refreshCafes } = useOutletContext();
   const [cafe, setCafe] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ export default function CafeDetailPage() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err.response?.data?.message || 'Café introuvable');
+          setError(err.response?.data?.message || t('platform.notFound'));
           setCafe(null);
         }
       })
@@ -58,7 +60,7 @@ export default function CafeDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, t]);
 
   if (user?.role !== 'superadmin') {
     return <Navigate to="/dashboard" replace />;
@@ -77,7 +79,7 @@ export default function CafeDetailPage() {
       setCafe((current) => ({ ...current, ...updated }));
       await refreshCafes?.();
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de mettre à jour le café');
+      setError(err.response?.data?.message || t('platform.updateError'));
     } finally {
       setPending(false);
     }
@@ -91,7 +93,7 @@ export default function CafeDetailPage() {
     }
 
     if (password !== confirmPassword) {
-      setError('Les deux nouveaux mots de passe ne correspondent pas');
+      setError(t('platform.passwordMismatch'));
       return;
     }
 
@@ -106,9 +108,9 @@ export default function CafeDetailPage() {
       setShowNew(false);
       setShowConfirm(false);
       setShowResetForm(false);
-      setResetSuccess(`Mot de passe mis à jour pour ${result.email}`);
+      setResetSuccess(t('platform.passwordUpdated', { email: result.email }));
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de réinitialiser le mot de passe');
+      setError(err.response?.data?.message || t('platform.resetError'));
     } finally {
       setResetting(false);
     }
@@ -117,7 +119,7 @@ export default function CafeDetailPage() {
   return (
     <section className="mx-auto w-full max-w-3xl space-y-5">
       <Link to="/dashboard/cafes" className="text-sm font-semibold text-primary hover:underline">
-        ← Tous les cafés
+        {t('platform.backToCafes')}
       </Link>
 
       {error ? (
@@ -125,7 +127,7 @@ export default function CafeDetailPage() {
       ) : null}
 
       {loading ? (
-        <p className="text-on-surface-variant">Chargement...</p>
+        <p className="text-on-surface-variant">{t('common.loading')}</p>
       ) : cafe ? (
         <div className="space-y-5 rounded-2xl bg-surface-container-lowest p-6 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -143,30 +145,30 @@ export default function CafeDetailPage() {
               </div>
             </div>
             <span className={cafe.isActive ? 'font-semibold text-primary' : 'font-semibold text-error'}>
-              {cafe.isActive ? 'Actif' : 'Inactif'}
+              {cafe.isActive ? t('platform.statusActive') : t('platform.statusInactive')}
             </span>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Gérant" value={cafe.ownerName} />
-            <Field label="Email" value={cafe.ownerEmail} />
-            <Field label="Téléphone" value={cafe.phone} />
+            <Field label={t('platform.owner')} value={cafe.ownerName} />
+            <Field label={t('platform.email')} value={cafe.ownerEmail} />
+            <Field label={t('platform.phone')} value={cafe.phone} />
             <Field
-              label="Adresse"
+              label={t('platform.address')}
               value={
                 cafe.address || hasCoordinates(cafe) ? (
                   <a href={mapsHref(cafe)} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                    {cafe.address || 'Voir l’emplacement'}
+                    {cafe.address || t('platform.viewLocation')}
                   </a>
                 ) : (
-                  '—'
+                  t('common.none')
                 )
               }
             />
-            <Field label="Catégories" value={String(cafe.categoryCount)} />
-            <Field label="Produits" value={String(cafe.productCount)} />
-            <Field label="Inscrit le" value={formatDate(cafe.createdAt)} />
-            <Field label="Mis à jour" value={formatDate(cafe.updatedAt)} />
+            <Field label={t('platform.categories')} value={String(cafe.categoryCount)} />
+            <Field label={t('platform.products')} value={String(cafe.productCount)} />
+            <Field label={t('platform.created')} value={formatDate(cafe.createdAt, locale)} />
+            <Field label={t('platform.updated')} value={formatDate(cafe.updatedAt, locale)} />
           </div>
 
           {cafe.description ? <p className="text-on-surface-variant">{cafe.description}</p> : null}
@@ -178,7 +180,7 @@ export default function CafeDetailPage() {
               rel="noreferrer"
               className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary"
             >
-              Voir le menu
+              {t('platform.viewMenu')}
             </Link>
             <button
               type="button"
@@ -186,15 +188,14 @@ export default function CafeDetailPage() {
               onClick={handleToggle}
               className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface disabled:opacity-60"
             >
-              {cafe.isActive ? 'Désactiver' : 'Activer'}
+              {cafe.isActive ? t('platform.deactivate') : t('platform.activate')}
             </button>
           </div>
 
           <div className="space-y-3 border-t border-outline-variant/30 pt-5">
-            <h2 className="text-lg font-semibold text-on-surface">Mot de passe du gérant</h2>
+            <h2 className="text-lg font-semibold text-on-surface">{t('platform.passwordTitle')}</h2>
             <p className="text-sm text-on-surface-variant">
-              Le mot de passe actuel n’est pas lisible. Définis un nouveau mot de passe, confirme-le, puis transmets-le à{' '}
-              {cafe.ownerEmail || 'le gérant'}.
+              {t('platform.passwordHint', { email: cafe.ownerEmail || t('platform.owner') })}
             </p>
             {resetSuccess ? (
               <p className="rounded-xl border border-primary/20 bg-primary-container px-4 py-3 text-sm text-on-primary-container">
@@ -204,21 +205,21 @@ export default function CafeDetailPage() {
             {showResetForm ? (
               <form onSubmit={handleResetPassword} className="grid gap-3">
                 <PasswordField
-                  label="Nouveau mot de passe"
+                  label={t('platform.newPassword')}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   show={showNew}
                   onToggleShow={() => setShowNew((current) => !current)}
-                  placeholder="8 caractères minimum"
+                  placeholder={t('settings.passwordPlaceholder')}
                   minLength={8}
                 />
                 <PasswordField
-                  label="Confirmer le mot de passe"
+                  label={t('platform.confirmPassword')}
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   show={showConfirm}
                   onToggleShow={() => setShowConfirm((current) => !current)}
-                  placeholder="Retape le nouveau mot de passe"
+                  placeholder={t('settings.confirmPlaceholder')}
                   minLength={8}
                 />
                 <div className="flex flex-wrap gap-3">
@@ -227,7 +228,7 @@ export default function CafeDetailPage() {
                     disabled={resetting}
                     className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary disabled:opacity-60"
                   >
-                    {resetting ? 'Enregistrement...' : 'Réinitialiser'}
+                    {resetting ? t('common.saving') : t('platform.reset')}
                   </button>
                   <button
                     type="button"
@@ -240,7 +241,7 @@ export default function CafeDetailPage() {
                     }}
                     className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface"
                   >
-                    Annuler
+                    {t('common.cancel')}
                   </button>
                 </div>
               </form>
@@ -253,7 +254,7 @@ export default function CafeDetailPage() {
                 }}
                 className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface"
               >
-                Changer le mot de passe
+                {t('platform.changePassword')}
               </button>
             )}
           </div>

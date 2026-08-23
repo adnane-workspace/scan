@@ -30,6 +30,14 @@ function lookup(locale, key) {
   return typeof node === 'string' ? node : key;
 }
 
+function interpolate(text, vars) {
+  if (!vars) {
+    return text;
+  }
+
+  return text.replace(/\{(\w+)\}/g, (_, name) => (vars[name] == null ? '' : String(vars[name])));
+}
+
 export function LocaleProvider({ children }) {
   const [locale, setLocaleState] = useState(readLocale);
 
@@ -40,7 +48,7 @@ export function LocaleProvider({ children }) {
     setLocaleState(value);
   }, []);
 
-  const t = useCallback((key) => lookup(locale, key), [locale]);
+  const t = useCallback((key, vars) => interpolate(lookup(locale, key), vars), [locale]);
 
   const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 

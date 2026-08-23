@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AdminProductCard from '../components/dashboard/AdminProductCard.jsx';
 import ProductFormModal from '../components/dashboard/ProductFormModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import { useLocale } from '../hooks/useLocale.js';
 import { listCategories } from '../services/category.service.js';
 import {
   createProduct,
@@ -25,6 +26,7 @@ const selectClass =
   'w-full appearance-none cursor-pointer rounded-lg bg-surface-container-highest py-2 pr-10 pl-4 text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant outline-none transition-shadow focus:ring-2 focus:ring-primary sm:w-auto';
 
 export default function ProductsPage() {
+  const { t } = useLocale();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -51,7 +53,7 @@ export default function ProductsPage() {
       setProducts(productItems);
       setCategories(categoryItems);
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de charger les produits');
+      setError(err.response?.data?.message || t('products.loadError'));
     } finally {
       if (!silent) {
         setLoading(false);
@@ -134,7 +136,7 @@ export default function ProductsPage() {
       const url = await uploadProductImage(file);
       setForm((current) => ({ ...current, image: url }));
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Impossible d\'envoyer l\'image');
+      setFormError(err.response?.data?.message || t('validation.uploadImage'));
     } finally {
       setUploading(false);
     }
@@ -142,19 +144,19 @@ export default function ProductsPage() {
 
   function validateForm() {
     if (!form.name.trim()) {
-      return 'Le nom est requis';
+      return t('validation.nameRequired');
     }
 
     if (form.price === '' || Number.isNaN(Number(form.price))) {
-      return 'Le prix est requis';
+      return t('validation.priceRequired');
     }
 
     if (Number(form.price) < 0) {
-      return 'Le prix ne peut pas être négatif';
+      return t('validation.priceNegative');
     }
 
     if (!form.categoryId) {
-      return 'La catégorie est requise';
+      return t('validation.categoryRequired');
     }
 
     return '';
@@ -193,14 +195,14 @@ export default function ProductsPage() {
       closeForm();
       await loadData(true);
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Impossible d\'enregistrer le produit');
+      setFormError(err.response?.data?.message || t('validation.saveProduct'));
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(product) {
-    const confirmed = window.confirm(`Supprimer le produit « ${product.name} » ?`);
+    const confirmed = window.confirm(t('products.deleteConfirm', { name: product.name }));
 
     if (!confirmed) {
       return;
@@ -217,7 +219,7 @@ export default function ProductsPage() {
 
       await loadData(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de supprimer le produit');
+      setError(err.response?.data?.message || t('products.deleteError'));
     }
   }
 
@@ -233,7 +235,7 @@ export default function ProductsPage() {
         ),
       );
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de mettre à jour la disponibilité');
+      setError(err.response?.data?.message || t('dashboard.availabilityError'));
     } finally {
       setTogglingId(null);
     }
@@ -243,8 +245,8 @@ export default function ProductsPage() {
     <div className="flex w-full flex-col">
       <div className="mb-stack-lg flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-display-md font-bold text-on-surface">Produits</h1>
-          <p className="mt-1 text-on-surface-variant">Gérez votre catalogue de produits</p>
+          <h1 className="font-display text-display-md font-bold text-on-surface">{t('products.title')}</h1>
+          <p className="mt-1 text-on-surface-variant">{t('products.subtitle')}</p>
         </div>
         <button
           type="button"
@@ -252,7 +254,7 @@ export default function ProductsPage() {
           className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-all hover:bg-primary/90"
         >
           <MaterialIcon name="add" />
-          Ajouter un Produit
+          {t('products.add')}
         </button>
       </div>
 
@@ -272,7 +274,7 @@ export default function ProductsPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="w-full rounded-lg bg-surface-container-highest py-2 pr-4 pl-10 text-on-surface outline-none transition-shadow focus:ring-2 focus:ring-primary"
-            placeholder="Rechercher un produit..."
+            placeholder={t('products.search')}
             type="text"
           />
         </div>
@@ -283,7 +285,7 @@ export default function ProductsPage() {
               onChange={(event) => setCategoryFilter(event.target.value)}
               className={selectClass}
             >
-              <option value="all">Toutes les catégories</option>
+              <option value="all">{t('products.allCategories')}</option>
               {categories.map((category) => (
                 <option key={category._id} value={category._id}>
                   {category.name}
@@ -301,9 +303,9 @@ export default function ProductsPage() {
               onChange={(event) => setAvailabilityFilter(event.target.value)}
               className={selectClass}
             >
-              <option value="all">Disponibilité: Tous</option>
-              <option value="available">En stock</option>
-              <option value="unavailable">Rupture</option>
+              <option value="all">{t('products.availabilityAll')}</option>
+              <option value="available">{t('products.inStock')}</option>
+              <option value="unavailable">{t('products.outOfStock')}</option>
             </select>
             <MaterialIcon
               name="expand_more"
@@ -314,10 +316,10 @@ export default function ProductsPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-on-surface-variant">Chargement des produits...</p>
+        <p className="text-sm text-on-surface-variant">{t('products.loading')}</p>
       ) : filteredProducts.length === 0 ? (
         <p className="rounded-xl bg-surface-container px-6 py-8 text-sm text-on-surface-variant">
-          Aucun produit trouvé.
+          {t('products.empty')}
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-3">

@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
+import { useLocale } from '../hooks/useLocale.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
 
 function LandingStatus({ title, message }) {
@@ -19,24 +21,25 @@ function telHref(phone) {
 
 export default function PublicMenuLandingPage() {
   const { slug } = useParams();
+  const { t } = useLocale();
   const { menu, loading, errorStatus } = usePublicMenu(slug);
 
   useEffect(() => {
     if (menu?.cafe) {
       setPageMeta({
         title: menu.cafe.name,
-        description: menu.cafe.description || `Bienvenue chez ${menu.cafe.name}`,
+        description: menu.cafe.description || t('menu.welcome', { name: menu.cafe.name }),
       });
       return;
     }
 
     if (errorStatus) {
       setPageMeta({
-        title: 'Menu introuvable',
-        description: "Ce menu n'est plus disponible.",
+        title: t('menu.missingTitle'),
+        description: t('menu.missing'),
       });
     }
-  }, [menu, errorStatus]);
+  }, [menu, errorStatus, t]);
 
   if (loading) {
     return (
@@ -48,17 +51,20 @@ export default function PublicMenuLandingPage() {
   }
 
   if (errorStatus === 403) {
-    return <LandingStatus title="Menu indisponible" message="Ce café n'a actuellement pas de menu disponible." />;
+    return <LandingStatus title={t('menu.unavailableTitle')} message={t('menu.unavailable')} />;
   }
 
   if (errorStatus || !menu?.cafe) {
-    return <LandingStatus title="Menu introuvable" message="Ce menu n'est plus disponible." />;
+    return <LandingStatus title={t('menu.missingTitle')} message={t('menu.missing')} />;
   }
 
   const { cafe } = menu;
 
   return (
     <div className="relative flex min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col items-center justify-center overflow-hidden px-6 py-12">
+      <div className="absolute top-4 right-4 z-20 sm:top-6 sm:right-6">
+        <LanguageSwitcher />
+      </div>
       <div className="pointer-events-none absolute top-1/4 left-1/4 h-[40vw] w-[40vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-container/15 blur-[100px]" />
       <div className="pointer-events-none absolute right-1/4 bottom-1/4 h-[30vw] w-[30vw] translate-x-1/2 translate-y-1/2 rounded-full bg-tertiary-container/15 blur-[80px]" />
 
@@ -93,7 +99,7 @@ export default function PublicMenuLandingPage() {
                 className="inline-flex items-center gap-2 hover:text-primary"
               >
                 <MaterialIcon name="location_on" className="text-[18px]" />
-                {cafe.address || 'Voir l’itinéraire'}
+                {cafe.address || t('menu.directions')}
               </a>
             ) : null}
             {cafe.phone ? (
@@ -109,7 +115,7 @@ export default function PublicMenuLandingPage() {
           to={`/menu/${slug}/categories`}
           className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] sm:w-auto sm:min-w-56"
         >
-          Voir le menu
+          {t('menu.viewMenu')}
           <MaterialIcon name="arrow_forward" className="text-[20px]" />
         </Link>
       </div>

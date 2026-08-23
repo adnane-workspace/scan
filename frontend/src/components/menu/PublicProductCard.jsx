@@ -1,7 +1,9 @@
+import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import { formatPrice } from '../../utils/format.js';
 
 export default function PublicProductCard({ product, onSelect }) {
+  const { locale } = useLocale();
   return (
     <button
       type="button"
@@ -22,7 +24,7 @@ export default function PublicProductCard({ product, onSelect }) {
         {product.description ? (
           <p className="mt-1 line-clamp-2 text-xs text-on-surface-variant sm:text-sm">{product.description}</p>
         ) : null}
-        <p className="mt-auto pt-2 text-sm font-semibold text-primary">{formatPrice(product.price)}</p>
+        <p className="mt-auto pt-2 text-sm font-semibold text-primary">{formatPrice(product.price, locale)}</p>
       </div>
     </button>
   );

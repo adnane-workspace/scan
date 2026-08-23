@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CategoryFormModal from '../components/dashboard/CategoryFormModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import { useLocale } from '../hooks/useLocale.js';
 import {
   createCategory,
   deleteCategory,
@@ -29,7 +30,7 @@ function countByCategory(products) {
   return counts;
 }
 
-function CategoryIdentity({ category }) {
+function CategoryIdentity({ category, t }) {
   return (
     <div className="flex min-w-0 items-center gap-4">
       <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-container text-primary shadow-sm">
@@ -47,19 +48,19 @@ function CategoryIdentity({ category }) {
           {category.name}
         </h3>
         <p className="mt-1 truncate text-label-md font-medium text-on-surface-variant">
-          {category.description || 'Aucune description'}
+          {category.description || t('categories.noDescription')}
         </p>
       </div>
     </div>
   );
 }
 
-function CategoryActions({ category, onEdit, onDelete }) {
+function CategoryActions({ category, onEdit, onDelete, t }) {
   return (
     <div className="flex items-center justify-end gap-2">
       <button
         type="button"
-        title="Modifier"
+        title={t('common.edit')}
         onClick={() => onEdit(category)}
         className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
       >
@@ -67,7 +68,7 @@ function CategoryActions({ category, onEdit, onDelete }) {
       </button>
       <button
         type="button"
-        title="Supprimer"
+        title={t('common.delete')}
         onClick={() => onDelete(category)}
         className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-error-container hover:text-on-error-container"
       >
@@ -78,6 +79,7 @@ function CategoryActions({ category, onEdit, onDelete }) {
 }
 
 export default function CategoriesPage() {
+  const { t } = useLocale();
   const [categories, setCategories] = useState([]);
   const [productCounts, setProductCounts] = useState(new Map());
   const [form, setForm] = useState(emptyForm);
@@ -102,7 +104,7 @@ export default function CategoriesPage() {
       setCategories(categoryItems);
       setProductCounts(countByCategory(productItems));
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de charger les catégories');
+      setError(err.response?.data?.message || t('categories.loadError'));
     } finally {
       if (!silent) {
         setLoading(false);
@@ -159,7 +161,7 @@ export default function CategoriesPage() {
     event.preventDefault();
 
     if (!form.name.trim()) {
-      setFormError('Le nom est requis');
+      setFormError(t('validation.nameRequired'));
       return;
     }
 
@@ -183,7 +185,7 @@ export default function CategoriesPage() {
       closeForm();
       await loadData(true);
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Impossible d\'enregistrer la catégorie');
+      setFormError(err.response?.data?.message || t('validation.saveCategory'));
     } finally {
       setSaving(false);
     }
@@ -204,14 +206,14 @@ export default function CategoriesPage() {
       const url = await uploadCategoryImage(file);
       setForm((current) => ({ ...current, image: url }));
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Impossible d\'envoyer l\'image');
+      setFormError(err.response?.data?.message || t('validation.uploadImage'));
     } finally {
       setUploading(false);
     }
   }
 
   async function handleDelete(category) {
-    const confirmed = window.confirm(`Supprimer la catégorie « ${category.name} » ?`);
+    const confirmed = window.confirm(t('categories.deleteConfirm', { name: category.name }));
 
     if (!confirmed) {
       return;
@@ -228,7 +230,7 @@ export default function CategoriesPage() {
 
       await loadData(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de supprimer la catégorie');
+      setError(err.response?.data?.message || t('categories.deleteError'));
     }
   }
 
@@ -248,7 +250,7 @@ export default function CategoriesPage() {
       await Promise.all(updates.map(({ category, order }) => updateCategory(category._id, { order })));
       setCategories(nextCategories.map((category, index) => ({ ...category, order: index + 1 })));
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de réordonner les catégories');
+      setError(err.response?.data?.message || t('categories.reorderError'));
       await loadData(true);
     } finally {
       setReordering(false);
@@ -311,10 +313,10 @@ export default function CategoriesPage() {
       <div className="relative z-10 mb-stack-lg flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="mb-1 font-display text-display-md font-bold tracking-tight text-on-surface lg:text-display-lg">
-            Catégories
+            {t('categories.title')}
           </h1>
           <p className="max-w-2xl text-on-surface-variant">
-            Organisez la structure de votre menu. L&apos;ordre défini ici sera celui affiché à vos clients.
+            {t('categories.subtitle')}
           </p>
         </div>
         <button
@@ -323,7 +325,7 @@ export default function CategoriesPage() {
           className="group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-on-primary transition-all duration-300 hover:bg-surface-tint hover:shadow-lg"
         >
           <MaterialIcon name="add" className="text-[20px] transition-transform duration-300 group-hover:rotate-90" />
-          <span className="text-label-lg font-semibold tracking-[0.05em]">Nouvelle Catégorie</span>
+          <span className="text-label-lg font-semibold tracking-[0.05em]">{t('categories.add')}</span>
         </button>
       </div>
 
@@ -337,9 +339,9 @@ export default function CategoriesPage() {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-surface-bright/50 via-transparent to-surface-bright/50" />
         <div className="relative z-10">
           {loading ? (
-            <p className="px-6 py-8 text-sm text-on-surface-variant">Chargement des catégories...</p>
+            <p className="px-6 py-8 text-sm text-on-surface-variant">{t('categories.loading')}</p>
           ) : categories.length === 0 ? (
-            <p className="px-6 py-8 text-sm text-on-surface-variant">Aucune catégorie pour le moment.</p>
+            <p className="px-6 py-8 text-sm text-on-surface-variant">{t('categories.empty')}</p>
           ) : (
             <>
               <ul className="space-y-3 p-3 md:hidden">
@@ -353,12 +355,12 @@ export default function CategoriesPage() {
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-label-lg font-semibold text-on-surface-variant">
                             {index + 1}
                           </div>
-                          <CategoryIdentity category={category} />
+                          <CategoryIdentity category={category} t={t} />
                         </div>
                         <div className="flex shrink-0 flex-col">
                           <button
                             type="button"
-                            aria-label={`Monter ${category.name}`}
+                            aria-label={t('categories.moveUp', { name: category.name })}
                             disabled={reordering || index === 0}
                             onClick={() => moveCategory(index, -1)}
                             className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
@@ -367,7 +369,7 @@ export default function CategoriesPage() {
                           </button>
                           <button
                             type="button"
-                            aria-label={`Descendre ${category.name}`}
+                            aria-label={t('categories.moveDown', { name: category.name })}
                             disabled={reordering || index === categories.length - 1}
                             onClick={() => moveCategory(index, 1)}
                             className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
@@ -378,9 +380,9 @@ export default function CategoriesPage() {
                       </div>
                       <div className="mt-4 flex items-center justify-between gap-3">
                         <span className="rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
-                          {count} article{count > 1 ? 's' : ''}
+                          {count > 1 ? t('categories.itemsPlural', { count }) : t('categories.items', { count })}
                         </span>
-                        <CategoryActions category={category} onEdit={startEdit} onDelete={handleDelete} />
+                        <CategoryActions category={category} onEdit={startEdit} onDelete={handleDelete} t={t} />
                       </div>
                     </li>
                   );
@@ -394,10 +396,10 @@ export default function CategoriesPage() {
                       <th className="w-16 rounded-tl-2xl px-6 py-4 text-center">
                         <MaterialIcon name="drag_indicator" className="text-[18px] text-outline" />
                       </th>
-                      <th className="px-6 py-4">Ordre</th>
-                      <th className="px-6 py-4">Catégorie</th>
-                      <th className="px-6 py-4 text-right">Produits</th>
-                      <th className="rounded-tr-2xl px-6 py-4 text-right">Actions</th>
+                      <th className="px-6 py-4">{t('categories.order')}</th>
+                      <th className="px-6 py-4">{t('categories.category')}</th>
+                      <th className="px-6 py-4 text-right">{t('platform.products')}</th>
+                      <th className="rounded-tr-2xl px-6 py-4 text-right">{t('categories.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -430,16 +432,16 @@ export default function CategoriesPage() {
                             </div>
                           </td>
                           <td className="px-6 py-5 align-middle">
-                            <CategoryIdentity category={category} />
+                            <CategoryIdentity category={category} t={t} />
                           </td>
                           <td className="px-6 py-5 text-right align-middle">
                             <div className="inline-flex items-center rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
-                              {count} article{count > 1 ? 's' : ''}
+                              {count > 1 ? t('categories.itemsPlural', { count }) : t('categories.items', { count })}
                             </div>
                           </td>
                           <td className="px-6 py-5 text-right align-middle">
                             <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity duration-200 lg:opacity-0 lg:group-hover:opacity-100">
-                              <CategoryActions category={category} onEdit={startEdit} onDelete={handleDelete} />
+                              <CategoryActions category={category} onEdit={startEdit} onDelete={handleDelete} t={t} />
                             </div>
                           </td>
                         </tr>

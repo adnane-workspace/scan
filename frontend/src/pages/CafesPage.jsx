@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, Navigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
+import { useLocale } from '../hooks/useLocale.js';
 import { updatePlatformCafe } from '../services/platform.service.js';
 import { formatDate } from '../utils/format.js';
 
@@ -29,6 +30,7 @@ function matchesDateRange(createdAt, from, to) {
 
 export default function CafesPage() {
   const { user } = useAuth();
+  const { t, locale } = useLocale();
   const { platformCafes = [], loading, error, refreshCafes } = useOutletContext();
   const [actionError, setActionError] = useState('');
   const [pendingId, setPendingId] = useState('');
@@ -66,7 +68,7 @@ export default function CafesPage() {
       await updatePlatformCafe(cafe._id, { isActive: !cafe.isActive });
       await refreshCafes?.();
     } catch (err) {
-      setActionError(err.response?.data?.message || 'Impossible de mettre à jour le café');
+      setActionError(err.response?.data?.message || t('platform.updateError'));
     } finally {
       setPendingId('');
     }
@@ -76,43 +78,43 @@ export default function CafesPage() {
     <section className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-on-surface">Cafés</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-on-surface">{t('platform.cafesTitle')}</h1>
           <p className="mt-1 text-on-surface-variant">
-            Recherche, filtres et fiche. Désactiver cache le menu et le login du gérant.
+            {t('platform.cafesSubtitle')}
           </p>
         </div>
         <Link
           to="/dashboard/cafes/new"
           className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary shadow-md"
         >
-          Créer un café
+          {t('platform.createCafe')}
         </Link>
       </div>
 
       <div className="grid gap-3 rounded-2xl bg-surface-container-lowest p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm font-medium text-on-surface">
-          Recherche
+          {t('platform.searchLabel')}
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             className={`mt-1 ${fieldClass}`}
-            placeholder="Nom, slug ou email"
+            placeholder={t('platform.searchPlaceholder')}
           />
         </label>
         <label className="text-sm font-medium text-on-surface">
-          Statut
+          {t('platform.status')}
           <select value={status} onChange={(event) => setStatus(event.target.value)} className={`mt-1 ${fieldClass}`}>
-            <option value="all">Tous</option>
-            <option value="active">Actifs</option>
-            <option value="inactive">Inactifs</option>
+            <option value="all">{t('platform.statusAll')}</option>
+            <option value="active">{t('platform.statusActive')}</option>
+            <option value="inactive">{t('platform.statusInactive')}</option>
           </select>
         </label>
         <label className="text-sm font-medium text-on-surface">
-          Inscrit depuis
+          {t('platform.registeredFrom')}
           <input type="date" value={from} onChange={(event) => setFrom(event.target.value)} className={`mt-1 ${fieldClass}`} />
         </label>
         <label className="text-sm font-medium text-on-surface">
-          Inscrit jusqu’au
+          {t('platform.registeredTo')}
           <input type="date" value={to} onChange={(event) => setTo(event.target.value)} className={`mt-1 ${fieldClass}`} />
         </label>
       </div>
@@ -124,18 +126,20 @@ export default function CafesPage() {
       ) : null}
 
       <p className="text-sm text-on-surface-variant">
-        {loading ? 'Chargement...' : `${filteredCafes.length} / ${platformCafes.length} café(s)`}
+        {loading
+          ? t('common.loading')
+          : t('platform.count', { filtered: filteredCafes.length, total: platformCafes.length })}
       </p>
 
       <div className="overflow-x-auto rounded-2xl bg-surface-container-lowest shadow-sm">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-outline-variant/30 text-on-surface-variant">
             <tr>
-              <th className="px-4 py-3 font-semibold">Café</th>
-              <th className="px-4 py-3 font-semibold">Gérant</th>
-              <th className="px-4 py-3 font-semibold">Menu</th>
-              <th className="px-4 py-3 font-semibold">Inscrit</th>
-              <th className="px-4 py-3 font-semibold">Statut</th>
+              <th className="px-4 py-3 font-semibold">{t('platform.colCafe')}</th>
+              <th className="px-4 py-3 font-semibold">{t('platform.colOwner')}</th>
+              <th className="px-4 py-3 font-semibold">{t('platform.colMenu')}</th>
+              <th className="px-4 py-3 font-semibold">{t('platform.colRegistered')}</th>
+              <th className="px-4 py-3 font-semibold">{t('platform.colStatus')}</th>
               <th className="px-4 py-3 font-semibold" />
             </tr>
           </thead>
@@ -143,13 +147,13 @@ export default function CafesPage() {
             {loading ? (
               <tr>
                 <td className="px-4 py-6 text-on-surface-variant" colSpan={6}>
-                  Chargement...
+                  {t('common.loading')}
                 </td>
               </tr>
             ) : filteredCafes.length === 0 ? (
               <tr>
                 <td className="px-4 py-6 text-on-surface-variant" colSpan={6}>
-                  Aucun café pour ces filtres.
+                  {t('platform.empty')}
                 </td>
               </tr>
             ) : (
@@ -161,14 +165,14 @@ export default function CafesPage() {
                     </Link>
                     <p className="text-on-surface-variant">{cafe.slug}</p>
                   </td>
-                  <td className="px-4 py-3 text-on-surface-variant">{cafe.ownerEmail || '—'}</td>
+                    <td className="px-4 py-3 text-on-surface-variant">{cafe.ownerEmail || t('common.none')}</td>
                   <td className="px-4 py-3 text-on-surface-variant">
-                    {cafe.categoryCount} cat. · {cafe.productCount} prod.
+                    {t('platform.menuStats', { categories: cafe.categoryCount, products: cafe.productCount })}
                   </td>
-                  <td className="px-4 py-3 text-on-surface-variant">{formatDate(cafe.createdAt)}</td>
+                  <td className="px-4 py-3 text-on-surface-variant">{formatDate(cafe.createdAt, locale)}</td>
                   <td className="px-4 py-3">
                     <span className={cafe.isActive ? 'text-primary' : 'text-error'}>
-                      {cafe.isActive ? 'Actif' : 'Inactif'}
+                      {cafe.isActive ? t('platform.statusActive') : t('platform.statusInactive')}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -179,7 +183,7 @@ export default function CafesPage() {
                         rel="noreferrer"
                         className="rounded-lg px-3 py-1.5 text-sm font-semibold text-primary hover:underline"
                       >
-                        Menu
+                        {t('platform.menu')}
                       </Link>
                       <button
                         type="button"
@@ -187,7 +191,7 @@ export default function CafesPage() {
                         onClick={() => handleToggle(cafe)}
                         className="rounded-lg bg-surface-container-high px-3 py-1.5 text-sm font-semibold text-on-surface disabled:opacity-60"
                       >
-                        {cafe.isActive ? 'Désactiver' : 'Activer'}
+                        {cafe.isActive ? t('platform.deactivate') : t('platform.activate')}
                       </button>
                     </div>
                   </td>

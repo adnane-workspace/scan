@@ -14,10 +14,10 @@ export function mapsHref({ address, latitude, longitude } = {}) {
   return '';
 }
 
-export async function searchAddress(query) {
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1`;
+export async function searchAddress(query, locale = 'fr') {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1&accept-language=${locale}`;
   const response = await fetch(url, {
-    headers: { Accept: 'application/json' },
+    headers: { Accept: 'application/json', 'Accept-Language': locale },
   });
 
   if (!response.ok) {
@@ -33,20 +33,20 @@ export async function searchAddress(query) {
   }));
 }
 
-export function geolocationErrorMessage(error) {
+export function geolocationErrorKey(error) {
   if (error?.code === 1) {
-    return 'Le navigateur a refusé la localisation. Autorise-la, ou cherche l’adresse.';
+    return 'location.geoDenied';
   }
 
   if (error?.code === 2) {
-    return 'Position introuvable. Cherche l’adresse ou clique sur la carte.';
+    return 'location.geoUnavailable';
   }
 
   if (error?.code === 3) {
-    return 'La localisation a pris trop de temps. Cherche l’adresse ou clique sur la carte.';
+    return 'location.geoTimeout';
   }
 
-  return 'Position indisponible. Cherche l’adresse ou clique sur la carte.';
+  return 'location.geoFail';
 }
 
 export async function reverseGeocode(latitude, longitude) {

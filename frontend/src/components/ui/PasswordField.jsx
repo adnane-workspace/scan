@@ -1,3 +1,4 @@
+import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from './MaterialIcon.jsx';
 
 export default function PasswordField({
@@ -11,6 +12,8 @@ export default function PasswordField({
   required = true,
   minLength,
 }) {
+  const { t } = useLocale();
+
   return (
     <label className="block text-label-md font-medium tracking-wider text-on-surface-variant uppercase">
       {label}
@@ -29,7 +32,7 @@ export default function PasswordField({
           type="button"
           onClick={onToggleShow}
           className="absolute inset-y-0 right-0 flex items-center px-3 text-on-surface-variant hover:text-on-surface"
-          aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          aria-label={show ? t('auth.hidePassword') : t('auth.showPassword')}
         >
           <MaterialIcon name={show ? 'visibility_off' : 'visibility'} className="text-[20px]" />
         </button>

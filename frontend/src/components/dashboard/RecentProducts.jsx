@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useLocale } from '../../hooks/useLocale.js';
 import { categoryBadgeClass, formatPrice } from '../../utils/format.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import AvailabilityToggle from './AvailabilityToggle.jsx';
@@ -23,6 +24,7 @@ function ProductThumb({ product }) {
 }
 
 export default function RecentProducts({ products, loading, onToggleAvailable }) {
+  const { t, locale } = useLocale();
   const [pendingId, setPendingId] = useState(null);
 
   async function handleToggle(product) {
@@ -42,19 +44,19 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
   return (
     <section className="flex flex-col gap-stack-md rounded-2xl bg-surface-container-lowest p-stack-lg shadow-sm">
       <div className="flex items-center justify-between">
-        <h2 className="text-headline-md font-semibold text-on-surface">Produits Récents</h2>
+        <h2 className="text-headline-md font-semibold text-on-surface">{t('dashboard.recentTitle')}</h2>
         <Link
           to="/dashboard/products"
           className="flex items-center gap-1 text-label-md font-medium tracking-wider text-primary uppercase transition-colors hover:text-primary-container"
         >
-          Voir tout <MaterialIcon name="arrow_forward" className="text-sm" />
+          {t('common.seeAll')} <MaterialIcon name="arrow_forward" className="text-sm" />
         </Link>
       </div>
 
       {loading ? (
-        <p className="text-sm text-on-surface-variant">Chargement...</p>
+        <p className="text-sm text-on-surface-variant">{t('dashboard.loading')}</p>
       ) : products.length === 0 ? (
-        <p className="text-sm text-on-surface-variant">Aucun produit disponible.</p>
+        <p className="text-sm text-on-surface-variant">{t('dashboard.noProducts')}</p>
       ) : (
         <>
           <ul className="divide-y divide-outline-variant/20 md:hidden">
@@ -69,13 +71,13 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
                     {product.name}
                   </p>
                   <p className="truncate text-sm text-on-surface-variant">
-                    {product.categoryName || 'Sans catégorie'} · {formatPrice(product.price)}
+                    {product.categoryName || t('dashboard.uncategorized')} · {formatPrice(product.price, locale)}
                   </p>
                 </div>
                 <AvailabilityToggle
                   checked={Boolean(product.available)}
                   disabled={pendingId === product._id}
-                  label={`Disponibilité de ${product.name}`}
+                  label={t('dashboard.toggleLabel', { name: product.name })}
                   onChange={() => handleToggle(product)}
                 />
               </li>
@@ -87,12 +89,12 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
               <thead>
                 <tr className="bg-surface-container-low text-on-surface-variant">
                   <th className="rounded-l-lg p-4 text-label-md font-medium tracking-wider uppercase">
-                    Nom du Produit
+                    {t('dashboard.productName')}
                   </th>
-                  <th className="p-4 text-label-md font-medium tracking-wider uppercase">Catégorie</th>
-                  <th className="p-4 text-label-md font-medium tracking-wider uppercase">Prix</th>
+                  <th className="p-4 text-label-md font-medium tracking-wider uppercase">{t('dashboard.category')}</th>
+                  <th className="p-4 text-label-md font-medium tracking-wider uppercase">{t('dashboard.price')}</th>
                   <th className="rounded-r-lg p-4 text-center text-label-md font-medium tracking-wider uppercase">
-                    Disponibilité
+                    {t('dashboard.availability')}
                   </th>
                 </tr>
               </thead>
@@ -119,17 +121,17 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
                           product.available,
                         )}`}
                       >
-                        {product.categoryName || 'Sans catégorie'}
+                        {product.categoryName || t('dashboard.uncategorized')}
                       </span>
                     </td>
                     <td className="p-4 text-label-lg font-semibold tracking-[0.05em]">
-                      {formatPrice(product.price)}
+                      {formatPrice(product.price, locale)}
                     </td>
                     <td className="p-4 text-center">
                       <AvailabilityToggle
                         checked={Boolean(product.available)}
                         disabled={pendingId === product._id}
-                        label={`Disponibilité de ${product.name}`}
+                        label={t('dashboard.toggleLabel', { name: product.name })}
                         onChange={() => handleToggle(product)}
                       />
                     </td>

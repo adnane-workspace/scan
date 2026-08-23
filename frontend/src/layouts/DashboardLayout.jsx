@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import ProtectedRoute from '../components/common/ProtectedRoute.jsx';
 import Sidebar from '../components/dashboard/Sidebar.jsx';
+import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
@@ -51,13 +52,13 @@ export default function DashboardLayout() {
       setError('');
       hasLoadedRef.current = true;
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de charger le dashboard');
+      setError(err.response?.data?.message || t('dashboard.loadError'));
     } finally {
       if (!silent) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [t]);
 
   const loadPlatformCafes = useCallback(async (silent = false) => {
     if (!silent) {
@@ -70,13 +71,13 @@ export default function DashboardLayout() {
       setError('');
       hasLoadedRef.current = true;
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de charger les cafés');
+      setError(err.response?.data?.message || t('dashboard.loadCafesError'));
     } finally {
       if (!silent) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -107,9 +108,9 @@ export default function DashboardLayout() {
     : location.pathname.startsWith('/dashboard/cafes/')
       ? t('header.cafeDetail')
       : isSuperAdmin
-        ? 'Superadmin'
+        ? t('dashboard.roleSuper')
         : t('header.dashboard');
-  const roleLabel = isSuperAdmin ? 'Superadmin' : user?.role === 'admin' ? 'Admin' : user?.role || 'Admin';
+  const roleLabel = isSuperAdmin ? t('dashboard.roleSuper') : t('dashboard.roleAdmin');
 
   return (
     <ProtectedRoute>
@@ -117,7 +118,7 @@ export default function DashboardLayout() {
         {isSidebarOpen ? (
           <button
             type="button"
-            aria-label="Fermer le menu"
+            aria-label={t('common.closeMenu')}
             className="fixed inset-0 z-30 bg-on-surface/40 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
@@ -143,7 +144,7 @@ export default function DashboardLayout() {
                 type="button"
                 className="rounded-xl p-2 text-on-surface-variant hover:bg-surface-container-high lg:hidden"
                 onClick={() => setIsSidebarOpen((open) => !open)}
-                aria-label="Ouvrir le menu"
+                aria-label={t('common.openMenu')}
               >
                 <MaterialIcon name="menu" />
               </button>
@@ -154,9 +155,10 @@ export default function DashboardLayout() {
             </div>
 
             <div className="flex items-center gap-3">
+              <LanguageSwitcher compact />
               <div className="hidden text-right sm:block">
                 <div className="text-label-lg font-semibold tracking-[0.05em] text-on-surface">
-                  {user?.name || 'Admin Profile'}
+                  {user?.name || t('dashboard.profile')}
                 </div>
                 <div className="text-label-md font-medium text-on-surface-variant">
                   {roleLabel}

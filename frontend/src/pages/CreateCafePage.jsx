@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
+import { useLocale } from '../hooks/useLocale.js';
 import { createPlatformCafe } from '../services/platform.service.js';
 
 const fieldClass =
@@ -16,6 +17,7 @@ const emptyForm = {
 
 export default function CreateCafePage() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const { refreshCafes } = useOutletContext();
   const [form, setForm] = useState(emptyForm);
@@ -47,7 +49,7 @@ export default function CreateCafePage() {
       await refreshCafes?.();
       navigate(`/dashboard/cafes/${cafe._id}`, { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de créer le café');
+      setError(err.response?.data?.message || t('platform.createError'));
     } finally {
       setSaving(false);
     }
@@ -56,13 +58,13 @@ export default function CreateCafePage() {
   return (
     <section className="mx-auto w-full max-w-2xl space-y-5">
       <Link to="/dashboard/cafes" className="text-sm font-semibold text-primary hover:underline">
-        ← Tous les cafés
+        {t('platform.allCafes')}
       </Link>
 
       <div>
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-on-surface">Nouveau café</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-on-surface">{t('platform.createTitle')}</h1>
         <p className="mt-1 text-on-surface-variant">
-          Crée le café et le compte gérant. Transmets-lui l’email et le mot de passe.
+          {t('platform.createHint')}
         </p>
       </div>
 
@@ -72,25 +74,25 @@ export default function CreateCafePage() {
 
       <form onSubmit={handleSubmit} className="grid gap-4 rounded-2xl bg-surface-container-lowest p-6 shadow-sm">
         <label className="block text-sm font-medium text-on-surface">
-          Nom du café *
+          {t('platform.cafeName')}
           <input name="cafeName" value={form.cafeName} onChange={handleChange} className={fieldClass} required />
         </label>
         <label className="block text-sm font-medium text-on-surface">
-          Slug public (optionnel)
+          {t('platform.slugOptional')}
           <input
             name="slug"
             value={form.slug}
             onChange={handleChange}
             className={fieldClass}
-            placeholder="mon-cafe"
+            placeholder={t('auth.slugPlaceholder')}
           />
         </label>
         <label className="block text-sm font-medium text-on-surface">
-          Nom du gérant *
+          {t('platform.ownerName')}
           <input name="ownerName" value={form.ownerName} onChange={handleChange} className={fieldClass} required />
         </label>
         <label className="block text-sm font-medium text-on-surface">
-          Email de connexion *
+          {t('platform.ownerEmail')}
           <input
             name="email"
             type="email"
@@ -102,7 +104,7 @@ export default function CreateCafePage() {
           />
         </label>
         <label className="block text-sm font-medium text-on-surface">
-          Mot de passe *
+          {t('platform.password')}
           <input
             name="password"
             type="text"
@@ -119,7 +121,7 @@ export default function CreateCafePage() {
           disabled={saving}
           className="rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md disabled:opacity-60"
         >
-          {saving ? 'Création...' : 'Créer le café'}
+          {saving ? t('platform.creating') : t('platform.create')}
         </button>
       </form>
     </section>

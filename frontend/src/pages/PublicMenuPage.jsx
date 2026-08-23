@@ -5,6 +5,7 @@ import PublicMenuHeader from '../components/menu/PublicMenuHeader.jsx';
 import PublicProductCard from '../components/menu/PublicProductCard.jsx';
 import PublicProductSheet from '../components/menu/PublicProductSheet.jsx';
 import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
+import { useLocale } from '../hooks/useLocale.js';
 
 const categoryGridClass =
   'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
@@ -34,6 +35,7 @@ function MenuSkeleton() {
 
 export default function PublicMenuPage() {
   const { slug, categoryId } = useParams();
+  const { t } = useLocale();
   const [searchParams, setSearchParams] = useSearchParams();
   const { menu, loading, errorStatus } = usePublicMenu(slug);
   const selectedProductId = searchParams.get('product');
@@ -41,19 +43,19 @@ export default function PublicMenuPage() {
   useEffect(() => {
     if (menu?.cafe) {
       setPageMeta({
-        title: `${menu.cafe.name} — Menu`,
-        description: menu.cafe.description || `Menu de ${menu.cafe.name}`,
+        title: t('menu.pageTitle', { name: menu.cafe.name }),
+        description: menu.cafe.description || t('menu.pageDescription', { name: menu.cafe.name }),
       });
       return;
     }
 
     if (errorStatus) {
       setPageMeta({
-        title: 'Menu introuvable',
-        description: "Ce menu n'est plus disponible.",
+        title: t('menu.missingTitle'),
+        description: t('menu.missing'),
       });
     }
-  }, [menu, errorStatus]);
+  }, [menu, errorStatus, t]);
 
   const selectedCategory = useMemo(
     () => menu?.categories?.find((category) => String(category.id) === String(categoryId)) || null,
@@ -87,8 +89,8 @@ export default function PublicMenuPage() {
   if (errorStatus === 403) {
     return (
       <>
-        <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel="Accueil" />
-        <MenuStatus title="Menu indisponible" message="Ce café n'a actuellement pas de menu disponible." />
+        <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
+        <MenuStatus title={t('menu.unavailableTitle')} message={t('menu.unavailable')} />
       </>
     );
   }
@@ -96,8 +98,8 @@ export default function PublicMenuPage() {
   if (errorStatus) {
     return (
       <>
-        <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel="Accueil" />
-        <MenuStatus title="Menu introuvable" message="Ce menu n'est plus disponible." />
+        <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
+        <MenuStatus title={t('menu.missingTitle')} message={t('menu.missing')} />
       </>
     );
   }
@@ -105,8 +107,8 @@ export default function PublicMenuPage() {
   if (!menu?.categories?.length) {
     return (
       <>
-        <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel="Accueil" />
-        <MenuStatus title="Menu vide" message="Le menu est actuellement vide." />
+        <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
+        <MenuStatus title={t('menu.emptyTitle')} message={t('menu.empty')} />
       </>
     );
   }
@@ -114,8 +116,8 @@ export default function PublicMenuPage() {
   if (categoryId && !selectedCategory) {
     return (
       <>
-        <PublicMenuHeader cafe={cafe} slug={slug} backTo={categoriesPath} backLabel="Catégories" />
-        <MenuStatus title="Catégorie introuvable" message="Cette catégorie n'est plus disponible." />
+        <PublicMenuHeader cafe={cafe} slug={slug} backTo={categoriesPath} backLabel={t('menu.categories')} />
+        <MenuStatus title={t('menu.categoryMissingTitle')} message={t('menu.categoryMissing')} />
       </>
     );
   }
@@ -123,7 +125,7 @@ export default function PublicMenuPage() {
   if (selectedCategory) {
     return (
       <div className="min-h-screen">
-        <PublicMenuHeader cafe={cafe} slug={slug} backTo={categoriesPath} backLabel="Catégories" />
+        <PublicMenuHeader cafe={cafe} slug={slug} backTo={categoriesPath} backLabel={t('menu.categories')} />
         <div className={contentClass}>
           <h1 className="mb-6 font-display text-2xl font-semibold tracking-tight text-on-surface md:text-3xl">
             {selectedCategory.name}
@@ -141,10 +143,10 @@ export default function PublicMenuPage() {
 
   return (
     <div className="min-h-screen">
-      <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel="Accueil" />
+      <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
       <div className={contentClass}>
         <h1 className="mb-6 font-display text-2xl font-semibold tracking-tight text-on-surface md:text-3xl">
-          Nos catégories
+          {t('menu.ourCategories')}
         </h1>
         <div className={categoryGridClass}>
           {menu.categories.map((category) => (

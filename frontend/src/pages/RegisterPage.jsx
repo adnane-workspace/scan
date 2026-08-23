@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { useLocale } from '../hooks/useLocale.js';
 
 const inputClass =
   'w-full bg-transparent px-3 py-3 text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none';
 
 export default function RegisterPage() {
   const { isAuthenticated, isReady, register } = useAuth();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: '',
@@ -46,7 +49,7 @@ export default function RegisterPage() {
       });
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de créer le compte');
+      setError(err.response?.data?.message || t('auth.registerError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -59,22 +62,26 @@ export default function RegisterPage() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary-container/10 via-transparent to-primary/5 mix-blend-multiply" />
         </div>
 
+        <div className="absolute top-4 right-4 z-20 sm:top-6 sm:right-6">
+          <LanguageSwitcher />
+        </div>
+
         <div className="relative z-10 w-full max-w-md px-4 py-8 sm:px-0">
           <div className="flex flex-col gap-5 rounded-2xl bg-surface-container-lowest/80 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
             <div className="flex flex-col items-center gap-1 text-center">
               <h1 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface">
-                Créer un café
+                {t('auth.registerTitle')}
               </h1>
-              <p className="text-on-surface-variant">Ouvrez votre espace et votre menu public.</p>
+              <p className="text-on-surface-variant">{t('auth.registerSubtitle')}</p>
             </div>
 
             <form className="flex w-full flex-col gap-3" onSubmit={handleSubmit}>
               <label className="text-label-md font-medium text-on-surface-variant">
-                Votre nom
+                {t('auth.yourName')}
                 <input name="name" value={form.name} onChange={handleChange} className={inputClass} required />
               </label>
               <label className="text-label-md font-medium text-on-surface-variant">
-                Email
+                {t('auth.email')}
                 <input
                   name="email"
                   type="email"
@@ -86,7 +93,7 @@ export default function RegisterPage() {
                 />
               </label>
               <label className="text-label-md font-medium text-on-surface-variant">
-                Mot de passe
+                {t('auth.password')}
                 <input
                   name="password"
                   type="password"
@@ -99,17 +106,17 @@ export default function RegisterPage() {
                 />
               </label>
               <label className="text-label-md font-medium text-on-surface-variant">
-                Nom du café
+                {t('auth.cafeName')}
                 <input name="cafeName" value={form.cafeName} onChange={handleChange} className={inputClass} required />
               </label>
               <label className="text-label-md font-medium text-on-surface-variant">
-                Slug public (optionnel)
+                {t('auth.slugOptional')}
                 <input
                   name="slug"
                   value={form.slug}
                   onChange={handleChange}
                   className={inputClass}
-                  placeholder="mon-cafe"
+                  placeholder={t('auth.slugPlaceholder')}
                 />
               </label>
 
@@ -120,14 +127,14 @@ export default function RegisterPage() {
                 disabled={isSubmitting}
                 className="mt-1 rounded-lg bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md disabled:opacity-60"
               >
-                {isSubmitting ? 'Création...' : 'Créer mon espace'}
+                {isSubmitting ? t('auth.creating') : t('auth.createSpace')}
               </button>
             </form>
 
             <p className="text-center text-sm text-on-surface-variant">
-              Déjà un compte ?{' '}
+              {t('auth.hasAccount')}{' '}
               <Link to="/login" className="font-semibold text-primary hover:underline">
-                Se connecter
+                {t('auth.submit')}
               </Link>
             </p>
           </div>

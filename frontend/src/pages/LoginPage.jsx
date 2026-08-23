@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { useLocale } from '../hooks/useLocale.js';
 
 function Field({
   id,
@@ -54,6 +56,7 @@ function Field({
 
 export default function LoginPage() {
   const { isAuthenticated, isReady, login } = useAuth();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const [email, setEmail] = useState('admin@example.com');
   const [password, setPassword] = useState('');
@@ -82,7 +85,7 @@ export default function LoginPage() {
       await login(email, password);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Impossible de se connecter');
+      setError(err.response?.data?.message || t('auth.loginError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -101,12 +104,12 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 max-w-md">
-          <p className="text-label-md font-semibold tracking-[0.18em] text-primary-container uppercase">Menu digital</p>
+          <p className="text-label-md font-semibold tracking-[0.18em] text-primary-container uppercase">{t('auth.digitalMenu')}</p>
           <h1 className="mt-4 font-display text-5xl font-semibold leading-[1.15] tracking-tight xl:text-6xl">
-            Le menu QR de votre café.
+            {t('auth.headline')}
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-[#fff8f3]/72">
-            Un lien, un scan, votre carte. Gérez catégories, photos et disponibilité depuis un seul espace.
+            {t('auth.tagline')}
           </p>
         </div>
 
@@ -115,19 +118,19 @@ export default function LoginPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8">
               <MaterialIcon name="qr_code_2" className="text-[20px]" />
             </span>
-            QR code prêt à poser sur les tables
+            {t('auth.featureQr')}
           </li>
           <li className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8">
               <MaterialIcon name="restaurant_menu" className="text-[20px]" />
             </span>
-            Menu public, toujours à jour
+            {t('auth.featureMenu')}
           </li>
           <li className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8">
               <MaterialIcon name="dashboard" className="text-[20px]" />
             </span>
-            Tableau de bord pour le gérant
+            {t('auth.featureDashboard')}
           </li>
         </ul>
       </aside>
@@ -136,6 +139,10 @@ export default function LoginPage() {
         <div className="pointer-events-none absolute top-0 right-0 h-64 w-64 rounded-full bg-primary/8 blur-[90px] lg:hidden" />
         <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 rounded-full bg-tertiary/10 blur-[80px] lg:hidden" />
 
+        <div className="absolute top-4 right-4 z-20 sm:top-6 sm:right-6">
+          <LanguageSwitcher />
+        </div>
+
         <div className="relative z-10 w-full max-w-[420px]">
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
             <div className="mb-5 flex items-center gap-3 lg:hidden">
@@ -143,15 +150,15 @@ export default function LoginPage() {
               <span className="font-display text-2xl tracking-tight text-primary">Epicurean</span>
             </div>
             <h2 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface sm:text-4xl">
-              Connexion
+              {t('auth.loginTitle')}
             </h2>
-            <p className="mt-2 text-on-surface-variant">Accédez à l’espace de gestion de votre café.</p>
+            <p className="mt-2 text-on-surface-variant">{t('auth.loginSubtitle')}</p>
           </div>
 
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <Field
               id="email"
-              label="Email"
+              label={t('auth.email')}
               type="email"
               icon="mail"
               value={email}
@@ -163,7 +170,7 @@ export default function LoginPage() {
 
             <Field
               id="password"
-              label="Mot de passe"
+              label={t('auth.password')}
               type={showPassword ? 'text' : 'password'}
               icon="lock"
               value={password}
@@ -175,7 +182,7 @@ export default function LoginPage() {
             >
               <button
                 type="button"
-                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 className="mr-2 rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 onClick={() => setShowPassword((visible) => !visible)}
               >
@@ -198,15 +205,15 @@ export default function LoginPage() {
               disabled={isSubmitting}
               className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-all hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] disabled:opacity-60"
             >
-              {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
+              {isSubmitting ? t('auth.submitting') : t('auth.submit')}
               <MaterialIcon name="arrow_forward" className="text-[20px]" />
             </button>
           </form>
 
           <p className="mt-8 text-center text-sm text-on-surface-variant lg:text-left">
-            Pas encore de compte ?{' '}
+            {t('auth.noAccount')}{' '}
             <Link to="/register" className="font-semibold text-primary hover:underline">
-              Créer un café
+              {t('auth.createCafe')}
             </Link>
           </p>
         </div>

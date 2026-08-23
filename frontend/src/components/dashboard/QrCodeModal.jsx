@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
+import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 
 export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) {
+  const { t } = useLocale();
   const [dataUrl, setDataUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
@@ -33,14 +35,14 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
       })
       .catch(() => {
         if (!cancelled) {
-          setError('Impossible de générer le QR code');
+          setError(t('qr.generateError'));
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [open, menuUrl]);
+  }, [open, menuUrl, t]);
 
   if (!open) {
     return null;
@@ -52,7 +54,7 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError('Impossible de copier le lien');
+      setError(t('qr.copyError'));
     }
   }
 
@@ -69,22 +71,20 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6">
-      <button type="button" className="absolute inset-0 bg-on-surface/40" aria-label="Fermer" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-on-surface/40" aria-label={t('common.close')} onClick={onClose} />
       <section className="relative z-10 max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-surface-container-lowest p-6 shadow-xl sm:max-w-md sm:rounded-2xl">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-display text-headline-md font-semibold text-on-surface">QR Code du menu</h2>
+            <h2 className="font-display text-headline-md font-semibold text-on-surface">{t('qr.title')}</h2>
             <p className="mt-1 text-sm text-on-surface-variant">
-              {cafeName
-                ? `Les clients scannent ce code pour ouvrir le menu de ${cafeName}.`
-                : 'Les clients scannent ce code pour ouvrir le menu.'}
+              {cafeName ? t('qr.hintNamed', { name: cafeName }) : t('qr.hint')}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high"
-            aria-label="Fermer"
+            aria-label={t('common.close')}
           >
             <MaterialIcon name="close" />
           </button>
@@ -102,7 +102,7 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
               <img src={dataUrl} alt={`QR code du menu ${cafeName || ''}`.trim()} className="h-56 w-56" />
             ) : (
               <div className="flex h-56 w-56 items-center justify-center text-sm text-on-surface-variant">
-                Génération...
+                {t('qr.generating')}
               </div>
             )}
           </div>
@@ -117,7 +117,7 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary disabled:opacity-50"
             >
               <MaterialIcon name="download" className="text-[20px]" />
-              Télécharger PNG
+              {t('qr.download')}
             </button>
             <button
               type="button"
@@ -125,7 +125,7 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-surface-container-high px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-surface"
             >
               <MaterialIcon name={copied ? 'check' : 'content_copy'} className="text-[20px]" />
-              {copied ? 'Lien copié' : 'Copier le lien'}
+              {copied ? t('qr.copied') : t('qr.copy')}
             </button>
           </div>
 
@@ -135,7 +135,7 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
             rel="noreferrer"
             className="text-sm font-medium text-primary hover:text-primary-container"
           >
-            Ouvrir le menu
+            {t('qr.open')}
           </a>
         </div>
       </section>

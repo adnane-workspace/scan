@@ -6,18 +6,20 @@ import RecentProducts from '../components/dashboard/RecentProducts.jsx';
 import StatCard from '../components/dashboard/StatCard.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { useLocale } from '../hooks/useLocale.js';
 import { updateProduct } from '../services/product.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
 import { firstName } from '../utils/format.js';
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const { stats, platformCafes = [], loading, error, refreshStats } = useOutletContext();
   const [actionError, setActionError] = useState('');
   const [isQrOpen, setIsQrOpen] = useState(false);
   const isSuperAdmin = user?.role === 'superadmin';
   const menuUrl = getPublicMenuUrl(stats.cafe?.slug);
-  const greetingName = firstName(user?.name);
+  const greetingName = firstName(user?.name, t('dashboard.fallbackName'));
   const activeCafes = platformCafes.filter((cafe) => cafe.isActive).length;
 
   async function handleToggleAvailable(product) {
@@ -27,7 +29,7 @@ export default function DashboardPage() {
       await updateProduct(product._id, { available: !product.available });
       await refreshStats();
     } catch (err) {
-      setActionError(err.response?.data?.message || 'Impossible de mettre à jour la disponibilité');
+      setActionError(err.response?.data?.message || t('dashboard.availabilityError'));
     }
   }
 
@@ -44,11 +46,11 @@ export default function DashboardPage() {
 
       <div className="relative flex w-full flex-col gap-6 overflow-hidden rounded-2xl bg-surface-container-high p-stack-lg shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="relative z-10 flex max-w-2xl flex-col gap-2">
-          <h1 className="font-display text-display-md font-bold text-on-surface">Bonjour, {greetingName}.</h1>
+          <h1 className="font-display text-display-md font-bold text-on-surface">
+            {t('dashboard.hello', { name: greetingName })}
+          </h1>
           <p className="text-body-lg text-on-surface-variant">
-            {isSuperAdmin
-              ? 'Vue d’ensemble des cafés inscrits sur la plateforme.'
-              : 'Voici l&apos;état de votre menu aujourd&apos;hui.'}
+            {isSuperAdmin ? t('dashboard.subtitleSuper') : t('dashboard.subtitleAdmin')}
           </p>
         </div>
         {isSuperAdmin ? null : (
@@ -60,7 +62,7 @@ export default function DashboardPage() {
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
               <MaterialIcon name="qr_code_scanner" />
-              Générer le QR Code
+              {t('dashboard.generateQr')}
             </button>
           </div>
         )}
@@ -71,21 +73,21 @@ export default function DashboardPage() {
       <div className="grid w-full grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-4">
         {isSuperAdmin ? (
           <>
-            <StatCard label="Cafés" value={platformCafes.length} icon="storefront" loading={loading} />
-            <StatCard label="Cafés actifs" value={activeCafes} icon="verified" tone="tertiary" loading={loading} />
+            <StatCard label={t('dashboard.cafes')} value={platformCafes.length} icon="storefront" loading={loading} />
+            <StatCard label={t('dashboard.activeCafes')} value={activeCafes} icon="verified" tone="tertiary" loading={loading} />
           </>
         ) : (
           <>
-            <StatCard label="Total Produits" value={stats.totalProducts} icon="inventory_2" loading={loading} />
+            <StatCard label={t('dashboard.totalProducts')} value={stats.totalProducts} icon="inventory_2" loading={loading} />
             <StatCard
-              label="Catégories"
+              label={t('dashboard.categories')}
               value={stats.totalCategories}
               icon="category"
               tone="tertiary"
               loading={loading}
             />
             <StatCard
-              label="Produits disponibles"
+              label={t('dashboard.availableProducts')}
               value={stats.availableProducts}
               icon="trending_up"
               wide

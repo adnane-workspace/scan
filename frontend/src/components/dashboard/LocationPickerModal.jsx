@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
-import { geolocationErrorMessage, reverseGeocode, searchAddress } from '../../utils/location.js';
+import { geolocationErrorKey, reverseGeocode, searchAddress } from '../../utils/location.js';
 
 const DEFAULT_CENTER = [46.603354, 1.888334];
 const DEFAULT_ZOOM = 6;
 const PICKED_ZOOM = 16;
 
 export default function LocationPickerModal({ open, latitude, longitude, onClose, onConfirm }) {
+  const { t, locale } = useLocale();
   const mapNodeRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -114,13 +116,13 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
   async function handleUseCurrentLocation() {
     if (!navigator.geolocation) {
       setStatusTone('error');
-      setStatus('La géolocalisation n’est pas disponible. Cherche l’adresse ou clique sur la carte.');
+      setStatus(t('location.noGeo'));
       return;
     }
 
     if (!window.isSecureContext) {
       setStatusTone('error');
-      setStatus('La localisation du navigateur nécessite HTTPS. Cherche l’adresse ou clique sur la carte.');
+      setStatus(t('location.needHttps'));
       return;
     }
 
@@ -139,7 +141,7 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
       applyPosition(position.coords.latitude, position.coords.longitude);
     } catch (error) {
       setStatusTone('error');
-      setStatus(geolocationErrorMessage(error));
+      setStatus(t(geolocationErrorKey(error)));
     } finally {
       setLocating(false);
     }
@@ -151,7 +153,7 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
 
     if (value.length < 3) {
       setStatusTone('error');
-      setStatus('Saisis au moins 3 lettres pour chercher une adresse.');
+      setStatus(t('location.minChars'));
       return;
     }
 
@@ -159,19 +161,19 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
     setStatus('');
 
     try {
-      const found = await searchAddress(value);
+      const found = await searchAddress(value, locale);
       setResults(found);
 
       if (found.length === 0) {
         setStatusTone('error');
-        setStatus('Aucun lieu trouvé. Essaie une autre adresse.');
+        setStatus(t('location.none'));
         return;
       }
 
       applyPosition(found[0].latitude, found[0].longitude);
     } catch {
       setStatusTone('error');
-      setStatus('Recherche indisponible pour le moment. Clique sur la carte.');
+      setStatus(t('location.searchFail'));
     } finally {
       setSearching(false);
     }
@@ -199,20 +201,20 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
 
   return (
     <div className="fixed inset-0 z-[60] flex items-stretch justify-center sm:items-center sm:p-4 lg:p-8">
-      <button type="button" className="absolute inset-0 bg-on-surface/40" aria-label="Fermer" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-on-surface/40" aria-label={t('common.close')} onClick={onClose} />
       <section className="relative z-10 flex h-[100dvh] w-full flex-col bg-surface-container-lowest p-4 shadow-xl sm:h-[90vh] sm:max-w-6xl sm:rounded-2xl sm:p-6">
         <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
           <div>
-            <h2 className="font-display text-headline-md font-semibold text-on-surface">Emplacement du café</h2>
+            <h2 className="font-display text-headline-md font-semibold text-on-surface">{t('location.title')}</h2>
             <p className="mt-1 text-sm text-on-surface-variant">
-              Cherche l’adresse, clique sur la carte, ou utilise ta position si le navigateur l’autorise.
+              {t('location.hint')}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high"
-            aria-label="Fermer"
+            aria-label={t('common.close')}
           >
             <MaterialIcon name="close" />
           </button>
@@ -227,7 +229,7 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Rechercher une adresse, une ville..."
+              placeholder={t('location.searchPlaceholder')}
               className="w-full rounded-xl bg-surface-container-low py-3 pr-4 pl-11 text-on-surface outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
             />
           </div>
@@ -236,7 +238,7 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
             disabled={searching}
             className="rounded-xl bg-surface-container-high px-4 py-3 text-sm font-semibold text-on-surface disabled:opacity-60"
           >
-            {searching ? 'Recherche...' : 'Chercher'}
+            {searching ? t('location.searching') : t('location.search')}
           </button>
         </form>
 
@@ -274,7 +276,7 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-surface-container-high px-4 py-3 text-sm font-semibold text-on-surface disabled:opacity-60"
           >
             <MaterialIcon name="my_location" className="text-[20px]" />
-            {locating ? 'Localisation...' : 'Ma position actuelle'}
+            {locating ? t('location.locating') : t('location.myLocation')}
           </button>
           <button
             type="button"
@@ -282,7 +284,7 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
             onClick={handleConfirm}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-on-primary disabled:opacity-50"
           >
-            Valider l’emplacement
+            {t('location.confirm')}
           </button>
         </div>
       </section>

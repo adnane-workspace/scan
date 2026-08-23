@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useLocale } from '../../hooks/useLocale.js';
+import LanguageSwitcher from '../ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 
 export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
+  const { t } = useLocale();
   return (
     <header className="sticky top-0 z-40 border-b border-outline-variant/20 bg-background/90 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:h-[4.25rem] sm:px-6 lg:px-8">
@@ -26,9 +29,10 @@ export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
             </div>
           )}
           <span className="truncate font-display text-lg font-semibold tracking-tight text-on-surface sm:text-xl">
-            {cafe?.name || 'Menu'}
+            {cafe?.name || t('platform.menu')}
           </span>
         </Link>
+        <LanguageSwitcher compact />
       </div>
     </header>
   );

@@ -5,16 +5,21 @@ const CATEGORY_BADGES = [
   "bg-surface-variant text-on-surface-variant",
 ];
 
-export function formatPrice(value) {
-  return `${Number(value).toFixed(2)} €`;
+export function formatPrice(value, locale = 'fr') {
+  const amount = new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value));
+
+  return `${amount} DH`;
 }
 
-export function formatDate(value) {
+export function formatDate(value, locale = 'fr') {
   if (!value) {
     return '—';
   }
 
-  return new Date(value).toLocaleDateString('fr-FR', {
+  return new Date(value).toLocaleDateString(locale === 'en' ? 'en-GB' : 'fr-FR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

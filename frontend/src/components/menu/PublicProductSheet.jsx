@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
+import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import { formatPrice } from '../../utils/format.js';
 
 export default function PublicProductSheet({ product, onClose }) {
+  const { t, locale } = useLocale();
   useEffect(() => {
     if (!product) {
       return undefined;
@@ -31,7 +33,7 @@ export default function PublicProductSheet({ product, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
-      <button type="button" className="absolute inset-0 bg-on-surface/40" aria-label="Fermer" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-on-surface/40" aria-label={t('common.close')} onClick={onClose} />
       <section
         role="dialog"
         aria-modal="true"
@@ -50,7 +52,7 @@ export default function PublicProductSheet({ product, onClose }) {
             type="button"
             onClick={onClose}
             className="absolute top-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-lowest/95 text-on-surface shadow-md"
-            aria-label="Fermer"
+            aria-label={t('common.close')}
           >
             <MaterialIcon name="close" />
           </button>
@@ -60,7 +62,7 @@ export default function PublicProductSheet({ product, onClose }) {
             <h2 id="product-sheet-title" className="font-display text-2xl font-semibold tracking-tight text-on-surface">
               {product.name}
             </h2>
-            <p className="shrink-0 text-lg font-semibold text-primary">{formatPrice(product.price)}</p>
+            <p className="shrink-0 text-lg font-semibold text-primary">{formatPrice(product.price, locale)}</p>
           </div>
           {product.description ? (
             <p className="mt-3 text-body-lg text-on-surface-variant">{product.description}</p>
