@@ -1,27 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import CategoryGridCard from '../components/menu/CategoryGridCard.jsx';
 import PublicProductCard from '../components/menu/PublicProductCard.jsx';
-import { getPublicMenu } from '../services/menu.service.js';
+import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 
 const categoryGridClass =
   'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
-const contentClass =
-  'mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8';
-
-function setPageMeta({ title, description }) {
-  document.title = title;
-
-  let meta = document.querySelector('meta[name="description"]');
-
-  if (!meta) {
-    meta = document.createElement('meta');
-    meta.name = 'description';
-    document.head.appendChild(meta);
-  }
-
-  meta.content = description;
-}
+const contentClass = 'mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8';
 
 function MenuStatus({ title, message }) {
   return (
@@ -46,48 +31,24 @@ function MenuSkeleton() {
 
 export default function PublicMenuPage() {
   const { slug, categoryId } = useParams();
-  const [menu, setMenu] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [errorStatus, setErrorStatus] = useState(null);
+  const { menu, loading, errorStatus } = usePublicMenu(slug);
 
   useEffect(() => {
-    let cancelled = false;
-
-    setLoading(true);
-    setErrorStatus(null);
-
-    getPublicMenu(slug)
-      .then((data) => {
-        if (cancelled) {
-          return;
-        }
-
-        setMenu(data);
-        setPageMeta({
-          title: `${data.cafe.name} — Menu`,
-          description: data.cafe.description || `Menu de ${data.cafe.name}`,
-        });
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          setErrorStatus(error.response?.status || 500);
-          setPageMeta({
-            title: 'Menu introuvable',
-            description: "Ce menu n'est plus disponible.",
-          });
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
+    if (menu?.cafe) {
+      setPageMeta({
+        title: `${menu.cafe.name} — Menu`,
+        description: menu.cafe.description || `Menu de ${menu.cafe.name}`,
       });
+      return;
+    }
 
-    return () => {
-      cancelled = true;
-      document.title = 'Digital Menu';
-    };
-  }, [slug]);
+    if (errorStatus) {
+      setPageMeta({
+        title: 'Menu introuvable',
+        description: "Ce menu n'est plus disponible.",
+      });
+    }
+  }, [menu, errorStatus]);
 
   const selectedCategory = useMemo(
     () => menu?.categories?.find((category) => String(category.id) === String(categoryId)) || null,
@@ -107,13 +68,20 @@ export default function PublicMenuPage() {
   }
 
   if (!menu?.categories?.length) {
-    return <MenuStatus title="Menu vide" message="Le menu est actuellement vide." />;
+    return (
+      <div className={contentClass}>
+        <Link to={`/menu/${slug}`} className="text-sm text-neutral-600 hover:text-neutral-900">
+          ← Accueil
+        </Link>
+        <MenuStatus title="Menu vide" message="Le menu est actuellement vide." />
+      </div>
+    );
   }
 
   if (categoryId && !selectedCategory) {
     return (
       <div className={contentClass}>
-        <Link to={`/menu/${slug}`} className="text-sm text-neutral-600 hover:text-neutral-900">
+        <Link to={`/menu/${slug}/categories`} className="text-sm text-neutral-600 hover:text-neutral-900">
           ← Nos catégories
         </Link>
         <MenuStatus title="Catégorie introuvable" message="Cette catégorie n'est plus disponible." />
@@ -125,7 +93,7 @@ export default function PublicMenuPage() {
     return (
       <div className="min-h-screen">
         <div className={contentClass}>
-          <Link to={`/menu/${slug}`} className="text-sm text-neutral-600 hover:text-neutral-900">
+          <Link to={`/menu/${slug}/categories`} className="text-sm text-neutral-600 hover:text-neutral-900">
             ← Nos catégories
           </Link>
           <h1 className="mt-3 mb-6 text-2xl font-semibold tracking-tight uppercase md:text-3xl">
@@ -144,7 +112,10 @@ export default function PublicMenuPage() {
   return (
     <div className="min-h-screen">
       <div className={contentClass}>
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight md:text-3xl">Nos catégories</h1>
+        <Link to={`/menu/${slug}`} className="text-sm text-neutral-600 hover:text-neutral-900">
+          ← Accueil
+        </Link>
+        <h1 className="mt-3 mb-6 text-2xl font-semibold tracking-tight md:text-3xl">Nos catégories</h1>
         <div className={categoryGridClass}>
           {menu.categories.map((category) => (
             <CategoryGridCard key={category.id} category={category} slug={slug} />

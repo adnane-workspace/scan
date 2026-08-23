@@ -5,6 +5,7 @@ import Sidebar from '../components/dashboard/Sidebar.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { getDashboardStats } from '../services/dashboard.service.js';
+import { listPlatformCafes } from '../services/platform.service.js';
 
 const emptyStats = {
   totalProducts: 0,
@@ -21,6 +22,8 @@ const headerSubtitles = {
   '/dashboard/categories': 'Catégories',
   '/dashboard/products': 'Produits',
   '/dashboard/settings': 'Paramètres',
+  '/dashboard/cafes': 'Cafés',
+  '/dashboard/cafes/new': 'Nouveau café',
 };
 
 export default function DashboardLayout() {
@@ -29,9 +32,11 @@ export default function DashboardLayout() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [stats, setStats] = useState(emptyStats);
+  const [platformCafes, setPlatformCafes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const hasLoadedRef = useRef(false);
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const loadStats = useCallback(async (silent = false) => {
     if (!silent) {
@@ -52,25 +57,53 @@ export default function DashboardLayout() {
     }
   }, []);
 
+  const loadPlatformCafes = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
+
+    try {
+      const cafes = await listPlatformCafes();
+      setPlatformCafes(cafes);
+      setError('');
+      hasLoadedRef.current = true;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Impossible de charger les cafés');
+    } finally {
+      if (!silent) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
+    if (isSuperAdmin) {
+      loadPlatformCafes();
+      return undefined;
+    }
+
     if (hasLoadedRef.current && location.pathname !== '/dashboard') {
       return undefined;
     }
 
     loadStats();
-  }, [location.pathname, loadStats]);
+  }, [isSuperAdmin, location.pathname, loadPlatformCafes, loadStats]);
 
   async function handleLogout() {
     await logout();
     navigate('/login', { replace: true });
   }
 
-  const cafeName = stats.cafe?.name || 'Digital Menu';
-  const headerSubtitle = headerSubtitles[location.pathname] || 'Admin Dashboard';
+  const cafeName = isSuperAdmin ? 'Plateforme' : stats.cafe?.name || 'Digital Menu';
+  const headerSubtitle =
+    headerSubtitles[location.pathname] ||
+    (location.pathname.startsWith('/dashboard/cafes/') ? 'Fiche café' : null) ||
+    (isSuperAdmin ? 'Superadmin' : 'Admin Dashboard');
+  const roleLabel = isSuperAdmin ? 'Superadmin' : user?.role === 'admin' ? 'Admin' : user?.role || 'Admin';
 
   return (
     <ProtectedRoute>
@@ -89,7 +122,12 @@ export default function DashboardLayout() {
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <Sidebar cafe={stats.cafe} onLogout={handleLogout} onNavigate={() => setIsSidebarOpen(false)} />
+          <Sidebar
+            cafe={stats.cafe}
+            role={user?.role}
+            onLogout={handleLogout}
+            onNavigate={() => setIsSidebarOpen(false)}
+          />
         </aside>
 
         <div className="lg:pl-72">
@@ -115,7 +153,7 @@ export default function DashboardLayout() {
                   {user?.name || 'Admin Profile'}
                 </div>
                 <div className="text-label-md font-medium text-on-surface-variant">
-                  {user?.role === 'admin' ? 'Super User' : user?.role || 'Admin'}
+                  {roleLabel}
                 </div>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow-md">
@@ -125,7 +163,16 @@ export default function DashboardLayout() {
           </header>
 
           <main className="min-h-screen bg-background px-4 pt-[calc(6rem+env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 lg:px-container">
-            <Outlet context={{ stats, loading, error, refreshStats: () => loadStats(true) }} />
+            <Outlet
+              context={{
+                stats,
+                platformCafes,
+                loading,
+                error,
+                refreshStats: () => loadStats(true),
+                refreshCafes: () => loadPlatformCafes(true),
+              }}
+            />
           </main>
         </div>
       </div>

@@ -34,6 +34,9 @@ export const authenticate = asyncHandler(async (req, _res, next) => {
       cafeId: true,
       createdAt: true,
       updatedAt: true,
+      cafe: {
+        select: { isActive: true },
+      },
     },
   });
 
@@ -41,17 +44,50 @@ export const authenticate = asyncHandler(async (req, _res, next) => {
     throw new ApiError(401, 'Authentication required');
   }
 
-  req.user = { ...user, _id: user.id };
+  if (user.role === 'admin' && (!user.cafe || !user.cafe.isActive)) {
+    throw new ApiError(403, 'Ce café est désactivé');
+  }
+
+  const { cafe: _cafe, ...safeUser } = user;
+  req.user = { ...safeUser, _id: user.id };
   next();
 });
 
-export function requireAdmin(req, _res, next) {
+export function requireStaff(req, _res, next) {
   if (!req.user) {
     return next(new ApiError(401, 'Authentication required'));
   }
 
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
     return next(new ApiError(403, 'Admin access required'));
+  }
+
+  return next();
+}
+
+export function requireAdmin(req, _res, next) {
+  return requireCafeAdmin(req, _res, next);
+}
+
+export function requireCafeAdmin(req, _res, next) {
+  if (!req.user) {
+    return next(new ApiError(401, 'Authentication required'));
+  }
+
+  if (req.user.role !== 'admin' || !req.user.cafeId) {
+    return next(new ApiError(403, 'Cafe admin access required'));
+  }
+
+  return next();
+}
+
+export function requireSuperAdmin(req, _res, next) {
+  if (!req.user) {
+    return next(new ApiError(401, 'Authentication required'));
+  }
+
+  if (req.user.role !== 'superadmin') {
+    return next(new ApiError(403, 'Superadmin access required'));
   }
 
   return next();

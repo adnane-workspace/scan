@@ -25,6 +25,22 @@ describe('User', () => {
     expect(user.updatedAt).toBeInstanceOf(Date);
   });
 
+  it('creates a superadmin without a cafe', async () => {
+    const passwordHash = await bcrypt.hash('DemoAdmin123!', 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name: 'Super Admin',
+        email: 'superadmin@example.com',
+        passwordHash,
+        role: 'superadmin',
+      },
+    });
+
+    expect(user.role).toBe('superadmin');
+    expect(user.cafeId).toBeNull();
+  });
+
   it('requires an email', async () => {
     const passwordHash = await bcrypt.hash('DemoAdmin123!', 10);
 

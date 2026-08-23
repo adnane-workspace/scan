@@ -9,6 +9,18 @@ export function formatPrice(value) {
   return `${Number(value).toFixed(2)} €`;
 }
 
+export function formatDate(value) {
+  if (!value) {
+    return '—';
+  }
+
+  return new Date(value).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function categoryBadgeClass(name, available = true) {
   if (!available) {
     return "bg-surface-variant text-on-surface-variant";

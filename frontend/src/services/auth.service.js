@@ -1,5 +1,10 @@
 import api from './api.js';
 
+export async function registerRequest(payload) {
+  const { data } = await api.post('/auth/register', payload);
+  return data.data;
+}
+
 export async function loginRequest(credentials) {
   const { data } = await api.post('/auth/login', credentials);
   return data.data;
@@ -12,4 +17,9 @@ export async function fetchCurrentUser() {
 
 export async function logoutRequest() {
   await api.post('/auth/logout');
+}
+
+export async function changePasswordRequest(payload) {
+  const { data } = await api.post('/auth/password', payload);
+  return data;
 }

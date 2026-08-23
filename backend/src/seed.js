@@ -195,13 +195,16 @@ async function resolveImage(product) {
 async function seed() {
   await connectDatabase();
 
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.cafe.deleteMany();
-
-  const cafe = await prisma.cafe.create({
-    data: {
+  const cafe = await prisma.cafe.upsert({
+    where: { slug: 'cafe-central' },
+    update: {
+      name: 'Café Central',
+      description: 'Café de démonstration pour le menu digital.',
+      address: '12 Rue de la Paix, 75002 Paris',
+      phone: '+33 1 23 45 67 89',
+      isActive: true,
+    },
+    create: {
       name: 'Café Central',
       description: 'Café de démonstration pour le menu digital.',
       logo: '',
@@ -212,15 +215,41 @@ async function seed() {
     },
   });
 
+  await prisma.product.deleteMany({ where: { cafeId: cafe.id } });
+  await prisma.category.deleteMany({ where: { cafeId: cafe.id } });
+
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
 
-  const admin = await prisma.user.create({
-    data: {
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {
+      name: 'Admin',
+      passwordHash,
+      role: 'admin',
+      cafeId: cafe.id,
+    },
+    create: {
       name: 'Admin',
       email: 'admin@example.com',
       passwordHash,
       role: 'admin',
       cafeId: cafe.id,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'superadmin@example.com' },
+    update: {
+      name: 'Super Admin',
+      passwordHash,
+      role: 'superadmin',
+      cafeId: null,
+    },
+    create: {
+      name: 'Super Admin',
+      email: 'superadmin@example.com',
+      passwordHash,
+      role: 'superadmin',
     },
   });
 
@@ -257,6 +286,7 @@ async function seed() {
 
   console.log('Seed completed.');
   console.log(`Admin: ${admin.email}`);
+  console.log('Superadmin: superadmin@example.com');
   console.log(`Cafe: ${cafe.name} (${cafe.slug})`);
   console.log(`Public menu URL: /menu/${cafe.slug}`);
 
