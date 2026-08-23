@@ -1,17 +1,6 @@
 import { NavLink } from 'react-router-dom';
+import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
-
-const cafeLinks = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'home', end: true },
-  { to: '/dashboard/categories', label: 'Catégories', icon: 'grid_view' },
-  { to: '/dashboard/products', label: 'Produits', icon: 'lunch_dining' },
-  { to: '/dashboard/settings', label: 'Paramètres', icon: 'settings' },
-];
-
-const platformLinks = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'home', end: true },
-  { to: '/dashboard/cafes', label: 'Cafés', icon: 'storefront' },
-];
 
 function navClassName({ isActive }) {
   return `flex items-center rounded-xl px-4 py-3 text-label-lg font-semibold tracking-[0.05em] transition-all ${
@@ -22,8 +11,20 @@ function navClassName({ isActive }) {
 }
 
 export default function Sidebar({ cafe, role, onLogout, onNavigate }) {
+  const { t } = useLocale();
   const isSuperAdmin = role === 'superadmin';
-  const links = isSuperAdmin ? platformLinks : cafeLinks;
+  const links = isSuperAdmin
+    ? [
+        { to: '/dashboard', label: t('nav.dashboard'), icon: 'home', end: true },
+        { to: '/dashboard/cafes', label: t('nav.cafes'), icon: 'storefront' },
+        { to: '/dashboard/settings', label: t('nav.settings'), icon: 'settings' },
+      ]
+    : [
+        { to: '/dashboard', label: t('nav.dashboard'), icon: 'home', end: true },
+        { to: '/dashboard/categories', label: t('nav.categories'), icon: 'grid_view' },
+        { to: '/dashboard/products', label: t('nav.products'), icon: 'lunch_dining' },
+        { to: '/dashboard/settings', label: t('nav.settings'), icon: 'settings' },
+      ];
   const menuPath = cafe?.slug ? `/menu/${cafe.slug}` : '';
 
   return (
@@ -51,7 +52,7 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate }) {
               onClick={onNavigate}
             >
               <MaterialIcon name="open_in_new" className="mr-3" />
-              Voir mon menu
+              {t('nav.viewMenu')}
             </NavLink>
           </div>
         ) : null}
@@ -64,7 +65,7 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate }) {
           className="flex w-full items-center rounded-xl px-4 py-3 text-left text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant transition-all hover:bg-surface-container-high hover:text-on-surface"
         >
           <MaterialIcon name="logout" className="mr-3" />
-          Déconnexion
+          {t('nav.logout')}
         </button>
       </div>
     </div>

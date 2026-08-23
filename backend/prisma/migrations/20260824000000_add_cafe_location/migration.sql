@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Cafe" ADD COLUMN "latitude" DOUBLE PRECISION;
+ALTER TABLE "Cafe" ADD COLUMN "longitude" DOUBLE PRECISION;

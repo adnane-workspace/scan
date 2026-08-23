@@ -178,6 +178,8 @@ export async function getPlatformCafe(cafeId) {
     logo: cafe.logo || '',
     address: cafe.address || '',
     phone: cafe.phone || '',
+    latitude: cafe.latitude,
+    longitude: cafe.longitude,
     updatedAt: cafe.updatedAt,
   };
 }

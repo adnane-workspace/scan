@@ -16,10 +16,23 @@ export const updateCafeSchema = z.object({
       logo: z.string().trim().max(500).optional(),
       address: z.string().trim().max(200).optional(),
       phone: z.string().trim().max(30).optional(),
+      latitude: z.number().min(-90).max(90).nullable().optional(),
+      longitude: z.number().min(-180).max(180).nullable().optional(),
     })
     .refine((value) => Object.keys(value).length > 0, {
       message: 'At least one field is required',
-    }),
+    })
+    .refine(
+      (value) => {
+        const hasLat = value.latitude !== undefined && value.latitude !== null;
+        const hasLng = value.longitude !== undefined && value.longitude !== null;
+        const cleared = value.latitude === null && value.longitude === null;
+        const omitted = value.latitude === undefined && value.longitude === undefined;
+
+        return cleared || omitted || (hasLat && hasLng);
+      },
+      { message: 'Latitude and longitude must be set together' },
+    ),
 });
 
 export const createPlatformCafeSchema = z.object({

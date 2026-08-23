@@ -12,9 +12,9 @@ export default function PasswordField({
   minLength,
 }) {
   return (
-    <label className="block text-sm font-medium text-on-surface">
+    <label className="block text-label-md font-medium tracking-wider text-on-surface-variant uppercase">
       {label}
-      <div className="relative mt-1">
+      <div className="relative mt-1.5">
         <input
           type={show ? 'text' : 'password'}
           value={value}
@@ -23,7 +23,7 @@ export default function PasswordField({
           minLength={minLength}
           required={required}
           autoComplete={autoComplete}
-          className="w-full rounded-lg bg-surface-container-highest px-3 py-2 pr-12 text-on-surface outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-xl bg-surface-container-low px-4 py-3.5 pr-12 text-on-surface outline-none ring-1 ring-transparent transition-shadow focus:ring-2 focus:ring-primary"
         />
         <button
           type="button"

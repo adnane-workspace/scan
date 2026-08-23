@@ -202,6 +202,8 @@ async function seed() {
       description: 'Café de démonstration pour le menu digital.',
       address: '12 Rue de la Paix, 75002 Paris',
       phone: '+33 1 23 45 67 89',
+      latitude: 48.8689,
+      longitude: 2.3312,
       isActive: true,
     },
     create: {
@@ -210,6 +212,8 @@ async function seed() {
       logo: '',
       address: '12 Rue de la Paix, 75002 Paris',
       phone: '+33 1 23 45 67 89',
+      latitude: 48.8689,
+      longitude: 2.3312,
       slug: 'cafe-central',
       isActive: true,
     },

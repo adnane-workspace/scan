@@ -19,6 +19,8 @@ function toCafeResponse(cafe) {
     logo: cafe.logo || '',
     address: cafe.address,
     phone: cafe.phone,
+    latitude: cafe.latitude,
+    longitude: cafe.longitude,
     slug: cafe.slug,
     isActive: cafe.isActive,
     createdAt: cafe.createdAt,
@@ -59,6 +61,14 @@ export async function updateMyCafe(user, payload) {
 
   if (payload.phone !== undefined) {
     data.phone = payload.phone;
+  }
+
+  if (payload.latitude !== undefined) {
+    data.latitude = payload.latitude;
+  }
+
+  if (payload.longitude !== undefined) {
+    data.longitude = payload.longitude;
   }
 
   if (payload.slug !== undefined) {

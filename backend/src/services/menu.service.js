@@ -21,6 +21,8 @@ export async function getPublicMenu(slug) {
       logo: true,
       address: true,
       phone: true,
+      latitude: true,
+      longitude: true,
       isActive: true,
     },
   });
@@ -73,6 +75,8 @@ export async function getPublicMenu(slug) {
       logo: cafe.logo || '',
       address: cafe.address || '',
       phone: cafe.phone || '',
+      latitude: cafe.latitude,
+      longitude: cafe.longitude,
     },
     categories: categories
       .map((category) => ({

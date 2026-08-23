@@ -4,6 +4,7 @@ import PasswordField from '../components/ui/PasswordField.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { getPlatformCafe, resetPlatformCafePassword, updatePlatformCafe } from '../services/platform.service.js';
 import { formatDate } from '../utils/format.js';
+import { hasCoordinates, mapsHref } from '../utils/location.js';
 
 function Field({ label, value }) {
   return (
@@ -150,7 +151,18 @@ export default function CafeDetailPage() {
             <Field label="Gérant" value={cafe.ownerName} />
             <Field label="Email" value={cafe.ownerEmail} />
             <Field label="Téléphone" value={cafe.phone} />
-            <Field label="Adresse" value={cafe.address} />
+            <Field
+              label="Adresse"
+              value={
+                cafe.address || hasCoordinates(cafe) ? (
+                  <a href={mapsHref(cafe)} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                    {cafe.address || 'Voir l’emplacement'}
+                  </a>
+                ) : (
+                  '—'
+                )
+              }
+            />
             <Field label="Catégories" value={String(cafe.categoryCount)} />
             <Field label="Produits" value={String(cafe.productCount)} />
             <Field label="Inscrit le" value={formatDate(cafe.createdAt)} />

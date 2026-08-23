@@ -4,6 +4,7 @@ import ProtectedRoute from '../components/common/ProtectedRoute.jsx';
 import Sidebar from '../components/dashboard/Sidebar.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { useLocale } from '../hooks/useLocale.js';
 import { getDashboardStats } from '../services/dashboard.service.js';
 import { listPlatformCafes } from '../services/platform.service.js';
 
@@ -17,17 +18,18 @@ const emptyStats = {
   cafe: null,
 };
 
-const headerSubtitles = {
-  '/dashboard': 'Admin Dashboard',
-  '/dashboard/categories': 'Catégories',
-  '/dashboard/products': 'Produits',
-  '/dashboard/settings': 'Paramètres',
-  '/dashboard/cafes': 'Cafés',
-  '/dashboard/cafes/new': 'Nouveau café',
+const headerSubtitleKeys = {
+  '/dashboard': 'header.dashboard',
+  '/dashboard/categories': 'header.categories',
+  '/dashboard/products': 'header.products',
+  '/dashboard/settings': 'header.settings',
+  '/dashboard/cafes': 'header.cafes',
+  '/dashboard/cafes/new': 'header.cafeNew',
 };
 
 export default function DashboardLayout() {
   const { logout, user } = useAuth();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -98,11 +100,15 @@ export default function DashboardLayout() {
     navigate('/login', { replace: true });
   }
 
-  const cafeName = isSuperAdmin ? 'Plateforme' : stats.cafe?.name || 'Digital Menu';
-  const headerSubtitle =
-    headerSubtitles[location.pathname] ||
-    (location.pathname.startsWith('/dashboard/cafes/') ? 'Fiche café' : null) ||
-    (isSuperAdmin ? 'Superadmin' : 'Admin Dashboard');
+  const cafeName = isSuperAdmin ? t('header.platform') : stats.cafe?.name || 'Digital Menu';
+  const subtitleKey = headerSubtitleKeys[location.pathname];
+  const headerSubtitle = subtitleKey
+    ? t(subtitleKey)
+    : location.pathname.startsWith('/dashboard/cafes/')
+      ? t('header.cafeDetail')
+      : isSuperAdmin
+        ? 'Superadmin'
+        : t('header.dashboard');
   const roleLabel = isSuperAdmin ? 'Superadmin' : user?.role === 'admin' ? 'Admin' : user?.role || 'Admin';
 
   return (

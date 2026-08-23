@@ -20,6 +20,8 @@ model Cafe {
   logo        String     @default("")
   address     String     @default("") @db.VarChar(200)
   phone       String     @default("") @db.VarChar(30)
+  latitude    Float?
+  longitude   Float?
   slug        String     @unique @db.VarChar(80)
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
+import { hasCoordinates, mapsHref } from '../utils/location.js';
 
 function LandingStatus({ title, message }) {
   return (
@@ -10,6 +11,10 @@ function LandingStatus({ title, message }) {
       <p className="mt-2 max-w-md text-sm text-on-surface-variant">{message}</p>
     </div>
   );
+}
+
+function telHref(phone) {
+  return `tel:${String(phone).replace(/[^\d+]/g, '')}`;
 }
 
 export default function PublicMenuLandingPage() {
@@ -53,7 +58,7 @@ export default function PublicMenuLandingPage() {
   const { cafe } = menu;
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-background px-6 py-12">
+    <div className="relative flex min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col items-center justify-center overflow-hidden px-6 py-12">
       <div className="pointer-events-none absolute top-1/4 left-1/4 h-[40vw] w-[40vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-container/15 blur-[100px]" />
       <div className="pointer-events-none absolute right-1/4 bottom-1/4 h-[30vw] w-[30vw] translate-x-1/2 translate-y-1/2 rounded-full bg-tertiary-container/15 blur-[80px]" />
 
@@ -78,19 +83,24 @@ export default function PublicMenuLandingPage() {
           <p className="mt-3 max-w-sm text-body-lg text-on-surface-variant">{cafe.description}</p>
         ) : null}
 
-        {cafe.address || cafe.phone ? (
+        {cafe.address || cafe.phone || hasCoordinates(cafe) ? (
           <div className="mt-5 flex flex-col items-center gap-2 text-sm text-on-surface-variant">
-            {cafe.address ? (
-              <p className="inline-flex items-center gap-2">
+            {cafe.address || hasCoordinates(cafe) ? (
+              <a
+                href={mapsHref(cafe)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 hover:text-primary"
+              >
                 <MaterialIcon name="location_on" className="text-[18px]" />
-                {cafe.address}
-              </p>
+                {cafe.address || 'Voir l’itinéraire'}
+              </a>
             ) : null}
             {cafe.phone ? (
-              <p className="inline-flex items-center gap-2">
+              <a href={telHref(cafe.phone)} className="inline-flex items-center gap-2 hover:text-primary">
                 <MaterialIcon name="call" className="text-[18px]" />
                 {cafe.phone}
-              </p>
+              </a>
             ) : null}
           </div>
         ) : null}
@@ -99,7 +109,7 @@ export default function PublicMenuLandingPage() {
           to={`/menu/${slug}/categories`}
           className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] sm:w-auto sm:min-w-56"
         >
-          Voir mon menu
+          Voir le menu
           <MaterialIcon name="arrow_forward" className="text-[20px]" />
         </Link>
       </div>
