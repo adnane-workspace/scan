@@ -9,6 +9,7 @@ import CafesPage from './pages/CafesPage.jsx';
 import CreateCafePage from './pages/CreateCafePage.jsx';
 import CategoriesPage from './pages/CategoriesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import ProductsPage from './pages/ProductsPage.jsx';
@@ -24,6 +25,7 @@ export default function App() {
 
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/register" element={<RegisterPage />} />
       </Route>
 

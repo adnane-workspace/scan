@@ -10,6 +10,10 @@ export default function AuthField({
   placeholder,
   autoComplete,
   minLength,
+  maxLength,
+  inputMode,
+  pattern,
+  autoFocus,
   required = true,
   invalid,
   errorId,
@@ -40,6 +44,10 @@ export default function AuthField({
           placeholder={placeholder}
           autoComplete={autoComplete}
           minLength={minLength}
+          maxLength={maxLength}
+          inputMode={inputMode}
+          pattern={pattern}
+          autoFocus={autoFocus}
           required={required}
           aria-invalid={invalid || undefined}
           aria-describedby={invalid ? errorId : undefined}

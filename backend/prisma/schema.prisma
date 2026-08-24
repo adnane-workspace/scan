@@ -52,16 +52,31 @@ model Cafe {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  name         String        @db.VarChar(80)
-  email        String        @unique @db.VarChar(160)
-  passwordHash String
-  role         UserRole      @default(admin)
-  cafeId       String?
-  cafe         Cafe?         @relation(fields: [cafeId], references: [id], onDelete: SetNull)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  activityLogs ActivityLog[]
+  id             String          @id @default(uuid())
+  name           String          @db.VarChar(80)
+  email          String          @unique @db.VarChar(160)
+  passwordHash   String
+  role           UserRole        @default(admin)
+  cafeId         String?
+  cafe           Cafe?           @relation(fields: [cafeId], references: [id], onDelete: SetNull)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  activityLogs   ActivityLog[]
+  passwordResets PasswordReset[]
+}
+
+model PasswordReset {
+  id         String    @id @default(uuid())
+  email      String    @db.VarChar(160)
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
 }
 
 model ActivityLog {

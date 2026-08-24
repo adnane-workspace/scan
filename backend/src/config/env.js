@@ -8,6 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({
   path: path.resolve(__dirname, '../../.env'),
   quiet: true,
+  override: true,
 });
 
 const envSchema = z.object({
@@ -24,6 +25,19 @@ const envSchema = z.object({
   PRODUCTION_DATABASE_URL: z.string().optional().default(''),
   PRODUCTION_API_URL: z.string().trim().optional().default(''),
   PRODUCTION_CAFE_SLUGS: z.string().optional().default('cafe-central'),
+  RESEND_API_KEY: z.string().trim().optional().default(''),
+  SMTP_HOST: z.string().trim().optional().default(''),
+  SMTP_PORT: z.preprocess(
+    (value) => (value === undefined || value === '' ? 587 : value),
+    z.coerce.number().int().min(1).max(65535),
+  ),
+  SMTP_SECURE: z.preprocess((value) => value === true || value === 'true' || value === '1', z.boolean()),
+  SMTP_USER: z.string().optional().default(''),
+  SMTP_PASS: z.preprocess(
+    (value) => String(value || '').replace(/\s+/g, ''),
+    z.string().optional().default(''),
+  ),
+  MAIL_FROM: z.string().trim().optional().default('Epicurean <noreply@epicurean.app>'),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -30,10 +30,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const isLoginRequest = error.config?.url?.includes('/auth/login');
+    const isPublicAuth =
+      error.config?.url?.includes('/auth/login') ||
+      error.config?.url?.includes('/auth/register') ||
+      error.config?.url?.includes('/auth/forgot-password') ||
+      error.config?.url?.includes('/auth/verify-reset-code') ||
+      error.config?.url?.includes('/auth/reset-password');
     const isMenuRequest = error.config?.url?.includes('/menu/');
 
-    if (error.response?.status === 401 && !isLoginRequest && !isMenuRequest) {
+    if (error.response?.status === 401 && !isPublicAuth && !isMenuRequest) {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(USER_STORAGE_KEY);
       window.dispatchEvent(new Event('auth:unauthorized'));

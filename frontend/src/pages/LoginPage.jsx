@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import AuthBrandPanel from '../components/auth/AuthBrandPanel.jsx';
 import AuthField from '../components/auth/AuthField.jsx';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const { isAuthenticated, isReady, login } = useAuth();
   const { t } = useLocale();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('admin@example.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -108,6 +109,18 @@ export default function LoginPage() {
                 <MaterialIcon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[20px]" />
               </button>
             </AuthField>
+
+            <div className="flex justify-end">
+              <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
+
+            {location.state?.resetSuccess ? (
+              <p className="rounded-xl border border-tertiary/20 bg-tertiary/10 px-4 py-3 text-sm text-on-surface">
+                {t('auth.resetSuccess')}
+              </p>
+            ) : null}
 
             {error ? (
               <p

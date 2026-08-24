@@ -32,3 +32,25 @@ export const changePasswordSchema = z.object({
     newPassword: z.string().min(8).max(120),
   }),
 });
+
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().trim().toLowerCase().email(),
+    locale: z.enum(['fr', 'en']).optional(),
+  }),
+});
+
+export const verifyResetCodeSchema = z.object({
+  body: z.object({
+    email: z.string().trim().toLowerCase().email(),
+    code: z.string().trim().regex(/^\d{6}$/),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().trim().toLowerCase().email(),
+    code: z.string().trim().regex(/^\d{6}$/),
+    newPassword: z.string().min(8).max(120),
+  }),
+});
