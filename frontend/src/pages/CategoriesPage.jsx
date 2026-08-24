@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CategoryFormModal from '../components/dashboard/CategoryFormModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
 import {
   createCategory,
@@ -9,6 +10,11 @@ import {
   updateCategory,
   uploadCategoryImage,
 } from '../services/category.service.js';
+import {
+  descendantIdSet,
+  siblingCategories,
+  walkPreOrder,
+} from '../utils/categoryTree.js';
 import { categoryIcon } from '../utils/format.js';
 
 const emptyForm = {
@@ -16,6 +22,7 @@ const emptyForm = {
   description: '',
   image: '',
   order: 0,
+  parentId: '',
 };
 
 function CategoryIdentity({ category, t }) {
@@ -43,9 +50,19 @@ function CategoryIdentity({ category, t }) {
   );
 }
 
-function CategoryActions({ category, onEdit, onDelete, t }) {
+function CategoryActions({ category, canAddChild, onEdit, onDelete, onAddChild, t }) {
   return (
     <div className="flex items-center justify-end gap-2">
+      {canAddChild ? (
+        <button
+          type="button"
+          title={t('categories.addChild', { name: category.name })}
+          onClick={() => onAddChild(category)}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
+        >
+          <MaterialIcon name="subdirectory_arrow_right" className="text-[20px]" />
+        </button>
+      ) : null}
       <button
         type="button"
         title={t('common.edit')}
@@ -76,7 +93,7 @@ export default function CategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [reordering, setReordering] = useState(false);
-  const [dragIndex, setDragIndex] = useState(null);
+  const [dragId, setDragId] = useState(null);
   const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
 
@@ -102,10 +119,26 @@ export default function CategoriesPage() {
     loadData();
   }, []);
 
-  const nextOrder = useMemo(
-    () => categories.reduce((max, category) => Math.max(max, Number(category.order) || 0), 0) + 1,
-    [categories],
-  );
+  const rows = useMemo(() => walkPreOrder(categories), [categories]);
+
+  const parentOptions = useMemo(() => {
+    const blocked = editingId ? descendantIdSet(categories, editingId) : new Set();
+
+    if (editingId) {
+      blocked.add(editingId);
+    }
+
+    return walkPreOrder(categories).filter((category) => !blocked.has(category._id));
+  }, [categories, editingId]);
+
+  function nextSiblingOrder(parentId) {
+    const siblings = siblingCategories(categories, parentId || null);
+    return siblings.reduce((max, category) => Math.max(max, Number(category.order) || 0), 0) + 1;
+  }
+
+  function canAddChild(category) {
+    return category.childCount > 0 || !category.productCount;
+  }
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -122,9 +155,9 @@ export default function CategoriesPage() {
     setFormError('');
   }
 
-  function openCreateForm() {
+  function openCreateForm(parentId = '') {
     setEditingId(null);
-    setForm({ ...emptyForm, order: nextOrder });
+    setForm({ ...emptyForm, parentId: parentId || '', order: nextSiblingOrder(parentId || null) });
     setFormError('');
     setError('');
     setIsFormOpen(true);
@@ -137,6 +170,7 @@ export default function CategoriesPage() {
       description: category.description || '',
       image: category.image || '',
       order: category.order ?? 0,
+      parentId: category.parentId || '',
     });
     setFormError('');
     setError('');
@@ -159,6 +193,7 @@ export default function CategoriesPage() {
       description: form.description.trim(),
       image: form.image.trim(),
       order: Number.isNaN(form.order) ? 0 : form.order,
+      parentId: form.parentId || null,
     };
 
     try {
@@ -169,6 +204,7 @@ export default function CategoriesPage() {
       }
 
       closeForm();
+      clearPublicMenuCache();
       await loadData(true);
     } catch (err) {
       setFormError(err.response?.data?.message || t('validation.saveCategory'));
@@ -209,6 +245,7 @@ export default function CategoriesPage() {
 
     try {
       await deleteCategory(category._id);
+      clearPublicMenuCache();
 
       if (editingId === category._id) {
         closeForm();
@@ -220,8 +257,8 @@ export default function CategoriesPage() {
     }
   }
 
-  async function persistOrder(nextCategories) {
-    const updates = nextCategories
+  async function persistSiblingOrder(parentId, nextSiblings) {
+    const updates = nextSiblings
       .map((category, index) => ({ category, order: index + 1 }))
       .filter(({ category, order }) => category.order !== order);
 
@@ -234,7 +271,12 @@ export default function CategoriesPage() {
 
     try {
       await Promise.all(updates.map(({ category, order }) => updateCategory(category._id, { order })));
-      setCategories(nextCategories.map((category, index) => ({ ...category, order: index + 1 })));
+      const ordered = new Map(nextSiblings.map((category, index) => [category._id, index + 1]));
+      setCategories((current) =>
+        current.map((category) =>
+          ordered.has(category._id) ? { ...category, order: ordered.get(category._id) } : category,
+        ),
+      );
     } catch (err) {
       setError(err.response?.data?.message || t('categories.reorderError'));
       await loadData(true);
@@ -243,15 +285,15 @@ export default function CategoriesPage() {
     }
   }
 
-  function handleDragStart(event, index) {
+  function handleDragStart(event, category) {
     if (reordering || event.target.closest('button')) {
       event.preventDefault();
       return;
     }
 
-    setDragIndex(index);
+    setDragId(category._id);
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', String(index));
+    event.dataTransfer.setData('text/plain', category._id);
   }
 
   function handleDragOver(event) {
@@ -259,39 +301,52 @@ export default function CategoriesPage() {
     event.dataTransfer.dropEffect = 'move';
   }
 
-  async function handleDrop(event, dropIndex) {
+  async function handleDrop(event, dropCategory) {
     event.preventDefault();
+    const fromId = dragId || event.dataTransfer.getData('text/plain');
+    setDragId(null);
 
-    const fromIndex = dragIndex;
-    setDragIndex(null);
+    const fromCategory = categories.find((category) => category._id === fromId);
 
-    if (fromIndex === null || fromIndex === dropIndex) {
+    if (!fromCategory || fromCategory._id === dropCategory._id) {
       return;
     }
 
-    const next = [...categories];
+    if ((fromCategory.parentId || null) !== (dropCategory.parentId || null)) {
+      return;
+    }
+
+    const siblings = siblingCategories(categories, fromCategory.parentId);
+    const fromIndex = siblings.findIndex((category) => category._id === fromId);
+    const dropIndex = siblings.findIndex((category) => category._id === dropCategory._id);
+
+    if (fromIndex < 0 || dropIndex < 0) {
+      return;
+    }
+
+    const next = [...siblings];
     const [moved] = next.splice(fromIndex, 1);
     next.splice(dropIndex, 0, moved);
-    setCategories(next);
-    await persistOrder(next);
+    await persistSiblingOrder(fromCategory.parentId, next);
   }
 
   function handleDragEnd() {
-    setDragIndex(null);
+    setDragId(null);
   }
 
-  async function moveCategory(index, delta) {
+  async function moveCategory(category, delta) {
+    const siblings = siblingCategories(categories, category.parentId);
+    const index = siblings.findIndex((item) => item._id === category._id);
     const nextIndex = index + delta;
 
-    if (reordering || nextIndex < 0 || nextIndex >= categories.length) {
+    if (reordering || index < 0 || nextIndex < 0 || nextIndex >= siblings.length) {
       return;
     }
 
-    const next = [...categories];
+    const next = [...siblings];
     const [moved] = next.splice(index, 1);
     next.splice(nextIndex, 0, moved);
-    setCategories(next);
-    await persistOrder(next);
+    await persistSiblingOrder(category.parentId, next);
   }
 
   return (
@@ -301,13 +356,11 @@ export default function CategoriesPage() {
           <h1 className="mb-1 font-display text-display-md font-bold tracking-tight text-on-surface lg:text-display-lg">
             {t('categories.title')}
           </h1>
-          <p className="max-w-2xl text-on-surface-variant">
-            {t('categories.subtitle')}
-          </p>
+          <p className="max-w-2xl text-on-surface-variant">{t('categories.subtitle')}</p>
         </div>
         <button
           type="button"
-          onClick={openCreateForm}
+          onClick={() => openCreateForm()}
           className="group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-on-primary transition-all duration-300 hover:bg-surface-tint hover:shadow-lg"
         >
           <MaterialIcon name="add" className="text-[20px] transition-transform duration-300 group-hover:rotate-90" />
@@ -331,15 +384,21 @@ export default function CategoriesPage() {
           ) : (
             <>
               <ul className="space-y-3 p-3 md:hidden">
-                {categories.map((category, index) => {
+                {rows.map((category) => {
                   const count = category.productCount || 0;
+                  const siblings = siblingCategories(categories, category.parentId);
+                  const siblingIndex = siblings.findIndex((item) => item._id === category._id);
 
                   return (
-                    <li key={category._id} className="rounded-xl bg-surface-container-lowest p-4 shadow-sm">
+                    <li
+                      key={category._id}
+                      className="rounded-xl bg-surface-container-lowest p-4 shadow-sm"
+                      style={{ marginLeft: `${category.depth * 16}px` }}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-3">
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-label-lg font-semibold text-on-surface-variant">
-                            {index + 1}
+                            {siblingIndex + 1}
                           </div>
                           <CategoryIdentity category={category} t={t} />
                         </div>
@@ -347,8 +406,8 @@ export default function CategoriesPage() {
                           <button
                             type="button"
                             aria-label={t('categories.moveUp', { name: category.name })}
-                            disabled={reordering || index === 0}
-                            onClick={() => moveCategory(index, -1)}
+                            disabled={reordering || siblingIndex === 0}
+                            onClick={() => moveCategory(category, -1)}
                             className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
                           >
                             <MaterialIcon name="keyboard_arrow_up" />
@@ -356,8 +415,8 @@ export default function CategoriesPage() {
                           <button
                             type="button"
                             aria-label={t('categories.moveDown', { name: category.name })}
-                            disabled={reordering || index === categories.length - 1}
-                            onClick={() => moveCategory(index, 1)}
+                            disabled={reordering || siblingIndex === siblings.length - 1}
+                            onClick={() => moveCategory(category, 1)}
                             className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
                           >
                             <MaterialIcon name="keyboard_arrow_down" />
@@ -368,7 +427,14 @@ export default function CategoriesPage() {
                         <span className="rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
                           {count > 1 ? t('categories.itemsPlural', { count }) : t('categories.items', { count })}
                         </span>
-                        <CategoryActions category={category} onEdit={startEdit} onDelete={handleDelete} t={t} />
+                        <CategoryActions
+                          category={category}
+                          canAddChild={canAddChild(category)}
+                          onEdit={startEdit}
+                          onDelete={handleDelete}
+                          onAddChild={(item) => openCreateForm(item._id)}
+                          t={t}
+                        />
                       </div>
                     </li>
                   );
@@ -389,19 +455,21 @@ export default function CategoriesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {categories.map((category, index) => {
+                    {rows.map((category) => {
                       const count = category.productCount || 0;
+                      const siblings = siblingCategories(categories, category.parentId);
+                      const siblingIndex = siblings.findIndex((item) => item._id === category._id);
 
                       return (
                         <tr
                           key={category._id}
                           draggable={!reordering}
-                          onDragStart={(event) => handleDragStart(event, index)}
+                          onDragStart={(event) => handleDragStart(event, category)}
                           onDragOver={handleDragOver}
-                          onDrop={(event) => handleDrop(event, index)}
+                          onDrop={(event) => handleDrop(event, category)}
                           onDragEnd={handleDragEnd}
                           className={`group cursor-grab border-b-0 transition-colors duration-200 hover:bg-surface-container-lowest/80 active:cursor-grabbing ${
-                            dragIndex === index
+                            dragId === category._id
                               ? 'relative z-50 scale-[1.01] bg-surface-container-highest opacity-50 shadow-lg'
                               : ''
                           }`}
@@ -414,11 +482,13 @@ export default function CategoriesPage() {
                           </td>
                           <td className="w-24 px-6 py-5 align-middle">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant">
-                              {index + 1}
+                              {siblingIndex + 1}
                             </div>
                           </td>
                           <td className="px-6 py-5 align-middle">
-                            <CategoryIdentity category={category} t={t} />
+                            <div style={{ paddingLeft: `${category.depth * 24}px` }}>
+                              <CategoryIdentity category={category} t={t} />
+                            </div>
                           </td>
                           <td className="px-6 py-5 text-right align-middle">
                             <div className="inline-flex items-center rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
@@ -427,7 +497,14 @@ export default function CategoriesPage() {
                           </td>
                           <td className="px-6 py-5 text-right align-middle">
                             <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity duration-200 lg:opacity-0 lg:group-hover:opacity-100">
-                              <CategoryActions category={category} onEdit={startEdit} onDelete={handleDelete} t={t} />
+                              <CategoryActions
+                                category={category}
+                                canAddChild={canAddChild(category)}
+                                onEdit={startEdit}
+                                onDelete={handleDelete}
+                                onAddChild={(item) => openCreateForm(item._id)}
+                                t={t}
+                              />
                             </div>
                           </td>
                         </tr>
@@ -445,6 +522,7 @@ export default function CategoriesPage() {
         open={isFormOpen}
         editing={Boolean(editingId)}
         form={form}
+        parentOptions={parentOptions}
         saving={saving}
         uploading={uploading}
         error={formError}

@@ -248,7 +248,7 @@ export const messages = {
     },
     categories: {
       title: 'Catégories',
-      subtitle: 'Organisez la structure de votre menu. L’ordre défini ici sera celui affiché à vos clients.',
+      subtitle: 'Organisez la structure de votre menu, y compris les sous-catégories. L’ordre défini ici sera celui affiché à vos clients.',
       add: 'Nouvelle catégorie',
       loading: 'Chargement des catégories...',
       empty: 'Aucune catégorie pour le moment.',
@@ -265,6 +265,8 @@ export const messages = {
       actions: 'Actions',
       moveUp: 'Monter {name}',
       moveDown: 'Descendre {name}',
+      addChild: 'Ajouter une sous-catégorie à {name}',
+      children: '{count} sous-catégories',
     },
     categoryForm: {
       addTitle: 'Nouvelle catégorie',
@@ -272,6 +274,8 @@ export const messages = {
       addHint: 'Ajoutez une section à la structure de votre menu.',
       editHint: 'Mettez à jour le nom, la description et l’ordre d’affichage.',
       name: 'Nom *',
+      parent: 'Catégorie parente',
+      parentRoot: 'Aucune (catégorie principale)',
       description: 'Description',
       order: 'Ordre',
       image: 'Image',
@@ -708,7 +712,7 @@ export const messages = {
     },
     categories: {
       title: 'Categories',
-      subtitle: 'Organize your menu structure. This order is the one customers will see.',
+      subtitle: 'Organize your menu structure, including subcategories. This order is the one customers will see.',
       add: 'New category',
       loading: 'Loading categories...',
       empty: 'No categories yet.',
@@ -725,6 +729,8 @@ export const messages = {
       actions: 'Actions',
       moveUp: 'Move {name} up',
       moveDown: 'Move {name} down',
+      addChild: 'Add a subcategory to {name}',
+      children: '{count} subcategories',
     },
     categoryForm: {
       addTitle: 'New category',
@@ -732,6 +738,8 @@ export const messages = {
       addHint: 'Add a section to your menu structure.',
       editHint: 'Update the name, description and display order.',
       name: 'Name *',
+      parent: 'Parent category',
+      parentRoot: 'None (top-level category)',
       description: 'Description',
       order: 'Order',
       image: 'Image',

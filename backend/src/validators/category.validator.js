@@ -9,12 +9,18 @@ const imageSchema = z
   .max(2048)
   .refine((value) => value === '' || /^https?:\/\//i.test(value), 'Invalid image URL');
 
+const parentIdSchema = z.preprocess(
+  (value) => (value === '' || value === undefined ? null : value),
+  uuidSchema.nullable(),
+);
+
 export const createCategorySchema = z.object({
   body: z.object({
     name: z.string().trim().min(1).max(80),
     description: z.string().trim().max(300).optional(),
     order: z.number().int().optional(),
     image: imageSchema.optional(),
+    parentId: parentIdSchema.optional(),
   }),
 });
 
@@ -28,6 +34,7 @@ export const updateCategorySchema = z.object({
       description: z.string().trim().max(300).optional(),
       order: z.number().int().optional(),
       image: imageSchema.optional(),
+      parentId: parentIdSchema.optional(),
     })
     .refine((data) => Object.keys(data).length > 0, {
       message: 'At least one field is required',

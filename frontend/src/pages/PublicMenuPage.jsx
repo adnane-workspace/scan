@@ -6,6 +6,7 @@ import PublicProductCard from '../components/menu/PublicProductCard.jsx';
 import PublicProductSheet from '../components/menu/PublicProductSheet.jsx';
 import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { findPublicCategory, findPublicParent } from '../utils/categoryTree.js';
 
 const categoryGridClass =
   'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
@@ -58,7 +59,12 @@ export default function PublicMenuPage() {
   }, [menu, errorStatus, t]);
 
   const selectedCategory = useMemo(
-    () => menu?.categories?.find((category) => String(category.id) === String(categoryId)) || null,
+    () => findPublicCategory(menu?.categories, categoryId),
+    [menu, categoryId],
+  );
+
+  const selectedParent = useMemo(
+    () => (categoryId ? findPublicParent(menu?.categories, categoryId) : undefined),
     [menu, categoryId],
   );
 
@@ -81,6 +87,7 @@ export default function PublicMenuPage() {
   const cafe = menu?.cafe;
   const landingPath = `/menu/${slug}`;
   const categoriesPath = `/menu/${slug}/categories`;
+  const hasChildren = Boolean(selectedCategory?.children?.length);
 
   if (loading) {
     return <MenuSkeleton />;
@@ -122,10 +129,34 @@ export default function PublicMenuPage() {
     );
   }
 
-  if (selectedCategory) {
+  if (selectedCategory && hasChildren) {
+    const backTo = selectedParent ? `/menu/${slug}/${selectedParent.id}` : categoriesPath;
+    const backLabel = selectedParent ? selectedParent.name : t('menu.categories');
+
     return (
       <div className="min-h-screen">
-        <PublicMenuHeader cafe={cafe} slug={slug} backTo={categoriesPath} backLabel={t('menu.categories')} />
+        <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
+        <div className={contentClass}>
+          <h1 className="mb-6 font-display text-2xl font-semibold tracking-tight text-on-surface md:text-3xl">
+            {selectedCategory.name}
+          </h1>
+          <div className={categoryGridClass}>
+            {selectedCategory.children.map((category) => (
+              <CategoryGridCard key={category.id} category={category} slug={slug} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (selectedCategory) {
+    const backTo = selectedParent ? `/menu/${slug}/${selectedParent.id}` : categoriesPath;
+    const backLabel = selectedParent ? selectedParent.name : t('menu.categories');
+
+    return (
+      <div className="min-h-screen">
+        <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
           <h1 className="mb-6 font-display text-2xl font-semibold tracking-tight text-on-surface md:text-3xl">
             {selectedCategory.name}

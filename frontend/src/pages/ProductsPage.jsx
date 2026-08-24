@@ -11,6 +11,7 @@ import {
   updateProduct,
   uploadProductImage,
 } from '../services/product.service.js';
+import { categoryPathLabel, leafCategories, subtreeIds } from '../utils/categoryTree.js';
 
 const emptyForm = {
   name: '',
@@ -65,13 +66,23 @@ export default function ProductsPage() {
     loadData();
   }, []);
 
+  const leafOptions = useMemo(
+    () =>
+      leafCategories(categories).map((category) => ({
+        ...category,
+        pathLabel: categoryPathLabel(categories, category._id),
+      })),
+    [categories],
+  );
+
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
+    const allowedIds =
+      categoryFilter === 'all' ? null : subtreeIds(categories, categoryFilter);
 
     return products.filter((product) => {
       const matchesName = product.name.toLowerCase().includes(query);
-      const matchesCategory =
-        categoryFilter === 'all' || String(product.categoryId) === categoryFilter;
+      const matchesCategory = !allowedIds || allowedIds.has(String(product.categoryId));
       const matchesAvailability =
         availabilityFilter === 'all' ||
         (availabilityFilter === 'available' && product.available) ||
@@ -79,7 +90,7 @@ export default function ProductsPage() {
 
       return matchesName && matchesCategory && matchesAvailability;
     });
-  }, [products, search, categoryFilter, availabilityFilter]);
+  }, [products, search, categoryFilter, availabilityFilter, categories]);
 
   function handleChange(event) {
     const { name, value, type, checked } = event.target;
@@ -288,7 +299,7 @@ export default function ProductsPage() {
               <option value="all">{t('products.allCategories')}</option>
               {categories.map((category) => (
                 <option key={category._id} value={category._id}>
-                  {category.name}
+                  {categoryPathLabel(categories, category._id)}
                 </option>
               ))}
             </select>
@@ -340,7 +351,7 @@ export default function ProductsPage() {
         open={isFormOpen}
         editing={Boolean(editingId)}
         form={form}
-        categories={categories}
+        categories={leafOptions}
         saving={saving}
         uploading={uploading}
         error={formError}

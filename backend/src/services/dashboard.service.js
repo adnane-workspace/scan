@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
+import { subtreeProductCounts } from '../utils/categoryTree.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
@@ -40,7 +41,7 @@ export async function getDashboardStats(user) {
       prisma.category.findMany({
         where: { cafeId },
         orderBy: [{ order: 'asc' }, { name: 'asc' }],
-        select: { id: true, name: true },
+        select: { id: true, name: true, parentId: true },
       }),
       prisma.product.groupBy({
         by: ['categoryId'],
@@ -56,7 +57,8 @@ export async function getDashboardStats(user) {
   const availableProducts = availability.find((row) => row.available)?._count._all || 0;
   const unavailableProducts = availability.find((row) => !row.available)?._count._all || 0;
   const totalProducts = availableProducts + unavailableProducts;
-  const countByCategory = new Map(productCounts.map((item) => [item.categoryId, item._count._all]));
+  const directCounts = new Map(productCounts.map((item) => [item.categoryId, item._count._all]));
+  const countByCategory = subtreeProductCounts(categoryDocs, directCounts);
 
   return {
     totalProducts,

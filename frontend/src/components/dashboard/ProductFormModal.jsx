@@ -91,7 +91,7 @@ export default function ProductFormModal({
               <option value="">{t('productForm.selectCategory')}</option>
               {categories.map((category) => (
                 <option key={category._id} value={category._id}>
-                  {category.name}
+                  {category.pathLabel || category.name}
                 </option>
               ))}
             </select>

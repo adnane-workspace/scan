@@ -97,18 +97,22 @@ model ActivityLog {
 }
 
 model Category {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   cafeId      String
-  cafe        Cafe      @relation(fields: [cafeId], references: [id], onDelete: Cascade)
-  name        String    @db.VarChar(80)
-  description String    @default("") @db.VarChar(300)
-  image       String    @default("")
-  order       Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  cafe        Cafe       @relation(fields: [cafeId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children    Category[] @relation("CategoryTree")
+  name        String     @db.VarChar(80)
+  description String     @default("") @db.VarChar(300)
+  image       String     @default("")
+  order       Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   products    Product[]
 
   @@index([cafeId, order])
+  @@index([cafeId, parentId, order])
 }
 
 model Product {

@@ -2,6 +2,7 @@ import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { recordActivity } from './activity.service.js';
 import { normalizeImageUrl } from './storage.service.js';
+import { assertLeafCategory } from './category.service.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
@@ -31,15 +32,7 @@ function toProductResponse(product) {
 }
 
 async function assertOwnedCategory(cafeId, categoryId) {
-  const category = await prisma.category.findFirst({
-    where: { id: categoryId, cafeId },
-  });
-
-  if (!category) {
-    throw new ApiError(404, 'Category not found');
-  }
-
-  return category;
+  return assertLeafCategory(cafeId, categoryId);
 }
 
 async function findOwnedProduct(cafeId, productId) {

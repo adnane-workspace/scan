@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
+import { firstPublicCover } from '../../utils/categoryTree.js';
 
 export default function CategoryGridCard({ category, slug }) {
-  const cover = category.image || category.products.find((product) => product.image)?.image || '';
+  const cover = firstPublicCover(category);
 
   return (
     <Link

@@ -8,6 +8,7 @@ export default function CategoryFormModal({
   open,
   editing,
   form,
+  parentOptions = [],
   saving,
   uploading,
   error,
@@ -63,6 +64,17 @@ export default function CategoryFormModal({
               placeholder="Cafés"
               required
             />
+          </label>
+          <label className="block text-sm font-medium text-on-surface">
+            {t('categoryForm.parent')}
+            <select name="parentId" value={form.parentId || ''} onChange={onChange} className={fieldClass}>
+              <option value="">{t('categoryForm.parentRoot')}</option>
+              {parentOptions.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {`${'— '.repeat(category.depth)}${category.name}`}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="block text-sm font-medium text-on-surface">
             {t('categoryForm.order')}

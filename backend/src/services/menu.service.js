@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
+import { groupByParent } from '../utils/categoryTree.js';
 
 function toPublicProduct(product) {
   return {
@@ -9,6 +10,30 @@ function toPublicProduct(product) {
     price: Number(product.price),
     image: product.image || '',
   };
+}
+
+function buildPublicTree(categories, productsByCategory) {
+  const byParent = groupByParent(categories);
+
+  function buildNode(category) {
+    const children = (byParent.get(category.id) || []).map(buildNode).filter(Boolean);
+    const products = (productsByCategory.get(category.id) || []).map(toPublicProduct);
+
+    if (children.length === 0 && products.length === 0) {
+      return null;
+    }
+
+    return {
+      id: category.id,
+      name: category.name,
+      image: category.image || '',
+      parentId: category.parentId || null,
+      children,
+      products,
+    };
+  }
+
+  return (byParent.get('') || []).map(buildNode).filter(Boolean);
 }
 
 export async function getPublicMenu(slug) {
@@ -39,7 +64,7 @@ export async function getPublicMenu(slug) {
     prisma.category.findMany({
       where: { cafeId: cafe.id },
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
-      select: { id: true, name: true, image: true, order: true },
+      select: { id: true, name: true, image: true, order: true, parentId: true },
     }),
     prisma.product.findMany({
       where: { cafeId: cafe.id, available: true },
@@ -65,7 +90,7 @@ export async function getPublicMenu(slug) {
       productsByCategory.set(key, []);
     }
 
-    productsByCategory.get(key).push(toPublicProduct(product));
+    productsByCategory.get(key).push(product);
   }
 
   return {
@@ -78,13 +103,6 @@ export async function getPublicMenu(slug) {
       latitude: cafe.latitude,
       longitude: cafe.longitude,
     },
-    categories: categories
-      .map((category) => ({
-        id: category.id,
-        name: category.name,
-        image: category.image || '',
-        products: productsByCategory.get(category.id) || [],
-      }))
-      .filter((category) => category.products.length > 0),
+    categories: buildPublicTree(categories, productsByCategory),
   };
 }
