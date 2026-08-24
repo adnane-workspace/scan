@@ -1,58 +1,11 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import AuthBrandPanel from '../components/auth/AuthBrandPanel.jsx';
+import AuthField from '../components/auth/AuthField.jsx';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
-
-function Field({
-  id,
-  label,
-  type = 'text',
-  icon,
-  value,
-  onChange,
-  placeholder,
-  autoComplete,
-  minLength,
-  invalid,
-  children,
-}) {
-  return (
-    <div className="group flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-label-md font-medium tracking-wider text-on-surface-variant uppercase">
-        {label}
-      </label>
-      <div
-        className={`flex items-center rounded-xl bg-surface-container-low ring-1 transition-shadow ${
-          invalid
-            ? 'ring-error focus-within:ring-2 focus-within:ring-error'
-            : 'ring-transparent focus-within:ring-2 focus-within:ring-primary'
-        }`}
-      >
-        <MaterialIcon
-          name={icon}
-          className="ml-3 pointer-events-none text-[20px] text-on-surface-variant/50 group-focus-within:text-primary"
-        />
-        <input
-          id={id}
-          name={id}
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-          minLength={minLength}
-          required
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? 'login-error' : undefined}
-          className="w-full bg-transparent px-3 py-3.5 text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none"
-        />
-        {children}
-      </div>
-    </div>
-  );
-}
 
 export default function LoginPage() {
   const { isAuthenticated, isReady, login } = useAuth();
@@ -93,47 +46,7 @@ export default function LoginPage() {
 
   return (
     <main className="grid min-h-screen bg-background text-on-surface lg:grid-cols-2">
-      <aside className="relative hidden overflow-hidden bg-[#16110e] text-[#fff8f3] lg:flex lg:flex-col lg:justify-between lg:px-14 lg:py-14 xl:px-16">
-        <div className="pointer-events-none absolute -top-24 -left-16 h-80 w-80 rounded-full bg-primary-container/40 blur-[110px]" />
-        <div className="pointer-events-none absolute right-0 bottom-0 h-96 w-96 translate-x-1/4 translate-y-1/4 rounded-full bg-tertiary/30 blur-[120px]" />
-        <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:22px_22px]" />
-
-        <div className="relative z-10 flex items-center gap-3">
-          <img src="/epicurean-logo.png" alt="" className="h-12 w-12 rounded-xl bg-[#fff8f3] object-contain p-1.5" />
-          <span className="font-display text-2xl tracking-tight">Epicurean</span>
-        </div>
-
-        <div className="relative z-10 max-w-md">
-          <p className="text-label-md font-semibold tracking-[0.18em] text-primary-container uppercase">{t('auth.digitalMenu')}</p>
-          <h1 className="mt-4 font-display text-5xl font-semibold leading-[1.15] tracking-tight xl:text-6xl">
-            {t('auth.headline')}
-          </h1>
-          <p className="mt-5 text-lg leading-relaxed text-[#fff8f3]/72">
-            {t('auth.tagline')}
-          </p>
-        </div>
-
-        <ul className="relative z-10 space-y-4 text-sm text-[#fff8f3]/80">
-          <li className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8">
-              <MaterialIcon name="qr_code_2" className="text-[20px]" />
-            </span>
-            {t('auth.featureQr')}
-          </li>
-          <li className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8">
-              <MaterialIcon name="restaurant_menu" className="text-[20px]" />
-            </span>
-            {t('auth.featureMenu')}
-          </li>
-          <li className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8">
-              <MaterialIcon name="dashboard" className="text-[20px]" />
-            </span>
-            {t('auth.featureDashboard')}
-          </li>
-        </ul>
-      </aside>
+      <AuthBrandPanel />
 
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-8">
         <div className="pointer-events-none absolute top-0 right-0 h-64 w-64 rounded-full bg-primary/8 blur-[90px] lg:hidden" />
@@ -146,7 +59,11 @@ export default function LoginPage() {
         <div className="relative z-10 w-full max-w-[420px]">
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
             <div className="mb-5 flex items-center gap-3 lg:hidden">
-              <img src="/epicurean-logo.png" alt="" className="h-12 w-12 rounded-xl bg-surface-container-lowest object-contain p-1.5 shadow-sm" />
+              <img
+                src="/epicurean-logo.png"
+                alt=""
+                className="h-12 w-12 rounded-xl bg-surface-container-lowest object-contain p-1.5 shadow-sm"
+              />
               <span className="font-display text-2xl tracking-tight text-primary">Epicurean</span>
             </div>
             <h2 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface sm:text-4xl">
@@ -156,7 +73,7 @@ export default function LoginPage() {
           </div>
 
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <Field
+            <AuthField
               id="email"
               label={t('auth.email')}
               type="email"
@@ -166,9 +83,10 @@ export default function LoginPage() {
               placeholder="contact@restaurant.com"
               autoComplete="email"
               invalid={Boolean(error)}
+              errorId="login-error"
             />
 
-            <Field
+            <AuthField
               id="password"
               label={t('auth.password')}
               type={showPassword ? 'text' : 'password'}
@@ -179,6 +97,7 @@ export default function LoginPage() {
               autoComplete="current-password"
               minLength={8}
               invalid={Boolean(error)}
+              errorId="login-error"
             >
               <button
                 type="button"
@@ -188,7 +107,7 @@ export default function LoginPage() {
               >
                 <MaterialIcon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[20px]" />
               </button>
-            </Field>
+            </AuthField>
 
             {error ? (
               <p
