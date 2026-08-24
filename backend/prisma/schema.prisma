@@ -13,34 +13,61 @@ enum UserRole {
   superadmin
 }
 
+enum ActivityAction {
+  cafe_created
+  cafe_activated
+  cafe_deactivated
+  cafe_password_reset
+  cafe_updated
+  auth_login
+  auth_password_changed
+}
+
 model Cafe {
-  id          String     @id @default(uuid())
-  name        String     @db.VarChar(120)
-  description String     @default("") @db.VarChar(500)
-  logo        String     @default("")
-  address     String     @default("") @db.VarChar(200)
-  phone       String     @default("") @db.VarChar(30)
+  id          String        @id @default(uuid())
+  name        String        @db.VarChar(120)
+  description String        @default("") @db.VarChar(500)
+  logo        String        @default("")
+  address     String        @default("") @db.VarChar(200)
+  phone       String        @default("") @db.VarChar(30)
   latitude    Float?
   longitude   Float?
-  slug        String     @unique @db.VarChar(80)
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  slug        String        @unique @db.VarChar(80)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   users       User[]
   categories  Category[]
   products    Product[]
+  activityLogs ActivityLog[]
 }
 
 model User {
-  id           String   @id @default(uuid())
-  name         String   @db.VarChar(80)
-  email        String   @unique @db.VarChar(160)
+  id           String        @id @default(uuid())
+  name         String        @db.VarChar(80)
+  email        String        @unique @db.VarChar(160)
   passwordHash String
-  role         UserRole @default(admin)
+  role         UserRole      @default(admin)
   cafeId       String?
-  cafe         Cafe?    @relation(fields: [cafeId], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  cafe         Cafe?         @relation(fields: [cafeId], references: [id], onDelete: SetNull)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  activityLogs ActivityLog[]
+}
+
+model ActivityLog {
+  id        String         @id @default(uuid())
+  action    ActivityAction
+  actorId   String?
+  actor     User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  cafeId    String?
+  cafe      Cafe?          @relation(fields: [cafeId], references: [id], onDelete: SetNull)
+  metadata  Json?
+  createdAt DateTime       @default(now())
+
+  @@index([createdAt])
+  @@index([action])
+  @@index([cafeId])
 }
 
 model Category {

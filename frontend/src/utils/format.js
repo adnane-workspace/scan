@@ -14,6 +14,20 @@ export function formatPrice(value, locale = 'fr') {
   return `${amount} DH`;
 }
 
+export function formatDateTime(value, locale = 'fr') {
+  if (!value) {
+    return '—';
+  }
+
+  return new Date(value).toLocaleString(locale === 'en' ? 'en-GB' : 'fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function formatDate(value, locale = 'fr') {
   if (!value) {
     return '—';

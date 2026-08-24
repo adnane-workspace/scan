@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { slugify } from '../utils/slug.js';
 import { generateToken } from '../utils/token.js';
+import { recordActivity } from './activity.service.js';
 
 function toPublicUser(user) {
   return {
@@ -54,6 +55,16 @@ export async function login({ email, password }) {
     sub: user.id,
     role: user.role,
     cafeId: user.cafeId,
+  });
+
+  await recordActivity({
+    action: 'auth_login',
+    actorId: user.id,
+    cafeId: user.cafeId,
+    metadata: {
+      email: user.email,
+      role: user.role,
+    },
   });
 
   return {
@@ -127,6 +138,19 @@ export async function register({ name, email, password, cafeName, slug }) {
     return { cafe, user: createdUser };
   });
 
+  await recordActivity({
+    action: 'cafe_created',
+    actorId: user.id,
+    cafeId: user.cafeId,
+    metadata: {
+      cafeName: cafeName.trim(),
+      slug: cafeSlug,
+      ownerName: name.trim(),
+      ownerEmail: normalizedEmail,
+      source: 'register',
+    },
+  });
+
   const token = generateToken({
     sub: user.id,
     role: user.role,
@@ -163,6 +187,16 @@ export async function changePassword(userId, { currentPassword, newPassword }) {
   await prisma.user.update({
     where: { id: userId },
     data: { passwordHash },
+  });
+
+  await recordActivity({
+    action: 'auth_password_changed',
+    actorId: user.id,
+    cafeId: user.cafeId,
+    metadata: {
+      email: user.email,
+      role: user.role,
+    },
   });
 }
 

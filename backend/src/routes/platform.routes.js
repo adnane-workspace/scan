@@ -1,9 +1,17 @@
 import { Router } from 'express';
-import { createCafe, getCafe, listCafes, resetCafePassword, updateCafeStatus } from '../controllers/platform.controller.js';
+import {
+  createCafe,
+  getCafe,
+  listCafes,
+  listLogs,
+  resetCafePassword,
+  updateCafeStatus,
+} from '../controllers/platform.controller.js';
 import { authenticate, requireSuperAdmin } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import {
   createPlatformCafeSchema,
+  listActivityLogsSchema,
   platformCafeIdSchema,
   resetPlatformCafePasswordSchema,
   updatePlatformCafeSchema,
@@ -13,6 +21,7 @@ const platformRouter = Router();
 
 platformRouter.use(authenticate, requireSuperAdmin);
 
+platformRouter.get('/logs', validate(listActivityLogsSchema), listLogs);
 platformRouter.get('/cafes', listCafes);
 platformRouter.post('/cafes', validate(createPlatformCafeSchema), createCafe);
 platformRouter.get('/cafes/:id', validate(platformCafeIdSchema), getCafe);

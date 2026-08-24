@@ -17,6 +17,7 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate }) {
     ? [
         { to: '/dashboard', label: t('nav.dashboard'), icon: 'home', end: true },
         { to: '/dashboard/cafes', label: t('nav.cafes'), icon: 'storefront' },
+        { to: '/dashboard/logs', label: t('nav.logs'), icon: 'history' },
         { to: '/dashboard/settings', label: t('nav.settings'), icon: 'settings' },
       ]
     : [

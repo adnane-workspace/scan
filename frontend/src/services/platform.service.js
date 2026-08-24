@@ -1,5 +1,10 @@
 import api from './api.js';
 
+export async function listActivityLogs(params = {}) {
+  const { data } = await api.get('/platform/logs', { params });
+  return data.data.logs;
+}
+
 export async function listPlatformCafes() {
   const { data } = await api.get('/platform/cafes');
   return data.data.cafes;

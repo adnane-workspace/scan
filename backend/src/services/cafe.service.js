@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { slugify } from '../utils/slug.js';
+import { recordActivity } from './activity.service.js';
 import { normalizeImageUrl } from './storage.service.js';
 
 function requireCafeId(user) {
@@ -93,6 +94,17 @@ export async function updateMyCafe(user, payload) {
   const cafe = await prisma.cafe.update({
     where: { id: cafeId },
     data,
+  });
+
+  await recordActivity({
+    action: 'cafe_updated',
+    actorId: user.id,
+    cafeId,
+    metadata: {
+      cafeName: cafe.name,
+      slug: cafe.slug,
+      fields: Object.keys(data),
+    },
   });
 
   return toCafeResponse(cafe);

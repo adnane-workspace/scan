@@ -69,6 +69,25 @@ export const resetPlatformCafePasswordSchema = z.object({
   }),
 });
 
+export const listActivityLogsSchema = z.object({
+  query: z.object({
+    action: z
+      .enum([
+        'cafe_created',
+        'cafe_activated',
+        'cafe_deactivated',
+        'cafe_password_reset',
+        'cafe_updated',
+        'auth_login',
+        'auth_password_changed',
+      ])
+      .optional(),
+    cafeId: uuidSchema.optional(),
+    from: z.string().trim().optional(),
+    to: z.string().trim().optional(),
+  }),
+});
+
 export const updatePlatformCafeSchema = z.object({
   params: z.object({
     id: uuidSchema,

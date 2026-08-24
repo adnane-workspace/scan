@@ -1,4 +1,5 @@
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { listActivityLogs } from '../services/activity.service.js';
 import {
   createPlatformCafe,
   getPlatformCafe,
@@ -8,7 +9,7 @@ import {
 } from '../services/platform.service.js';
 
 export const createCafe = asyncHandler(async (req, res) => {
-  const cafe = await createPlatformCafe(req.validated.body);
+  const cafe = await createPlatformCafe(req.validated.body, req.user);
 
   res.status(201).json({
     success: true,
@@ -35,8 +36,21 @@ export const getCafe = asyncHandler(async (req, res) => {
   });
 });
 
+export const listLogs = asyncHandler(async (req, res) => {
+  const logs = await listActivityLogs(req.validated?.query || req.query);
+
+  res.status(200).json({
+    success: true,
+    data: { logs },
+  });
+});
+
 export const resetCafePassword = asyncHandler(async (req, res) => {
-  const result = await resetPlatformCafePassword(req.validated.params.id, req.validated.body.password);
+  const result = await resetPlatformCafePassword(
+    req.validated.params.id,
+    req.validated.body.password,
+    req.user,
+  );
 
   res.status(200).json({
     success: true,
@@ -46,7 +60,7 @@ export const resetCafePassword = asyncHandler(async (req, res) => {
 });
 
 export const updateCafeStatus = asyncHandler(async (req, res) => {
-  const cafe = await updatePlatformCafe(req.validated.params.id, req.validated.body);
+  const cafe = await updatePlatformCafe(req.validated.params.id, req.validated.body, req.user);
 
   res.status(200).json({
     success: true,

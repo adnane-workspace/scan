@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { slugify } from '../utils/slug.js';
+import { recordActivity } from './activity.service.js';
 
 function ownerFromUsers(users = []) {
   const owner = users[0];
@@ -34,7 +35,7 @@ const ownerSelect = {
   },
 };
 
-export async function createPlatformCafe({ ownerName, email, password, cafeName, slug }) {
+export async function createPlatformCafe({ ownerName, email, password, cafeName, slug }, actor) {
   const normalizedEmail = email.toLowerCase();
   const cafeSlug = slugify(slug || cafeName);
 
@@ -76,6 +77,18 @@ export async function createPlatformCafe({ ownerName, email, password, cafeName,
     });
 
     return createdCafe;
+  });
+
+  await recordActivity({
+    action: 'cafe_created',
+    actorId: actor?.id,
+    cafeId: cafe.id,
+    metadata: {
+      cafeName: cafe.name,
+      slug: cafe.slug,
+      ownerName: ownerName.trim(),
+      ownerEmail: normalizedEmail,
+    },
   });
 
   return getPlatformCafe(cafe.id);
@@ -124,10 +137,10 @@ export async function listPlatformCafes() {
   );
 }
 
-export async function updatePlatformCafe(cafeId, payload) {
+export async function updatePlatformCafe(cafeId, payload, actor) {
   const cafe = await prisma.cafe.findUnique({
     where: { id: cafeId },
-    select: { id: true },
+    select: { id: true, name: true, slug: true },
   });
 
   if (!cafe) {
@@ -151,6 +164,16 @@ export async function updatePlatformCafe(cafeId, payload) {
     prisma.product.count({ where: { cafeId } }),
     prisma.category.count({ where: { cafeId } }),
   ]);
+
+  await recordActivity({
+    action: payload.isActive ? 'cafe_activated' : 'cafe_deactivated',
+    actorId: actor?.id,
+    cafeId,
+    metadata: {
+      cafeName: cafe.name,
+      slug: cafe.slug,
+    },
+  });
 
   return toPlatformCafe(updated, { productCount, categoryCount });
 }
@@ -184,7 +207,7 @@ export async function getPlatformCafe(cafeId) {
   };
 }
 
-export async function resetPlatformCafePassword(cafeId, password) {
+export async function resetPlatformCafePassword(cafeId, password, actor) {
   const owner = await prisma.user.findFirst({
     where: { cafeId, role: 'admin' },
     orderBy: { createdAt: 'asc' },
@@ -200,6 +223,22 @@ export async function resetPlatformCafePassword(cafeId, password) {
   await prisma.user.update({
     where: { id: owner.id },
     data: { passwordHash },
+  });
+
+  const cafe = await prisma.cafe.findUnique({
+    where: { id: cafeId },
+    select: { name: true, slug: true },
+  });
+
+  await recordActivity({
+    action: 'cafe_password_reset',
+    actorId: actor?.id,
+    cafeId,
+    metadata: {
+      cafeName: cafe?.name,
+      slug: cafe?.slug,
+      ownerEmail: owner.email,
+    },
   });
 
   return { email: owner.email };
