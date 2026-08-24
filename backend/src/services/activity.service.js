@@ -1,14 +1,27 @@
 import { prisma } from '../config/prisma.js';
 
-const ACTIVITY_ACTIONS = [
+export const ACTIVITY_ACTIONS = [
   'cafe_created',
   'cafe_activated',
   'cafe_deactivated',
   'cafe_password_reset',
   'cafe_updated',
-  'auth_login',
+  'auth_login_failed',
   'auth_password_changed',
+  'product_deleted',
+  'category_deleted',
 ];
+
+const CAFE_ACTIONS = [
+  'cafe_created',
+  'cafe_activated',
+  'cafe_deactivated',
+  'cafe_password_reset',
+  'cafe_updated',
+];
+
+const SECURITY_ACTIONS = ['auth_login_failed', 'auth_password_changed'];
+const DELETE_ACTIONS = ['product_deleted', 'category_deleted'];
 
 export async function recordActivity({ action, actorId, cafeId, metadata } = {}) {
   if (!ACTIVITY_ACTIONS.includes(action)) {
@@ -29,8 +42,16 @@ export async function recordActivity({ action, actorId, cafeId, metadata } = {})
   }
 }
 
-export async function listActivityLogs({ action, cafeId, from, to, limit = 200 } = {}) {
-  const where = {};
+function startOfToday() {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+export async function listActivityLogs({ action, cafeId, from, to, limit = 300 } = {}) {
+  const where = {
+    action: { in: ACTIVITY_ACTIONS },
+  };
 
   if (action && ACTIVITY_ACTIONS.includes(action)) {
     where.action = action;
@@ -52,10 +73,13 @@ export async function listActivityLogs({ action, cafeId, from, to, limit = 200 }
     }
   }
 
+  const take = Math.min(Number(limit) || 300, 500);
+  const today = startOfToday();
+
   const logs = await prisma.activityLog.findMany({
     where,
     orderBy: { createdAt: 'desc' },
-    take: Math.min(Number(limit) || 200, 500),
+    take,
     include: {
       actor: {
         select: { id: true, name: true, email: true, role: true },
@@ -66,25 +90,49 @@ export async function listActivityLogs({ action, cafeId, from, to, limit = 200 }
     },
   });
 
-  return logs.map((log) => ({
-    _id: log.id,
-    action: log.action,
-    createdAt: log.createdAt,
-    metadata: log.metadata || {},
-    actor: log.actor
-      ? {
-          _id: log.actor.id,
-          name: log.actor.name,
-          email: log.actor.email,
-          role: log.actor.role,
-        }
-      : null,
-    cafe: log.cafe
-      ? {
-          _id: log.cafe.id,
-          name: log.cafe.name,
-          slug: log.cafe.slug,
-        }
-      : null,
-  }));
+  const startToday = today.getTime();
+  let total = logs.length;
+
+  try {
+    total = await prisma.activityLog.count({ where });
+  } catch {
+    total = logs.length;
+  }
+
+  const todayCount = logs.filter((log) => new Date(log.createdAt).getTime() >= startToday).length;
+  const cafeCount = logs.filter((log) => CAFE_ACTIONS.includes(log.action)).length;
+  const securityCount = logs.filter((log) => SECURITY_ACTIONS.includes(log.action)).length;
+  const deletedCount = logs.filter((log) => DELETE_ACTIONS.includes(log.action)).length;
+
+  return {
+    logs: logs.map((log) => ({
+      _id: log.id,
+      action: log.action,
+      createdAt: log.createdAt,
+      metadata: log.metadata || {},
+      actor: log.actor
+        ? {
+            _id: log.actor.id,
+            name: log.actor.name,
+            email: log.actor.email,
+            role: log.actor.role,
+          }
+        : null,
+      cafe: log.cafe
+        ? {
+            _id: log.cafe.id,
+            name: log.cafe.name,
+            slug: log.cafe.slug,
+          }
+        : null,
+    })),
+    summary: {
+      shown: logs.length,
+      total,
+      today: todayCount,
+      cafes: cafeCount,
+      security: securityCount,
+      deletions: deletedCount,
+    },
+  };
 }

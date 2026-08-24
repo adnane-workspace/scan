@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
+import { recordActivity } from './activity.service.js';
 import { normalizeImageUrl } from './storage.service.js';
 
 function requireCafeId(user) {
@@ -121,7 +122,17 @@ export async function updateProduct(user, productId, payload) {
 
 export async function deleteProduct(user, productId) {
   const cafeId = requireCafeId(user);
-  await findOwnedProduct(cafeId, productId);
+  const product = await findOwnedProduct(cafeId, productId);
 
   await prisma.product.delete({ where: { id: productId } });
+
+  await recordActivity({
+    action: 'product_deleted',
+    actorId: user.id,
+    cafeId,
+    metadata: {
+      productName: product.name,
+      categoryName: product.category?.name,
+    },
+  });
 }

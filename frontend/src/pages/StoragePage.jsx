@@ -8,7 +8,7 @@ import { formatBytes, formatCount } from '../utils/format.js';
 
 function SummaryCard({ icon, label, value, hint }) {
   return (
-    <article className="rounded-2xl bg-surface-container-lowest p-5 shadow-sm">
+    <article className="rounded-2xl bg-surface-container-lowest p-5 shadow-sm ring-1 ring-outline-variant/20">
       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-container/20 text-primary">
         <MaterialIcon name={icon} />
       </div>
@@ -124,7 +124,7 @@ export default function StoragePage() {
             </p>
           ) : null}
 
-          <div className="overflow-x-auto rounded-2xl bg-surface-container-lowest shadow-sm">
+          <div className="overflow-x-auto rounded-2xl bg-surface-container-lowest shadow-sm ring-1 ring-outline-variant/20">
             <div className="border-b border-outline-variant/30 px-4 py-3">
               <h2 className="text-lg font-semibold text-on-surface">{t('storage.cafesTitle')}</h2>
             </div>

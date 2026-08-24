@@ -10,6 +10,9 @@ TECHNICAL.md*
 .env.*.local
 !.env.example
 
+# Prisma client (generated outside node_modules so the query engine is not locked)
+backend/generated/
+
 # Build
 dist/
 dist-ssr/

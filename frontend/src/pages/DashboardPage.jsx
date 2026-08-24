@@ -10,7 +10,7 @@ import { useLocale } from '../hooks/useLocale.js';
 import { getStorageReport } from '../services/platform.service.js';
 import { updateProduct } from '../services/product.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
-import { firstName, formatBytes } from '../utils/format.js';
+import { firstName, formatBytes, formatDate } from '../utils/format.js';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -70,8 +70,11 @@ export default function DashboardPage() {
         </p>
       ) : null}
 
-      <div className="relative flex w-full flex-col gap-6 overflow-hidden rounded-2xl bg-surface-container-high p-stack-lg shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative flex w-full flex-col gap-6 overflow-hidden rounded-2xl bg-surface-container-high p-stack-lg ring-1 ring-outline-variant/20 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative z-10 flex max-w-2xl flex-col gap-2">
+          <p className="text-label-md font-semibold tracking-[0.18em] text-primary uppercase">
+            {isSuperAdmin ? t('dashboard.roleSuper') : t('dashboard.roleAdmin')}
+          </p>
           <h1 className="font-display text-display-md font-bold text-on-surface">
             {t('dashboard.hello', { name: greetingName })}
           </h1>
@@ -79,7 +82,17 @@ export default function DashboardPage() {
             {isSuperAdmin ? t('dashboard.subtitleSuper') : t('dashboard.subtitleAdmin')}
           </p>
         </div>
-        {isSuperAdmin ? null : (
+        {isSuperAdmin ? (
+          <div className="relative z-10">
+            <Link
+              to="/dashboard/cafes/new"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95"
+            >
+              <MaterialIcon name="add" />
+              {t('platform.createCafe')}
+            </Link>
+          </div>
+        ) : (
           <div className="relative z-10">
             <button
               type="button"
@@ -138,7 +151,94 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {isSuperAdmin ? null : (
+      {isSuperAdmin ? (
+        <>
+          <div className="grid gap-3 md:grid-cols-3">
+            {[
+              { to: '/dashboard/cafes', icon: 'storefront', label: t('nav.cafes'), hint: t('dashboard.quickCafes') },
+              { to: '/dashboard/logs', icon: 'history', label: t('nav.logs'), hint: t('dashboard.quickLogs') },
+              { to: '/dashboard/storage', icon: 'cloud', label: t('nav.storage'), hint: t('dashboard.quickStorage') },
+            ].map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="group flex items-start gap-3 rounded-2xl bg-surface-container p-4 ring-1 ring-outline-variant/20 transition-colors hover:bg-surface-container-high"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                  <MaterialIcon name={item.icon} />
+                </span>
+                <span>
+                  <span className="block font-semibold text-on-surface">{item.label}</span>
+                  <span className="mt-0.5 block text-sm text-on-surface-variant">{item.hint}</span>
+                </span>
+                <MaterialIcon name="chevron_right" className="ml-auto text-on-surface-variant group-hover:text-primary" />
+              </Link>
+            ))}
+          </div>
+
+          <div className="overflow-hidden rounded-2xl bg-surface-container-lowest ring-1 ring-outline-variant/20">
+            <div className="flex items-center justify-between border-b border-outline-variant/20 px-5 py-4">
+              <h2 className="font-display text-xl font-semibold text-on-surface">{t('dashboard.recentCafes')}</h2>
+              <Link to="/dashboard/cafes" className="text-sm font-semibold text-primary hover:underline">
+                {t('dashboard.viewAllCafes')}
+              </Link>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="text-on-surface-variant">
+                  <tr>
+                    <th className="px-5 py-3 font-semibold">{t('platform.colCafe')}</th>
+                    <th className="px-5 py-3 font-semibold">{t('platform.colOwner')}</th>
+                    <th className="px-5 py-3 font-semibold">{t('platform.colMenu')}</th>
+                    <th className="px-5 py-3 font-semibold">{t('platform.colRegistered')}</th>
+                    <th className="px-5 py-3 font-semibold">{t('platform.colStatus')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td className="px-5 py-6 text-on-surface-variant" colSpan={5}>
+                        {t('common.loading')}
+                      </td>
+                    </tr>
+                  ) : platformCafes.length === 0 ? (
+                    <tr>
+                      <td className="px-5 py-6 text-on-surface-variant" colSpan={5}>
+                        {t('platform.empty')}
+                      </td>
+                    </tr>
+                  ) : (
+                    platformCafes.slice(0, 6).map((cafe) => (
+                      <tr key={cafe._id} className="border-t border-outline-variant/15 hover:bg-surface-container-high/60">
+                        <td className="px-5 py-3">
+                          <Link to={`/dashboard/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
+                            {cafe.name}
+                          </Link>
+                          <p className="text-on-surface-variant">{cafe.slug}</p>
+                        </td>
+                        <td className="px-5 py-3 text-on-surface-variant">{cafe.ownerEmail || t('common.none')}</td>
+                        <td className="px-5 py-3 text-on-surface-variant">
+                          {t('platform.menuStats', { categories: cafe.categoryCount, products: cafe.productCount })}
+                        </td>
+                        <td className="px-5 py-3 text-on-surface-variant">{formatDate(cafe.createdAt, locale)}</td>
+                        <td className="px-5 py-3">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              cafe.isActive ? 'bg-tertiary/15 text-tertiary' : 'bg-error/15 text-error'
+                            }`}
+                          >
+                            {cafe.isActive ? t('platform.statusActive') : t('platform.statusInactive')}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
       <div className="grid w-full grid-cols-1 gap-gutter xl:grid-cols-3">
         <div className="xl:col-span-2">
           <RecentProducts

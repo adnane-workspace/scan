@@ -1,5 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
+  output        = "../generated/prisma"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
@@ -20,7 +21,15 @@ enum ActivityAction {
   cafe_password_reset
   cafe_updated
   auth_login
+  auth_login_failed
   auth_password_changed
+  product_created
+  product_updated
+  product_deleted
+  product_availability
+  category_created
+  category_updated
+  category_deleted
 }
 
 model Cafe {
@@ -59,11 +68,11 @@ model ActivityLog {
   id        String         @id @default(uuid())
   action    ActivityAction
   actorId   String?
-  actor     User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
   cafeId    String?
-  cafe      Cafe?          @relation(fields: [cafeId], references: [id], onDelete: SetNull)
+  cafe      Cafe?    @relation(fields: [cafeId], references: [id], onDelete: SetNull)
   metadata  Json?
-  createdAt DateTime       @default(now())
+  createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([action])

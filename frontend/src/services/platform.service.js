@@ -9,7 +9,7 @@ export async function getStorageReport(refresh = false) {
 
 export async function listActivityLogs(params = {}) {
   const { data } = await api.get('/platform/logs', { params });
-  return data.data.logs;
+  return data.data;
 }
 
 export async function listPlatformCafes() {

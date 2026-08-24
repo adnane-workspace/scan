@@ -116,7 +116,7 @@ export default function DashboardLayout() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background text-on-surface">
+      <div className={`min-h-screen bg-background text-on-surface ${isSuperAdmin ? 'theme-superadmin' : ''}`}>
         {isSidebarOpen ? (
           <button
             type="button"
@@ -140,7 +140,11 @@ export default function DashboardLayout() {
         </aside>
 
         <div className="lg:pl-72">
-          <header className="fixed top-0 right-0 left-0 z-40 flex h-[calc(5rem+env(safe-area-inset-top))] items-center justify-between bg-surface/80 px-4 pt-[env(safe-area-inset-top)] shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl sm:px-6 lg:left-72 lg:px-container">
+          <header className={`fixed top-0 right-0 left-0 z-40 flex h-[calc(5rem+env(safe-area-inset-top))] items-center justify-between px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-6 lg:left-72 lg:px-container ${
+            isSuperAdmin
+              ? 'border-b border-white/10 bg-background/80'
+              : 'bg-surface/80 shadow-[0_1px_8px_rgba(0,0,0,0.04)]'
+          }`}>
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
@@ -166,8 +170,10 @@ export default function DashboardLayout() {
                   {roleLabel}
                 </div>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow-md">
-                <MaterialIcon name="person" className="text-[20px] text-on-primary" />
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full shadow-md ${
+                isSuperAdmin ? 'bg-primary/15 text-primary ring-1 ring-primary/30' : 'bg-primary'
+              }`}>
+                <MaterialIcon name="person" className={`text-[20px] ${isSuperAdmin ? 'text-primary' : 'text-on-primary'}`} />
               </div>
             </div>
           </header>

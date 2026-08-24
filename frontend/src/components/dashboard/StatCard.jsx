@@ -44,7 +44,7 @@ export default function StatCard({
 
   return (
     <article
-      className={`group relative flex flex-col gap-stack-sm overflow-hidden rounded-xl bg-surface-container p-stack-md shadow-sm transition-shadow hover:shadow-md ${
+      className={`group relative flex flex-col gap-stack-sm overflow-hidden rounded-2xl bg-surface-container p-5 shadow-sm ring-1 ring-outline-variant/20 transition-shadow hover:shadow-md ${
         wide ? 'md:col-span-2 xl:col-span-2' : ''
       }`}
     >

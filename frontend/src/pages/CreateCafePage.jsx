@@ -72,7 +72,7 @@ export default function CreateCafePage() {
         <p className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error">{error}</p>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="grid gap-4 rounded-2xl bg-surface-container-lowest p-6 shadow-sm">
+      <form onSubmit={handleSubmit} className="grid gap-4 rounded-2xl bg-surface-container-lowest p-6 shadow-sm ring-1 ring-outline-variant/20">
         <label className="block text-sm font-medium text-on-surface">
           {t('platform.cafeName')}
           <input name="cafeName" value={form.cafeName} onChange={handleChange} className={fieldClass} required />

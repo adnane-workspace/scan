@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../generated/prisma/index.js';
 import { prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
 import { cloudinary } from './storage.service.js';

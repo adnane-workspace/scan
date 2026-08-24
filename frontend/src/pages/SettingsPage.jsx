@@ -261,7 +261,9 @@ export default function SettingsPage() {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-label-md font-semibold tracking-[0.16em] text-primary uppercase">{t('settings.badge')}</p>
+            <p className="text-label-md font-semibold tracking-[0.16em] text-primary uppercase">
+              {isSuperAdmin ? t('dashboard.roleSuper') : t('settings.badge')}
+            </p>
             <h1 className="mt-1 font-display text-display-md font-bold tracking-tight text-on-surface">
               {form.name || t('settings.title')}
             </h1>

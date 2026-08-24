@@ -18,26 +18,48 @@ function toPublicUser(user) {
 }
 
 export async function login({ email, password }) {
+  const normalizedEmail = email.toLowerCase();
   const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
+    where: { email: normalizedEmail },
   });
 
   if (!user) {
+    await recordActivity({
+      action: 'auth_login_failed',
+      metadata: { email: normalizedEmail, reason: 'invalid_credentials' },
+    });
     throw new ApiError(401, 'Invalid credentials');
   }
 
   const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
   if (!isValidPassword) {
+    await recordActivity({
+      action: 'auth_login_failed',
+      actorId: user.id,
+      cafeId: user.cafeId,
+      metadata: { email: user.email, reason: 'invalid_credentials' },
+    });
     throw new ApiError(401, 'Invalid credentials');
   }
 
   if (user.role !== 'admin' && user.role !== 'superadmin') {
+    await recordActivity({
+      action: 'auth_login_failed',
+      actorId: user.id,
+      cafeId: user.cafeId,
+      metadata: { email: user.email, reason: 'forbidden_role' },
+    });
     throw new ApiError(403, 'Admin access required');
   }
 
   if (user.role === 'admin') {
     if (!user.cafeId) {
+      await recordActivity({
+        action: 'auth_login_failed',
+        actorId: user.id,
+        metadata: { email: user.email, reason: 'no_cafe' },
+      });
       throw new ApiError(403, 'No cafe associated with this account');
     }
 
@@ -47,6 +69,12 @@ export async function login({ email, password }) {
     });
 
     if (!cafe || !cafe.isActive) {
+      await recordActivity({
+        action: 'auth_login_failed',
+        actorId: user.id,
+        cafeId: user.cafeId,
+        metadata: { email: user.email, reason: 'cafe_disabled' },
+      });
       throw new ApiError(403, 'Ce café est désactivé');
     }
   }
@@ -55,16 +83,6 @@ export async function login({ email, password }) {
     sub: user.id,
     role: user.role,
     cafeId: user.cafeId,
-  });
-
-  await recordActivity({
-    action: 'auth_login',
-    actorId: user.id,
-    cafeId: user.cafeId,
-    metadata: {
-      email: user.email,
-      role: user.role,
-    },
   });
 
   return {

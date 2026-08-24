@@ -129,7 +129,7 @@ export default function CafeDetailPage() {
       {loading ? (
         <p className="text-on-surface-variant">{t('common.loading')}</p>
       ) : cafe ? (
-        <div className="space-y-5 rounded-2xl bg-surface-container-lowest p-6 shadow-sm">
+        <div className="space-y-5 rounded-2xl bg-surface-container-lowest p-6 shadow-sm ring-1 ring-outline-variant/20">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-4">
               {cafe.logo ? (

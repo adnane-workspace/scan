@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
+import { recordActivity } from './activity.service.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
@@ -87,7 +88,14 @@ export async function updateCategory(user, categoryId, payload) {
 
 export async function deleteCategory(user, categoryId) {
   const cafeId = requireCafeId(user);
-  await findOwnedCategory(cafeId, categoryId);
+  const category = await findOwnedCategory(cafeId, categoryId);
 
   await prisma.category.delete({ where: { id: categoryId } });
+
+  await recordActivity({
+    action: 'category_deleted',
+    actorId: user.id,
+    cafeId,
+    metadata: { categoryName: category.name },
+  });
 }

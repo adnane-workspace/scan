@@ -91,7 +91,7 @@ export default function CafesPage() {
         </Link>
       </div>
 
-      <div className="grid gap-3 rounded-2xl bg-surface-container-lowest p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 rounded-2xl bg-surface-container-lowest p-4 shadow-sm ring-1 ring-outline-variant/20 sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm font-medium text-on-surface">
           {t('platform.searchLabel')}
           <input
@@ -131,7 +131,7 @@ export default function CafesPage() {
           : t('platform.count', { filtered: filteredCafes.length, total: platformCafes.length })}
       </p>
 
-      <div className="overflow-x-auto rounded-2xl bg-surface-container-lowest shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-surface-container-lowest shadow-sm ring-1 ring-outline-variant/20">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-outline-variant/30 text-on-surface-variant">
             <tr>
@@ -158,7 +158,7 @@ export default function CafesPage() {
               </tr>
             ) : (
               filteredCafes.map((cafe) => (
-                <tr key={cafe._id} className="border-t border-outline-variant/20">
+                <tr key={cafe._id} className="border-t border-outline-variant/20 hover:bg-surface-container-high/50">
                   <td className="px-4 py-3">
                     <Link to={`/dashboard/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
                       {cafe.name}
@@ -171,7 +171,9 @@ export default function CafesPage() {
                   </td>
                   <td className="px-4 py-3 text-on-surface-variant">{formatDate(cafe.createdAt, locale)}</td>
                   <td className="px-4 py-3">
-                    <span className={cafe.isActive ? 'text-primary' : 'text-error'}>
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      cafe.isActive ? 'bg-tertiary/15 text-tertiary' : 'bg-error/15 text-error'
+                    }`}>
                       {cafe.isActive ? t('platform.statusActive') : t('platform.statusInactive')}
                     </span>
                   </td>

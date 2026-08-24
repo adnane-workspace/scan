@@ -47,6 +47,40 @@ export function formatPrice(value, locale = 'fr') {
   return `${amount} DH`;
 }
 
+export function formatRelativeTime(value, locale = 'fr') {
+  if (!value) {
+    return '—';
+  }
+
+  const date = new Date(value);
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.round(diffMs / 60000);
+  const language = locale === 'en' ? 'en' : 'fr';
+  const formatter = new Intl.RelativeTimeFormat(language, { numeric: 'auto' });
+
+  if (Math.abs(diffMinutes) < 1) {
+    return language === 'en' ? 'just now' : 'à l’instant';
+  }
+
+  if (Math.abs(diffMinutes) < 60) {
+    return formatter.format(-diffMinutes, 'minute');
+  }
+
+  const diffHours = Math.round(diffMinutes / 60);
+
+  if (Math.abs(diffHours) < 24) {
+    return formatter.format(-diffHours, 'hour');
+  }
+
+  const diffDays = Math.round(diffHours / 24);
+
+  if (Math.abs(diffDays) < 7) {
+    return formatter.format(-diffDays, 'day');
+  }
+
+  return formatDateTime(value, locale);
+}
+
 export function formatDateTime(value, locale = 'fr') {
   if (!value) {
     return '—';

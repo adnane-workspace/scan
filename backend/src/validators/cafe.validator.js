@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ACTIVITY_ACTIONS } from '../services/activity.service.js';
 import { uuidSchema } from './id.schema.js';
 
 export const updateCafeSchema = z.object({
@@ -72,15 +73,8 @@ export const resetPlatformCafePasswordSchema = z.object({
 export const listActivityLogsSchema = z.object({
   query: z.object({
     action: z
-      .enum([
-        'cafe_created',
-        'cafe_activated',
-        'cafe_deactivated',
-        'cafe_password_reset',
-        'cafe_updated',
-        'auth_login',
-        'auth_password_changed',
-      ])
+      .string()
+      .refine((value) => ACTIVITY_ACTIONS.includes(value), 'Invalid action')
       .optional(),
     cafeId: uuidSchema.optional(),
     from: z.string().trim().optional(),

@@ -38,11 +38,11 @@ export const getCafe = asyncHandler(async (req, res) => {
 });
 
 export const listLogs = asyncHandler(async (req, res) => {
-  const logs = await listActivityLogs(req.validated?.query || req.query);
+  const result = await listActivityLogs(req.validated?.query || req.query);
 
   res.status(200).json({
     success: true,
-    data: { logs },
+    data: result,
   });
 });
 

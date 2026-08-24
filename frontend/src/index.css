@@ -65,6 +65,46 @@
   background: var(--color-background);
 }
 
+.theme-superadmin {
+  color-scheme: dark;
+  --color-background: #050506;
+  --color-surface: #070708;
+  --color-surface-bright: #111114;
+  --color-surface-dim: #050506;
+  --color-surface-container: #121216;
+  --color-surface-container-low: #0c0c0f;
+  --color-surface-container-high: #1a1a20;
+  --color-surface-container-highest: #23232c;
+  --color-surface-container-lowest: #101014;
+  --color-surface-variant: #1c1c22;
+  --color-on-surface: #f4f4f5;
+  --color-on-surface-variant: #a1a1aa;
+  --color-primary: #e8c27a;
+  --color-primary-container: #c9a056;
+  --color-on-primary: #1a1408;
+  --color-on-primary-container: #1a1408;
+  --color-tertiary: #7dd3c0;
+  --color-tertiary-container: #1d4a42;
+  --color-on-tertiary: #05201b;
+  --color-on-tertiary-container: #d8f6ef;
+  --color-secondary: #a1a1aa;
+  --color-secondary-container: #27272a;
+  --color-on-secondary-container: #e4e4e7;
+  --color-outline: #3f3f46;
+  --color-outline-variant: #27272a;
+  --color-error: #fb7185;
+  --color-error-container: #3f1219;
+  --color-on-error: #1a0508;
+  --color-on-error-container: #ffdad6;
+  --color-surface-tint: #e8c27a;
+  background: var(--color-background);
+  color: var(--color-on-surface);
+}
+
+.theme-superadmin input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+}
+
 body {
   margin: 0;
   min-height: 100vh;
