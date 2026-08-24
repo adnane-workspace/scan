@@ -1,5 +1,4 @@
-import { PrismaClient } from '../../generated/prisma/index.js';
-import { prisma } from '../config/prisma.js';
+import { getPrismaForUrl, prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
 import { cloudinary } from './storage.service.js';
 
@@ -240,7 +239,6 @@ export async function getStorageReport({ force = false } = {}) {
   );
 
   let source = 'local';
-  let extraPrisma = null;
   let rows = { cafes: [], products: [], categories: [] };
 
   try {
@@ -249,10 +247,7 @@ export async function getStorageReport({ force = false } = {}) {
       rows = await loadFromDatabase(prisma);
     } else if (env.PRODUCTION_DATABASE_URL) {
       source = 'production';
-      extraPrisma = new PrismaClient({
-        datasources: { db: { url: env.PRODUCTION_DATABASE_URL } },
-      });
-      rows = await loadFromDatabase(extraPrisma);
+      rows = await loadFromDatabase(getPrismaForUrl(env.PRODUCTION_DATABASE_URL));
     } else {
       source = 'production';
       const apiBase = productionApiBase();
@@ -264,10 +259,6 @@ export async function getStorageReport({ force = false } = {}) {
     }
   } catch (error) {
     cloudinaryError = cloudinaryError || error?.message || 'Production data unavailable';
-  } finally {
-    if (extraPrisma) {
-      await extraPrisma.$disconnect();
-    }
   }
 
   const { cafesReport, referencedPublicIds } = buildCafeReport({

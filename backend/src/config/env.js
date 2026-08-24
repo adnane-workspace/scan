@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({
   path: path.resolve(__dirname, '../../.env'),
   quiet: true,
-  override: true,
+  override: process.env.NODE_ENV !== 'production',
 });
 
 const envSchema = z.object({

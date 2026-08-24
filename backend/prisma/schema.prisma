@@ -63,6 +63,8 @@ model User {
   updatedAt      DateTime        @updatedAt
   activityLogs   ActivityLog[]
   passwordResets PasswordReset[]
+
+  @@index([cafeId])
 }
 
 model PasswordReset {

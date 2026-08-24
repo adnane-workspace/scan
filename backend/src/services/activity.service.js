@@ -48,6 +48,27 @@ function startOfToday() {
   return date;
 }
 
+function countWhereForActions(where, actions) {
+  if (typeof where.action === 'string') {
+    return actions.includes(where.action) ? where : null;
+  }
+
+  return { ...where, action: { in: actions } };
+}
+
+function todayWhere(where, today) {
+  const currentGte = where.createdAt?.gte;
+  const gte = currentGte && currentGte > today ? currentGte : today;
+
+  return {
+    ...where,
+    createdAt: {
+      ...(where.createdAt || {}),
+      gte,
+    },
+  };
+}
+
 export async function listActivityLogs({ action, cafeId, from, to, limit = 300 } = {}) {
   const where = {
     action: { in: ACTIVITY_ACTIONS },
@@ -75,34 +96,30 @@ export async function listActivityLogs({ action, cafeId, from, to, limit = 300 }
 
   const take = Math.min(Number(limit) || 300, 500);
   const today = startOfToday();
+  const cafeWhere = countWhereForActions(where, CAFE_ACTIONS);
+  const securityWhere = countWhereForActions(where, SECURITY_ACTIONS);
+  const deletedWhere = countWhereForActions(where, DELETE_ACTIONS);
 
-  const logs = await prisma.activityLog.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    take,
-    include: {
-      actor: {
-        select: { id: true, name: true, email: true, role: true },
+  const [logs, total, todayCount, cafeCount, securityCount, deletedCount] = await Promise.all([
+    prisma.activityLog.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take,
+      include: {
+        actor: {
+          select: { id: true, name: true, email: true, role: true },
+        },
+        cafe: {
+          select: { id: true, name: true, slug: true },
+        },
       },
-      cafe: {
-        select: { id: true, name: true, slug: true },
-      },
-    },
-  });
-
-  const startToday = today.getTime();
-  let total = logs.length;
-
-  try {
-    total = await prisma.activityLog.count({ where });
-  } catch {
-    total = logs.length;
-  }
-
-  const todayCount = logs.filter((log) => new Date(log.createdAt).getTime() >= startToday).length;
-  const cafeCount = logs.filter((log) => CAFE_ACTIONS.includes(log.action)).length;
-  const securityCount = logs.filter((log) => SECURITY_ACTIONS.includes(log.action)).length;
-  const deletedCount = logs.filter((log) => DELETE_ACTIONS.includes(log.action)).length;
+    }),
+    prisma.activityLog.count({ where }),
+    prisma.activityLog.count({ where: todayWhere(where, today) }),
+    cafeWhere ? prisma.activityLog.count({ where: cafeWhere }) : 0,
+    securityWhere ? prisma.activityLog.count({ where: securityWhere }) : 0,
+    deletedWhere ? prisma.activityLog.count({ where: deletedWhere }) : 0,
+  ]);
 
   return {
     logs: logs.map((log) => ({

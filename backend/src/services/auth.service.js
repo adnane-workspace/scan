@@ -94,25 +94,20 @@ export async function login({ email, password }) {
   };
 }
 
-export async function getCurrentUser(userId) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      cafeId: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-
+export function getCurrentUser(user) {
   if (!user) {
     throw new ApiError(401, 'Authentication required');
   }
 
-  return toPublicUser(user);
+  return toPublicUser({
+    id: user.id || user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    cafeId: user.cafeId,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  });
 }
 
 export async function register({ name, email, password, cafeName, slug }) {

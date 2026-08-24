@@ -31,7 +31,7 @@ export const loginAdmin = asyncHandler(async (req, res) => {
 });
 
 export const getMe = asyncHandler(async (req, res) => {
-  const user = await getCurrentUser(req.user._id);
+  const user = getCurrentUser(req.user);
 
   res.status(200).json({
     success: true,

@@ -14,6 +14,22 @@ export default defineConfig({
       leaflet: path.resolve(workspaceRoot, 'node_modules/leaflet'),
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'leaflet', test: /node_modules[\\/]leaflet[\\/]/ },
+            { name: 'qrcode', test: /node_modules[\\/]qrcode[\\/]/ },
+            {
+              name: 'react-vendor',
+              test: /node_modules[\\/](react|react-dom|react-router(?:-dom)?)[\\/]/,
+            },
+          ],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     fs: {

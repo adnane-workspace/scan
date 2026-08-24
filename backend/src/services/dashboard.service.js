@@ -24,11 +24,13 @@ function toRecentProduct(product) {
 export async function getDashboardStats(user) {
   const cafeId = requireCafeId(user);
 
-  const [totalProducts, totalCategories, availableProducts, recentProducts, categoryDocs, productCounts, cafe] =
+  const [availability, recentProducts, categoryDocs, productCounts, cafe] =
     await Promise.all([
-      prisma.product.count({ where: { cafeId } }),
-      prisma.category.count({ where: { cafeId } }),
-      prisma.product.count({ where: { cafeId, available: true } }),
+      prisma.product.groupBy({
+        by: ['available'],
+        where: { cafeId },
+        _count: { _all: true },
+      }),
       prisma.product.findMany({
         where: { cafeId },
         include: { category: { select: { name: true } } },
@@ -51,13 +53,16 @@ export async function getDashboardStats(user) {
       }),
     ]);
 
+  const availableProducts = availability.find((row) => row.available)?._count._all || 0;
+  const unavailableProducts = availability.find((row) => !row.available)?._count._all || 0;
+  const totalProducts = availableProducts + unavailableProducts;
   const countByCategory = new Map(productCounts.map((item) => [item.categoryId, item._count._all]));
 
   return {
     totalProducts,
-    totalCategories,
+    totalCategories: categoryDocs.length,
     availableProducts,
-    unavailableProducts: totalProducts - availableProducts,
+    unavailableProducts,
     recentProducts: recentProducts.map(toRecentProduct),
     categories: categoryDocs.map((category) => ({
       _id: category.id,

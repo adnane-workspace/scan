@@ -25,15 +25,7 @@ export function errorHandler(err, _req, res, _next) {
     });
   }
 
-  if (err.code === 11000) {
-    return res.status(409).json({
-      success: false,
-      message: 'Duplicate value',
-      details: err.keyValue,
-    });
-  }
-
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || err.status || 500;
   const message =
     statusCode === 500 && env.NODE_ENV === 'production'
       ? 'Internal server error'

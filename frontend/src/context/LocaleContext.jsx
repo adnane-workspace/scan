@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { messages } from '../i18n/messages.js';
 import { LocaleContext } from './locale-context.js';
 
@@ -52,7 +52,9 @@ export function LocaleProvider({ children }) {
 
   const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 
-  document.documentElement.lang = locale;
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }

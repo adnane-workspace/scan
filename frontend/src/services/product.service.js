@@ -5,11 +5,6 @@ export async function getProducts() {
   return data.data.products;
 }
 
-export async function getProduct(id) {
-  const { data } = await api.get(`/products/${id}`);
-  return data.data.product;
-}
-
 export async function createProduct(payload) {
   const { data } = await api.post('/products', payload);
   return data.data.product;

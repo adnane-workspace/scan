@@ -107,12 +107,12 @@ export default function CreateCafePage() {
           {t('platform.password')}
           <input
             name="password"
-            type="text"
+            type="password"
             value={form.password}
             onChange={handleChange}
             className={fieldClass}
             minLength={8}
-            autoComplete="off"
+            autoComplete="new-password"
             required
           />
         </label>

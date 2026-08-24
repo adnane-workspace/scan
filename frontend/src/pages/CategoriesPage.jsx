@@ -9,7 +9,6 @@ import {
   updateCategory,
   uploadCategoryImage,
 } from '../services/category.service.js';
-import { getProducts } from '../services/product.service.js';
 import { categoryIcon } from '../utils/format.js';
 
 const emptyForm = {
@@ -18,17 +17,6 @@ const emptyForm = {
   image: '',
   order: 0,
 };
-
-function countByCategory(products) {
-  const counts = new Map();
-
-  products.forEach((product) => {
-    const key = String(product.categoryId);
-    counts.set(key, (counts.get(key) || 0) + 1);
-  });
-
-  return counts;
-}
 
 function CategoryIdentity({ category, t }) {
   return (
@@ -81,7 +69,6 @@ function CategoryActions({ category, onEdit, onDelete, t }) {
 export default function CategoriesPage() {
   const { t } = useLocale();
   const [categories, setCategories] = useState([]);
-  const [productCounts, setProductCounts] = useState(new Map());
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -100,9 +87,8 @@ export default function CategoriesPage() {
     setError('');
 
     try {
-      const [categoryItems, productItems] = await Promise.all([listCategories(), getProducts()]);
+      const categoryItems = await listCategories();
       setCategories(categoryItems);
-      setProductCounts(countByCategory(productItems));
     } catch (err) {
       setError(err.response?.data?.message || t('categories.loadError'));
     } finally {
@@ -346,7 +332,7 @@ export default function CategoriesPage() {
             <>
               <ul className="space-y-3 p-3 md:hidden">
                 {categories.map((category, index) => {
-                  const count = productCounts.get(String(category._id)) || 0;
+                  const count = category.productCount || 0;
 
                   return (
                     <li key={category._id} className="rounded-xl bg-surface-container-lowest p-4 shadow-sm">
@@ -404,7 +390,7 @@ export default function CategoriesPage() {
                   </thead>
                   <tbody>
                     {categories.map((category, index) => {
-                      const count = productCounts.get(String(category._id)) || 0;
+                      const count = category.productCount || 0;
 
                       return (
                         <tr

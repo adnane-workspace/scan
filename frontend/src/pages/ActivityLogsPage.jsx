@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useOutletContext } from 'react-router-dom';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
@@ -167,8 +167,20 @@ export default function ActivityLogsPage() {
     [action, cafeId, from, to, t],
   );
 
+  const skipFilterDebounceRef = useRef(true);
+
   useEffect(() => {
-    fetchLogs({ silent: false });
+    if (skipFilterDebounceRef.current) {
+      skipFilterDebounceRef.current = false;
+      fetchLogs({ silent: false });
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      fetchLogs({ silent: false });
+    }, 300);
+
+    return () => window.clearTimeout(timer);
   }, [fetchLogs]);
 
   const filteredLogs = useMemo(() => {

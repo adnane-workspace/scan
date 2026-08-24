@@ -20,6 +20,7 @@ function toCategoryResponse(category) {
     order: category.order,
     createdAt: category.createdAt,
     updatedAt: category.updatedAt,
+    productCount: category._count?.products ?? 0,
   };
 }
 
@@ -57,6 +58,11 @@ export async function listCategories(user) {
   const categories = await prisma.category.findMany({
     where: { cafeId },
     orderBy: [{ order: 'asc' }, { name: 'asc' }],
+    include: {
+      _count: {
+        select: { products: true },
+      },
+    },
   });
 
   return categories.map(toCategoryResponse);

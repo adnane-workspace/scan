@@ -1,27 +1,9 @@
-import { execSync } from 'node:child_process';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { connectDatabase } from './config/database.js';
+import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { env } from './config/env.js';
 import app from './app.js';
 
-const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-
-function applyPendingMigrations() {
-  console.log('Applying database migrations...');
-  execSync('npx prisma migrate deploy', {
-    stdio: 'inherit',
-    cwd: backendRoot,
-    env: process.env,
-  });
-}
-
 async function startServer() {
   try {
-    if (env.NODE_ENV === 'production') {
-      applyPendingMigrations();
-    }
-
     await connectDatabase();
   } catch (error) {
     console.error('PostgreSQL connection failed:', error.message);
@@ -34,10 +16,24 @@ async function startServer() {
     console.warn('Starting API without database in development mode.');
   }
 
-  app.listen(env.PORT, '0.0.0.0', () => {
+  const server = app.listen(env.PORT, '0.0.0.0', () => {
     console.log(`API running on http://localhost:${env.PORT}`);
     console.log(`Health check: http://localhost:${env.PORT}/api/health`);
   });
+
+  function shutdown(signal) {
+    console.log(`${signal} received, closing API`);
+    server.close(() => {
+      disconnectDatabase()
+        .catch((error) => console.error('Prisma disconnect failed:', error.message))
+        .finally(() => process.exit(0));
+    });
+
+    setTimeout(() => process.exit(1), 10_000).unref();
+  }
+
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+  process.once('SIGINT', () => shutdown('SIGINT'));
 }
 
 if (!process.env.VERCEL) {

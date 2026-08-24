@@ -17,10 +17,6 @@ const COPY = {
   },
 };
 
-export function isMailConfigured() {
-  return Boolean(env.RESEND_API_KEY || env.SMTP_HOST);
-}
-
 function buildResetEmail(code, locale) {
   const copy = COPY[locale] || COPY.fr;
   const text = `${copy.intro}\n\n${code}\n\n${copy.valid}`;
@@ -59,16 +55,24 @@ async function sendWithResend({ to, subject, html, text }) {
   }
 }
 
-async function sendWithSmtp({ to, subject, html, text }) {
-  const transporter = nodemailer.createTransport({
-    host: env.SMTP_HOST,
-    port: env.SMTP_PORT,
-    secure: env.SMTP_SECURE || env.SMTP_PORT === 465,
-    auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASS } : undefined,
-  });
+let smtpTransporter = null;
 
+function getSmtpTransporter() {
+  if (!smtpTransporter) {
+    smtpTransporter = nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      secure: env.SMTP_SECURE || env.SMTP_PORT === 465,
+      auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASS } : undefined,
+    });
+  }
+
+  return smtpTransporter;
+}
+
+async function sendWithSmtp({ to, subject, html, text }) {
   try {
-    await transporter.sendMail({
+    await getSmtpTransporter().sendMail({
       from: env.MAIL_FROM.includes('<') ? env.MAIL_FROM : `${env.MAIL_FROM} <${env.SMTP_USER}>`,
       to,
       subject,

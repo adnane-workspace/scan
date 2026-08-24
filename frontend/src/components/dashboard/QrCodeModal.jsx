@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import QRCode from 'qrcode';
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 
@@ -19,17 +18,24 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
 
     let cancelled = false;
 
-    QRCode.toDataURL(menuUrl, {
-      width: 512,
-      margin: 2,
-      errorCorrectionLevel: 'M',
-      color: {
-        dark: '#121e1f',
-        light: '#ffffff',
-      },
-    })
+    import('qrcode')
+      .then(({ default: QRCode }) => {
+        if (cancelled) {
+          return null;
+        }
+
+        return QRCode.toDataURL(menuUrl, {
+          width: 512,
+          margin: 2,
+          errorCorrectionLevel: 'M',
+          color: {
+            dark: '#121e1f',
+            light: '#ffffff',
+          },
+        });
+      })
       .then((url) => {
-        if (!cancelled) {
+        if (!cancelled && url) {
           setDataUrl(url);
         }
       })

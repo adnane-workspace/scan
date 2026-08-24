@@ -22,15 +22,6 @@ export function formatBytes(bytes, locale = 'fr') {
   return `${formatted} ${units[exponent]}`;
 }
 
-export function formatPercent(used, limit, digits = 2) {
-  if (!limit) {
-    return 0;
-  }
-
-  const factor = 10 ** digits;
-  return Math.min(100, Math.round((Number(used) / Number(limit)) * 100 * factor) / factor);
-}
-
 export function formatCount(value, locale = 'fr', digits = 0) {
   return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
     minimumFractionDigits: digits,

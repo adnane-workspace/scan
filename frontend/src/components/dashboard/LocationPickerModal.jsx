@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import { geolocationErrorKey, reverseGeocode, searchAddress } from '../../utils/location.js';
@@ -32,66 +30,84 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
     setResults([]);
     setDraft(latitude != null && longitude != null ? { latitude, longitude } : null);
 
-    if (!mapNodeRef.current) {
-      return undefined;
-    }
+    let cancelled = false;
+    let map;
+    let resizeTimer;
+    let onResize;
 
-    const hasPoint = latitude != null && longitude != null;
-    const map = L.map(mapNodeRef.current).setView(
-      hasPoint ? [latitude, longitude] : DEFAULT_CENTER,
-      hasPoint ? PICKED_ZOOM : DEFAULT_ZOOM,
-    );
-    mapRef.current = map;
+    async function setup() {
+      const [{ default: L }] = await Promise.all([
+        import('leaflet'),
+        import('leaflet/dist/leaflet.css'),
+      ]);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap',
-    }).addTo(map);
-
-    function placeMarker(lat, lng, { fly = false } = {}) {
-      if (markerRef.current) {
-        markerRef.current.setLatLng([lat, lng]);
-      } else {
-        markerRef.current = L.circleMarker([lat, lng], {
-          radius: 10,
-          color: '#ffffff',
-          weight: 2,
-          fillColor: '#9e3d00',
-          fillOpacity: 1,
-        }).addTo(map);
+      if (cancelled || !mapNodeRef.current) {
+        return;
       }
 
-      if (fly) {
-        map.setView([lat, lng], PICKED_ZOOM);
+      const hasPoint = latitude != null && longitude != null;
+      map = L.map(mapNodeRef.current).setView(
+        hasPoint ? [latitude, longitude] : DEFAULT_CENTER,
+        hasPoint ? PICKED_ZOOM : DEFAULT_ZOOM,
+      );
+      mapRef.current = map;
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+      }).addTo(map);
+
+      function placeMarker(lat, lng, { fly = false } = {}) {
+        if (markerRef.current) {
+          markerRef.current.setLatLng([lat, lng]);
+        } else {
+          markerRef.current = L.circleMarker([lat, lng], {
+            radius: 10,
+            color: '#ffffff',
+            weight: 2,
+            fillColor: '#9e3d00',
+            fillOpacity: 1,
+          }).addTo(map);
+        }
+
+        if (fly) {
+          map.setView([lat, lng], PICKED_ZOOM);
+        }
+
+        setDraft({ latitude: lat, longitude: lng });
+        setStatus('');
       }
 
-      setDraft({ latitude: lat, longitude: lng });
-      setStatus('');
+      placeMarkerRef.current = placeMarker;
+
+      if (hasPoint) {
+        placeMarker(latitude, longitude);
+      }
+
+      map.on('click', (event) => {
+        placeMarker(event.latlng.lat, event.latlng.lng);
+      });
+
+      function refreshSize() {
+        map.invalidateSize();
+      }
+
+      onResize = refreshSize;
+      resizeTimer = window.setTimeout(refreshSize, 80);
+      window.addEventListener('resize', refreshSize);
     }
 
-    placeMarkerRef.current = placeMarker;
-
-    if (hasPoint) {
-      placeMarker(latitude, longitude);
-    }
-
-    map.on('click', (event) => {
-      placeMarker(event.latlng.lat, event.latlng.lng);
-    });
-
-    function refreshSize() {
-      map.invalidateSize();
-    }
-
-    const resizeTimer = window.setTimeout(refreshSize, 80);
-    window.addEventListener('resize', refreshSize);
+    setup();
 
     return () => {
+      cancelled = true;
       window.clearTimeout(resizeTimer);
-      window.removeEventListener('resize', refreshSize);
+      if (onResize) {
+        window.removeEventListener('resize', onResize);
+      }
       placeMarkerRef.current = null;
       markerRef.current = null;
       mapRef.current = null;
-      map.remove();
+      map?.remove();
     };
   }, [open, latitude, longitude]);
 

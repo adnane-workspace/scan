@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import ProtectedRoute from '../components/common/ProtectedRoute.jsx';
 import Sidebar from '../components/dashboard/Sidebar.jsx';
@@ -86,8 +86,15 @@ export default function DashboardLayout() {
   }, [location.pathname]);
 
   useEffect(() => {
+    if (!isSuperAdmin) {
+      return undefined;
+    }
+
+    loadPlatformCafes();
+  }, [isSuperAdmin, loadPlatformCafes]);
+
+  useEffect(() => {
     if (isSuperAdmin) {
-      loadPlatformCafes();
       return undefined;
     }
 
@@ -96,7 +103,22 @@ export default function DashboardLayout() {
     }
 
     loadStats();
-  }, [isSuperAdmin, location.pathname, loadPlatformCafes, loadStats]);
+  }, [isSuperAdmin, location.pathname, loadStats]);
+
+  const refreshStats = useCallback(() => loadStats(true), [loadStats]);
+  const refreshCafes = useCallback(() => loadPlatformCafes(true), [loadPlatformCafes]);
+
+  const outletContext = useMemo(
+    () => ({
+      stats,
+      platformCafes,
+      loading,
+      error,
+      refreshStats,
+      refreshCafes,
+    }),
+    [stats, platformCafes, loading, error, refreshStats, refreshCafes],
+  );
 
   async function handleLogout() {
     await logout();
@@ -179,16 +201,7 @@ export default function DashboardLayout() {
           </header>
 
           <main className="min-h-screen bg-background px-4 pt-[calc(6rem+env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 lg:px-container">
-            <Outlet
-              context={{
-                stats,
-                platformCafes,
-                loading,
-                error,
-                refreshStats: () => loadStats(true),
-                refreshCafes: () => loadPlatformCafes(true),
-              }}
-            />
+            <Outlet context={outletContext} />
           </main>
         </div>
       </div>
