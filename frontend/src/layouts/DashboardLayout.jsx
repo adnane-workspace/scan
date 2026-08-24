@@ -27,6 +27,7 @@ const headerSubtitleKeys = {
   '/dashboard/cafes': 'header.cafes',
   '/dashboard/cafes/new': 'header.cafeNew',
   '/dashboard/logs': 'header.logs',
+  '/dashboard/storage': 'header.storage',
 };
 
 export default function DashboardLayout() {

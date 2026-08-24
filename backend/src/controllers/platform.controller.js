@@ -1,5 +1,6 @@
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { listActivityLogs } from '../services/activity.service.js';
+import { getStorageReport } from '../services/usage.service.js';
 import {
   createPlatformCafe,
   getPlatformCafe,
@@ -42,6 +43,15 @@ export const listLogs = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: { logs },
+  });
+});
+
+export const getStorage = asyncHandler(async (req, res) => {
+  const report = await getStorageReport({ force: req.query?.refresh === '1' });
+
+  res.status(200).json({
+    success: true,
+    data: { report },
   });
 });
 

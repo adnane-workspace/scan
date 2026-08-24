@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createCafe,
   getCafe,
+  getStorage,
   listCafes,
   listLogs,
   resetCafePassword,
@@ -21,6 +22,7 @@ const platformRouter = Router();
 
 platformRouter.use(authenticate, requireSuperAdmin);
 
+platformRouter.get('/storage', getStorage);
 platformRouter.get('/logs', validate(listActivityLogsSchema), listLogs);
 platformRouter.get('/cafes', listCafes);
 platformRouter.post('/cafes', validate(createPlatformCafeSchema), createCafe);

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useOutletContext } from 'react-router-dom';
 import PopularProducts from '../components/dashboard/PopularProducts.jsx';
 import QrCodeModal from '../components/dashboard/QrCodeModal.jsx';
 import RecentProducts from '../components/dashboard/RecentProducts.jsx';
@@ -7,20 +7,46 @@ import StatCard from '../components/dashboard/StatCard.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { getStorageReport } from '../services/platform.service.js';
 import { updateProduct } from '../services/product.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
-import { firstName } from '../utils/format.js';
+import { firstName, formatBytes } from '../utils/format.js';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { stats, platformCafes = [], loading, error, refreshStats } = useOutletContext();
   const [actionError, setActionError] = useState('');
   const [isQrOpen, setIsQrOpen] = useState(false);
+  const [storage, setStorage] = useState(null);
   const isSuperAdmin = user?.role === 'superadmin';
   const menuUrl = getPublicMenuUrl(stats.cafe?.slug);
   const greetingName = firstName(user?.name, t('dashboard.fallbackName'));
   const activeCafes = platformCafes.filter((cafe) => cafe.isActive).length;
+
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    getStorageReport()
+      .then((report) => {
+        if (!cancelled) {
+          setStorage(report);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStorage(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSuperAdmin]);
 
   async function handleToggleAvailable(product) {
     setActionError('');
@@ -75,6 +101,20 @@ export default function DashboardPage() {
           <>
             <StatCard label={t('dashboard.cafes')} value={platformCafes.length} icon="storefront" loading={loading} />
             <StatCard label={t('dashboard.activeCafes')} value={activeCafes} icon="verified" tone="tertiary" loading={loading} />
+            <StatCard
+              label={t('storage.photos')}
+              value={storage ? storage.totals.photos : '—'}
+              icon="photo_library"
+              loading={loading && !storage}
+            />
+            <Link to="/dashboard/storage" className="block">
+              <StatCard
+                label={t('storage.storageUsed')}
+                value={storage ? formatBytes(storage.totals.bytes, locale) : '—'}
+                icon="hard_drive"
+                loading={loading && !storage}
+              />
+            </Link>
           </>
         ) : (
           <>

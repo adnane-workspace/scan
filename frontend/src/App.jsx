@@ -3,6 +3,7 @@ import AuthLayout from './layouts/AuthLayout.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
 import PublicLayout from './layouts/PublicLayout.jsx';
 import ActivityLogsPage from './pages/ActivityLogsPage.jsx';
+import StoragePage from './pages/StoragePage.jsx';
 import CafeDetailPage from './pages/CafeDetailPage.jsx';
 import CafesPage from './pages/CafesPage.jsx';
 import CreateCafePage from './pages/CreateCafePage.jsx';
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="cafes/new" element={<CreateCafePage />} />
         <Route path="cafes/:id" element={<CafeDetailPage />} />
         <Route path="logs" element={<ActivityLogsPage />} />
+        <Route path="storage" element={<StoragePage />} />
       </Route>
 
       <Route element={<PublicLayout />}>

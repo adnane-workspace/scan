@@ -1,5 +1,12 @@
 import api from './api.js';
 
+export async function getStorageReport(refresh = false) {
+  const { data } = await api.get('/platform/storage', {
+    params: refresh ? { refresh: '1' } : undefined,
+  });
+  return data.data.report;
+}
+
 export async function listActivityLogs(params = {}) {
   const { data } = await api.get('/platform/logs', { params });
   return data.data.logs;

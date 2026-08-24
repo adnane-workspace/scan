@@ -21,6 +21,9 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().trim().min(1, 'CLOUDINARY_API_KEY is required'),
   CLOUDINARY_API_SECRET: z.string().trim().min(1, 'CLOUDINARY_API_SECRET is required'),
   CLOUDINARY_FOLDER: z.string().trim().min(1).default('digital-menu'),
+  PRODUCTION_DATABASE_URL: z.string().optional().default(''),
+  PRODUCTION_API_URL: z.string().trim().optional().default(''),
+  PRODUCTION_CAFE_SLUGS: z.string().optional().default('cafe-central'),
 });
 
 const parsed = envSchema.safeParse(process.env);

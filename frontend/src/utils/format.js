@@ -5,6 +5,39 @@ const CATEGORY_BADGES = [
   "bg-surface-variant text-on-surface-variant",
 ];
 
+export function formatBytes(bytes, locale = 'fr') {
+  const value = Number(bytes) || 0;
+  const units = locale === 'en' ? ['B', 'KB', 'MB', 'GB', 'TB'] : ['o', 'Ko', 'Mo', 'Go', 'To'];
+
+  if (value <= 0) {
+    return `0 ${units[0]}`;
+  }
+
+  const exponent = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+  const amount = value / 1024 ** exponent;
+  const formatted = new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
+    maximumFractionDigits: exponent === 0 ? 0 : amount >= 100 ? 0 : 2,
+  }).format(amount);
+
+  return `${formatted} ${units[exponent]}`;
+}
+
+export function formatPercent(used, limit, digits = 2) {
+  if (!limit) {
+    return 0;
+  }
+
+  const factor = 10 ** digits;
+  return Math.min(100, Math.round((Number(used) / Number(limit)) * 100 * factor) / factor);
+}
+
+export function formatCount(value, locale = 'fr', digits = 0) {
+  return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(Number(value) || 0);
+}
+
 export function formatPrice(value, locale = 'fr') {
   const amount = new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
     minimumFractionDigits: 2,

@@ -8,6 +8,8 @@ cloudinary.config({
   api_secret: env.CLOUDINARY_API_SECRET,
 });
 
+export { cloudinary };
+
 export function normalizeImageUrl(image) {
   if (!image) {
     return '';
