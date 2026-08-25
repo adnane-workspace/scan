@@ -2,6 +2,7 @@ import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
+import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 import { normalizeImageUrl } from './storage.service.js';
 
 function requireCafeId(user) {
@@ -12,12 +13,13 @@ function requireCafeId(user) {
   return user.cafeId;
 }
 
-function toCafeResponse(cafe) {
+function toCafeResponse(cafe, pendingRequest) {
   return {
     _id: cafe.id,
     name: cafe.name,
     description: cafe.description,
     logo: cafe.logo || '',
+    cover: cafe.cover || '',
     address: cafe.address,
     phone: cafe.phone,
     latitude: cafe.latitude,
@@ -26,6 +28,7 @@ function toCafeResponse(cafe) {
     isActive: cafe.isActive,
     createdAt: cafe.createdAt,
     updatedAt: cafe.updatedAt,
+    qr: toQrStatus(cafe, pendingRequest),
   };
 }
 
@@ -37,11 +40,26 @@ export async function getMyCafe(user) {
     throw new ApiError(404, 'Cafe not found');
   }
 
-  return toCafeResponse(cafe);
+  const pending = await findPendingQrRequest(cafeId);
+  return toCafeResponse(cafe, pending);
 }
 
 export async function updateMyCafe(user, payload) {
   const cafeId = requireCafeId(user);
+  const current = await prisma.cafe.findUnique({
+    where: { id: cafeId },
+    select: {
+      id: true,
+      slug: true,
+      qrGeneratedAt: true,
+      qrChangeAllowed: true,
+    },
+  });
+
+  if (!current) {
+    throw new ApiError(404, 'Cafe not found');
+  }
+
   const data = {};
 
   if (payload.name !== undefined) {
@@ -54,6 +72,10 @@ export async function updateMyCafe(user, payload) {
 
   if (payload.logo !== undefined) {
     data.logo = normalizeImageUrl(payload.logo);
+  }
+
+  if (payload.cover !== undefined) {
+    data.cover = normalizeImageUrl(payload.cover);
   }
 
   if (payload.address !== undefined) {
@@ -79,16 +101,33 @@ export async function updateMyCafe(user, payload) {
       throw new ApiError(400, 'A valid cafe slug is required');
     }
 
-    const taken = await prisma.cafe.findFirst({
-      where: { slug: nextSlug, id: { not: cafeId } },
-      select: { id: true },
-    });
+    if (nextSlug !== current.slug) {
+      const slugLocked = Boolean(current.qrGeneratedAt) && !current.qrChangeAllowed;
 
-    if (taken) {
-      throw new ApiError(409, 'Cafe slug already in use');
+      if (slugLocked) {
+        throw new ApiError(
+          409,
+          'Le lien public est verrouillé après génération du QR. Demande un changement au superadmin.',
+        );
+      }
+
+      const taken = await prisma.cafe.findFirst({
+        where: { slug: nextSlug, id: { not: cafeId } },
+        select: { id: true },
+      });
+
+      if (taken) {
+        throw new ApiError(409, 'Cafe slug already in use');
+      }
+
+      data.slug = nextSlug;
     }
+  }
 
-    data.slug = nextSlug;
+  if (Object.keys(data).length === 0) {
+    const pending = await findPendingQrRequest(cafeId);
+    const cafe = await prisma.cafe.findUnique({ where: { id: cafeId } });
+    return toCafeResponse(cafe, pending);
   }
 
   const cafe = await prisma.cafe.update({
@@ -107,5 +146,6 @@ export async function updateMyCafe(user, payload) {
     },
   });
 
-  return toCafeResponse(cafe);
+  const pending = await findPendingQrRequest(cafeId);
+  return toCafeResponse(cafe, pending);
 }

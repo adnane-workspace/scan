@@ -12,7 +12,7 @@ const fieldClass =
 const ACTION_GROUPS = [
   {
     id: 'groupCafe',
-    actions: ['cafe_created', 'cafe_activated', 'cafe_deactivated', 'cafe_password_reset', 'cafe_updated'],
+    actions: ['cafe_created', 'cafe_activated', 'cafe_deactivated', 'cafe_password_reset', 'cafe_updated', 'qr_generated', 'qr_change_requested', 'qr_change_approved', 'qr_change_rejected'],
   },
   {
     id: 'groupMenu',
@@ -30,6 +30,10 @@ const ACTION_META = {
   cafe_deactivated: { icon: 'block', tone: 'bad' },
   cafe_password_reset: { icon: 'lock_reset', tone: 'warn' },
   cafe_updated: { icon: 'storefront', tone: 'warn' },
+  qr_generated: { icon: 'qr_code_2', tone: 'ok' },
+  qr_change_requested: { icon: 'outgoing_mail', tone: 'warn' },
+  qr_change_approved: { icon: 'verified', tone: 'ok' },
+  qr_change_rejected: { icon: 'block', tone: 'bad' },
   auth_login_failed: { icon: 'gpp_maybe', tone: 'bad' },
   auth_password_changed: { icon: 'password', tone: 'warn' },
   product_deleted: { icon: 'delete', tone: 'bad' },
@@ -92,7 +96,17 @@ function logDetail(item, t) {
     return t('logs.detailCategory', { name: meta.categoryName || t('common.none') });
   }
 
-  return meta.slug || '';
+  if (item.action === 'qr_generated') {
+    return meta.regenerated ? t('logs.detailQrRegen', { slug: meta.slug || t('common.none') }) : t('logs.detailQr', { slug: meta.slug || t('common.none') });
+  }
+
+  if (item.action === 'qr_change_requested') {
+    return meta.reason || '';
+  }
+
+  if (item.action === 'qr_change_approved' || item.action === 'qr_change_rejected') {
+    return meta.note || meta.reason || '';
+  }
 }
 
 function SummaryCard({ icon, label, value, tone = 'warn' }) {

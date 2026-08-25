@@ -30,25 +30,39 @@ enum ActivityAction {
   category_created
   category_updated
   category_deleted
+  qr_generated
+  qr_change_requested
+  qr_change_approved
+  qr_change_rejected
+}
+
+enum QrChangeRequestStatus {
+  pending
+  approved
+  rejected
 }
 
 model Cafe {
   id          String        @id @default(uuid())
   name        String        @db.VarChar(120)
   description String        @default("") @db.VarChar(500)
-  logo        String        @default("")
-  address     String        @default("") @db.VarChar(200)
+  logo              String        @default("")
+  cover             String        @default("")
+  address           String        @default("") @db.VarChar(200)
   phone       String        @default("") @db.VarChar(30)
   latitude    Float?
   longitude   Float?
-  slug        String        @unique @db.VarChar(80)
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  users       User[]
-  categories  Category[]
-  products    Product[]
-  activityLogs ActivityLog[]
+  slug            String        @unique @db.VarChar(80)
+  isActive        Boolean       @default(true)
+  qrGeneratedAt   DateTime?
+  qrChangeAllowed Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  users           User[]
+  categories      Category[]
+  products        Product[]
+  activityLogs    ActivityLog[]
+  qrChangeRequests QrChangeRequest[]
 }
 
 model User {
@@ -61,10 +75,30 @@ model User {
   cafe           Cafe?           @relation(fields: [cafeId], references: [id], onDelete: SetNull)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  activityLogs   ActivityLog[]
-  passwordResets PasswordReset[]
+  activityLogs     ActivityLog[]
+  passwordResets   PasswordReset[]
+  qrChangeRequests QrChangeRequest[] @relation("QrChangeRequester")
+  qrChangeReviews  QrChangeRequest[] @relation("QrChangeReviewer")
 
   @@index([cafeId])
+}
+
+model QrChangeRequest {
+  id          String                 @id @default(uuid())
+  cafeId      String
+  cafe        Cafe                   @relation(fields: [cafeId], references: [id], onDelete: Cascade)
+  requesterId String
+  requester   User                   @relation("QrChangeRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  reason      String                 @db.VarChar(400)
+  status      QrChangeRequestStatus  @default(pending)
+  reviewerId  String?
+  reviewer    User?                  @relation("QrChangeReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewNote  String                 @default("") @db.VarChar(400)
+  reviewedAt  DateTime?
+  createdAt   DateTime               @default(now())
+
+  @@index([cafeId, status])
+  @@index([status, createdAt])
 }
 
 model PasswordReset {

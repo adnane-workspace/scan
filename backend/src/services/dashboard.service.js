@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { subtreeProductCounts } from '../utils/categoryTree.js';
+import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
@@ -50,7 +51,7 @@ export async function getDashboardStats(user) {
       }),
       prisma.cafe.findUnique({
         where: { id: cafeId },
-        select: { name: true, slug: true },
+        select: { name: true, slug: true, qrGeneratedAt: true, qrChangeAllowed: true },
       }),
     ]);
 
@@ -59,6 +60,7 @@ export async function getDashboardStats(user) {
   const totalProducts = availableProducts + unavailableProducts;
   const directCounts = new Map(productCounts.map((item) => [item.categoryId, item._count._all]));
   const countByCategory = subtreeProductCounts(categoryDocs, directCounts);
+  const pendingQr = cafe ? await findPendingQrRequest(cafeId) : null;
 
   return {
     totalProducts,
@@ -75,6 +77,7 @@ export async function getDashboardStats(user) {
       ? {
           name: cafe.name,
           slug: cafe.slug,
+          qr: toQrStatus(cafe, pendingQr),
         }
       : null,
   };

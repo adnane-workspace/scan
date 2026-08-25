@@ -14,7 +14,8 @@ export const updateCafeSchema = z.object({
         .max(80)
         .optional(),
       description: z.string().trim().max(500).optional(),
-      logo: z.string().trim().max(500).optional(),
+      logo: z.string().trim().max(2048).optional(),
+      cover: z.string().trim().max(2048).optional(),
       address: z.string().trim().max(200).optional(),
       phone: z.string().trim().max(30).optional(),
       latitude: z.number().min(-90).max(90).nullable().optional(),

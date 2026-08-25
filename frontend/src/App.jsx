@@ -18,6 +18,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage.jsx'));
 const PublicMenuLandingPage = lazy(() => import('./pages/PublicMenuLandingPage.jsx'));
 const PublicMenuPage = lazy(() => import('./pages/PublicMenuPage.jsx'));
+const QrRequestsPage = lazy(() => import('./pages/QrRequestsPage.jsx'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'));
 
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="cafes" element={<CafesPage />} />
           <Route path="cafes/new" element={<CreateCafePage />} />
           <Route path="cafes/:id" element={<CafeDetailPage />} />
+          <Route path="qr-requests" element={<QrRequestsPage />} />
           <Route path="logs" element={<ActivityLogsPage />} />
           <Route path="storage" element={<StoragePage />} />
         </Route>

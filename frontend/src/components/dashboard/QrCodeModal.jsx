@@ -2,14 +2,26 @@ import { useEffect, useState } from 'react';
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 
-export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) {
+export default function QrCodeModal({
+  open,
+  cafeName,
+  menuUrl,
+  slug,
+  onClose,
+  needsIssue = false,
+  issuing = false,
+  issueError = '',
+  onConfirmIssue,
+  locked = false,
+}) {
   const { t } = useLocale();
   const [dataUrl, setDataUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
+  const showQr = open && menuUrl && !needsIssue;
 
   useEffect(() => {
-    if (!open || !menuUrl) {
+    if (!showQr) {
       setDataUrl('');
       setCopied(false);
       setError('');
@@ -48,7 +60,7 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
     return () => {
       cancelled = true;
     };
-  }, [open, menuUrl, t]);
+  }, [showQr, menuUrl, t]);
 
   if (!open) {
     return null;
@@ -83,7 +95,11 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
           <div>
             <h2 className="font-display text-headline-md font-semibold text-on-surface">{t('qr.title')}</h2>
             <p className="mt-1 text-sm text-on-surface-variant">
-              {cafeName ? t('qr.hintNamed', { name: cafeName }) : t('qr.hint')}
+              {needsIssue
+                ? t('qr.issueHint')
+                : cafeName
+                  ? t('qr.hintNamed', { name: cafeName })
+                  : t('qr.hint')}
             </p>
           </div>
           <button
@@ -96,54 +112,75 @@ export default function QrCodeModal({ open, cafeName, menuUrl, slug, onClose }) 
           </button>
         </div>
 
-        {error ? (
+        {error || issueError ? (
           <p className="mb-4 rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error">
-            {error}
+            {issueError || error}
           </p>
         ) : null}
 
-        <div className="flex flex-col items-center gap-4">
-          <div className="rounded-2xl bg-white p-4 shadow-sm">
-            {dataUrl ? (
-              <img src={dataUrl} alt={`QR code du menu ${cafeName || ''}`.trim()} className="h-56 w-56" />
-            ) : (
-              <div className="flex h-56 w-56 items-center justify-center text-sm text-on-surface-variant">
-                {t('qr.generating')}
-              </div>
-            )}
-          </div>
-
-          <p className="w-full break-all text-center text-sm text-on-surface-variant">{menuUrl}</p>
-
-          <div className="flex w-full flex-col gap-3 sm:flex-row">
+        {needsIssue ? (
+          <div className="flex flex-col gap-4">
+            <p className="rounded-xl bg-surface-container-high px-4 py-3 text-sm text-on-surface">{t('qr.issueWarning')}</p>
             <button
               type="button"
-              onClick={handleDownload}
-              disabled={!dataUrl}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary disabled:opacity-50"
+              disabled={issuing || !onConfirmIssue}
+              onClick={onConfirmIssue}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary disabled:opacity-50"
             >
-              <MaterialIcon name="download" className="text-[20px]" />
-              {t('qr.download')}
-            </button>
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-surface-container-high px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-surface"
-            >
-              <MaterialIcon name={copied ? 'check' : 'content_copy'} className="text-[20px]" />
-              {copied ? t('qr.copied') : t('qr.copy')}
+              <MaterialIcon name="qr_code_2" className="text-[20px]" />
+              {issuing ? t('qr.issuing') : t('qr.confirmIssue')}
             </button>
           </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4">
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
+              {dataUrl ? (
+                <img src={dataUrl} alt={`QR code du menu ${cafeName || ''}`.trim()} className="h-56 w-56" />
+              ) : (
+                <div className="flex h-56 w-56 items-center justify-center text-sm text-on-surface-variant">
+                  {t('qr.generating')}
+                </div>
+              )}
+            </div>
 
-          <a
-            href={menuUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm font-medium text-primary hover:text-primary-container"
-          >
-            {t('qr.open')}
-          </a>
-        </div>
+            <p className="w-full break-all text-center text-sm text-on-surface-variant">{menuUrl}</p>
+
+            {locked ? (
+              <p className="w-full rounded-xl bg-surface-container-high px-4 py-3 text-center text-sm text-on-surface-variant">
+                {t('qr.lockedHint')}
+              </p>
+            ) : null}
+
+            <div className="flex w-full flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={!dataUrl}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary disabled:opacity-50"
+              >
+                <MaterialIcon name="download" className="text-[20px]" />
+                {t('qr.download')}
+              </button>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-surface-container-high px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-surface"
+              >
+                <MaterialIcon name={copied ? 'check' : 'content_copy'} className="text-[20px]" />
+                {copied ? t('qr.copied') : t('qr.copy')}
+              </button>
+            </div>
+
+            <a
+              href={menuUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm font-medium text-primary hover:text-primary-container"
+            >
+              {t('qr.open')}
+            </a>
+          </div>
+        )}
       </section>
     </div>
   );

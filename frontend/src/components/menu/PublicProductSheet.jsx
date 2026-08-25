@@ -38,7 +38,7 @@ export default function PublicProductSheet({ product, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="product-sheet-title"
-        className="relative z-10 max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-surface-container-lowest shadow-xl sm:max-w-md sm:rounded-3xl"
+        className="relative z-10 max-h-[min(92vh,100dvh)] w-full overflow-y-auto rounded-t-3xl bg-surface-container-lowest pb-[env(safe-area-inset-bottom)] shadow-xl sm:max-w-md sm:rounded-3xl"
       >
         <div className="relative aspect-[4/3] bg-surface-container-high">
           {product.image ? (
@@ -59,7 +59,7 @@ export default function PublicProductSheet({ product, onClose }) {
         </div>
         <div className="px-5 py-5 sm:px-6">
           <div className="flex items-start justify-between gap-4">
-            <h2 id="product-sheet-title" className="font-display text-2xl font-semibold tracking-tight text-on-surface">
+            <h2 id="product-sheet-title" className="min-w-0 break-words font-display text-xl font-semibold tracking-tight text-on-surface sm:text-2xl">
               {product.name}
             </h2>
             <p className="shrink-0 text-lg font-semibold text-primary">{formatPrice(product.price, locale)}</p>

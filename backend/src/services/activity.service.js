@@ -10,6 +10,10 @@ export const ACTIVITY_ACTIONS = [
   'auth_password_changed',
   'product_deleted',
   'category_deleted',
+  'qr_generated',
+  'qr_change_requested',
+  'qr_change_approved',
+  'qr_change_rejected',
 ];
 
 const CAFE_ACTIONS = [
@@ -18,6 +22,10 @@ const CAFE_ACTIONS = [
   'cafe_deactivated',
   'cafe_password_reset',
   'cafe_updated',
+  'qr_generated',
+  'qr_change_requested',
+  'qr_change_approved',
+  'qr_change_rejected',
 ];
 
 const SECURITY_ACTIONS = ['auth_login_failed', 'auth_password_changed'];

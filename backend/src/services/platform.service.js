@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
+import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 
 function ownerFromUsers(users = []) {
   const owner = users[0];
@@ -22,6 +23,9 @@ function toPlatformCafe(cafe, counts) {
     productCount: counts.productCount,
     categoryCount: counts.categoryCount,
     createdAt: cafe.createdAt,
+    qrGeneratedAt: cafe.qrGeneratedAt || null,
+    qrChangeAllowed: Boolean(cafe.qrChangeAllowed),
+    pendingQrChange: Boolean(counts.pendingQrChange),
     ...ownerFromUsers(cafe.users),
   };
 }
@@ -103,6 +107,8 @@ export async function listPlatformCafes() {
       slug: true,
       isActive: true,
       createdAt: true,
+      qrGeneratedAt: true,
+      qrChangeAllowed: true,
       ...ownerSelect,
     },
   });
@@ -113,7 +119,7 @@ export async function listPlatformCafes() {
     return [];
   }
 
-  const [productGroups, categoryGroups] = await Promise.all([
+  const [productGroups, categoryGroups, pendingQrRequests] = await Promise.all([
     prisma.product.groupBy({
       by: ['cafeId'],
       where: { cafeId: { in: cafeIds } },
@@ -124,15 +130,21 @@ export async function listPlatformCafes() {
       where: { cafeId: { in: cafeIds } },
       _count: { _all: true },
     }),
+    prisma.qrChangeRequest.findMany({
+      where: { cafeId: { in: cafeIds }, status: 'pending' },
+      select: { cafeId: true },
+    }),
   ]);
 
   const productCountByCafe = new Map(productGroups.map((item) => [item.cafeId, item._count._all]));
   const categoryCountByCafe = new Map(categoryGroups.map((item) => [item.cafeId, item._count._all]));
+  const pendingQrByCafe = new Set(pendingQrRequests.map((item) => item.cafeId));
 
   return cafes.map((cafe) =>
     toPlatformCafe(cafe, {
       productCount: productCountByCafe.get(cafe.id) || 0,
       categoryCount: categoryCountByCafe.get(cafe.id) || 0,
+      pendingQrChange: pendingQrByCafe.has(cafe.id),
     }),
   );
 }
@@ -156,6 +168,8 @@ export async function updatePlatformCafe(cafeId, payload, actor) {
       slug: true,
       isActive: true,
       createdAt: true,
+      qrGeneratedAt: true,
+      qrChangeAllowed: true,
       ...ownerSelect,
     },
   });
@@ -190,20 +204,23 @@ export async function getPlatformCafe(cafeId) {
     throw new ApiError(404, 'Cafe not found');
   }
 
-  const [productCount, categoryCount] = await Promise.all([
+  const [productCount, categoryCount, pendingQr] = await Promise.all([
     prisma.product.count({ where: { cafeId } }),
     prisma.category.count({ where: { cafeId } }),
+    findPendingQrRequest(cafeId),
   ]);
 
   return {
-    ...toPlatformCafe(cafe, { productCount, categoryCount }),
+    ...toPlatformCafe(cafe, { productCount, categoryCount, pendingQrChange: Boolean(pendingQr) }),
     description: cafe.description || '',
     logo: cafe.logo || '',
+    cover: cafe.cover || '',
     address: cafe.address || '',
     phone: cafe.phone || '',
     latitude: cafe.latitude,
     longitude: cafe.longitude,
     updatedAt: cafe.updatedAt,
+    qr: toQrStatus(cafe, pendingQr),
   };
 }
 

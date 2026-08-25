@@ -26,6 +26,7 @@ const headerSubtitleKeys = {
   '/dashboard/settings': 'header.settings',
   '/dashboard/cafes': 'header.cafes',
   '/dashboard/cafes/new': 'header.cafeNew',
+  '/dashboard/qr-requests': 'header.qrRequests',
   '/dashboard/logs': 'header.logs',
   '/dashboard/storage': 'header.storage',
 };
@@ -126,6 +127,7 @@ export default function DashboardLayout() {
   }
 
   const cafeName = isSuperAdmin ? t('header.platform') : stats.cafe?.name || 'Digital Menu';
+  const qrRequestCount = platformCafes.filter((item) => item.pendingQrChange).length;
   const subtitleKey = headerSubtitleKeys[location.pathname];
   const headerSubtitle = subtitleKey
     ? t(subtitleKey)
@@ -156,6 +158,7 @@ export default function DashboardLayout() {
           <Sidebar
             cafe={stats.cafe}
             role={user?.role}
+            qrRequestCount={qrRequestCount}
             onLogout={handleLogout}
             onNavigate={() => setIsSidebarOpen(false)}
           />

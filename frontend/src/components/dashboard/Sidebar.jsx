@@ -15,13 +15,14 @@ function navClassName(isSuperAdmin) {
     }`;
 }
 
-export default function Sidebar({ cafe, role, onLogout, onNavigate }) {
+export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCount = 0 }) {
   const { t } = useLocale();
   const isSuperAdmin = role === 'superadmin';
   const links = isSuperAdmin
     ? [
         { to: '/dashboard', label: t('nav.dashboard'), icon: 'home', end: true },
         { to: '/dashboard/cafes', label: t('nav.cafes'), icon: 'storefront' },
+        { to: '/dashboard/qr-requests', label: t('nav.qrRequests'), icon: 'qr_code_2', badge: qrRequestCount },
         { to: '/dashboard/logs', label: t('nav.logs'), icon: 'history' },
         { to: '/dashboard/storage', label: t('nav.storage'), icon: 'cloud' },
         { to: '/dashboard/settings', label: t('nav.settings'), icon: 'settings' },
@@ -70,7 +71,12 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate }) {
             onClick={onNavigate}
           >
             <MaterialIcon name={link.icon} className="mr-3" />
-            {link.label}
+            <span className="flex-1">{link.label}</span>
+            {link.badge ? (
+              <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">
+                {link.badge}
+              </span>
+            ) : null}
           </NavLink>
         ))}
 

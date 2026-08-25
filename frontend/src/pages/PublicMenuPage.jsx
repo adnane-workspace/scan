@@ -9,7 +9,7 @@ import { useLocale } from '../hooks/useLocale.js';
 import { findPublicCategory, findPublicParent } from '../utils/categoryTree.js';
 
 const categoryGridClass =
-  'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+  'grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
 const productGridClass = 'grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
 const contentClass = 'mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8';
 
@@ -137,7 +137,7 @@ export default function PublicMenuPage() {
       <div className="min-h-screen">
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
-          <h1 className="mb-6 font-display text-2xl font-semibold tracking-tight text-on-surface md:text-3xl">
+          <h1 className="mb-4 break-words font-display text-xl font-semibold tracking-tight text-on-surface sm:mb-6 sm:text-2xl md:text-3xl">
             {selectedCategory.name}
           </h1>
           <div className={categoryGridClass}>
@@ -158,7 +158,7 @@ export default function PublicMenuPage() {
       <div className="min-h-screen">
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
-          <h1 className="mb-6 font-display text-2xl font-semibold tracking-tight text-on-surface md:text-3xl">
+          <h1 className="mb-4 break-words font-display text-xl font-semibold tracking-tight text-on-surface sm:mb-6 sm:text-2xl md:text-3xl">
             {selectedCategory.name}
           </h1>
           <div className={productGridClass}>
@@ -176,7 +176,7 @@ export default function PublicMenuPage() {
     <div className="min-h-screen">
       <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
       <div className={contentClass}>
-        <h1 className="mb-6 font-display text-2xl font-semibold tracking-tight text-on-surface md:text-3xl">
+        <h1 className="mb-4 break-words font-display text-xl font-semibold tracking-tight text-on-surface sm:mb-6 sm:text-2xl md:text-3xl">
           {t('menu.ourCategories')}
         </h1>
         <div className={categoryGridClass}>

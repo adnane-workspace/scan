@@ -82,6 +82,7 @@ function emptyCafeBucket(cafe) {
     slug: cafe.slug,
     isActive: cafe.isActive !== false,
     logos: 0,
+    covers: 0,
     productImages: 0,
     categoryImages: 0,
     photoCount: 0,
@@ -111,7 +112,7 @@ function productionApiBase() {
 async function loadFromDatabase(client) {
   const [cafes, products, categories] = await Promise.all([
     client.cafe.findMany({
-      select: { id: true, name: true, slug: true, isActive: true, logo: true },
+      select: { id: true, name: true, slug: true, isActive: true, logo: true, cover: true },
       orderBy: { name: 'asc' },
     }),
     client.product.findMany({
@@ -149,6 +150,7 @@ async function loadFromProductionMenus(apiBase, slugs) {
           slug,
           isActive: true,
           logo: menu.cafe.logo || '',
+          cover: menu.cafe.cover || '',
         });
 
         for (const category of menu.categories || []) {
@@ -205,14 +207,17 @@ function buildCafeReport({ cafes, products, categories, folder, bytesByPublicId 
     }
   }
 
-  cafes.forEach((cafe) => addImage(cafe.id, cafe.logo, 'logos'));
+  cafes.forEach((cafe) => {
+    addImage(cafe.id, cafe.logo, 'logos');
+    addImage(cafe.id, cafe.cover, 'covers');
+  });
   products.forEach((product) => addImage(product.cafeId, product.image, 'productImages'));
   categories.forEach((category) => addImage(category.cafeId, category.image, 'categoryImages'));
 
   const cafesReport = [...byCafe.values()]
     .map((item) => ({
       ...item,
-      photoCount: item.logos + item.productImages + item.categoryImages,
+      photoCount: item.logos + item.covers + item.productImages + item.categoryImages,
     }))
     .sort((a, b) => b.bytes - a.bytes || b.photoCount - a.photoCount);
 

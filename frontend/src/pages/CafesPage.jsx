@@ -138,6 +138,7 @@ export default function CafesPage() {
               <th className="px-4 py-3 font-semibold">{t('platform.colCafe')}</th>
               <th className="px-4 py-3 font-semibold">{t('platform.colOwner')}</th>
               <th className="px-4 py-3 font-semibold">{t('platform.colMenu')}</th>
+              <th className="px-4 py-3 font-semibold">{t('platform.colQr')}</th>
               <th className="px-4 py-3 font-semibold">{t('platform.colRegistered')}</th>
               <th className="px-4 py-3 font-semibold">{t('platform.colStatus')}</th>
               <th className="px-4 py-3 font-semibold" />
@@ -146,13 +147,13 @@ export default function CafesPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-4 py-6 text-on-surface-variant" colSpan={6}>
+                <td className="px-4 py-6 text-on-surface-variant" colSpan={7}>
                   {t('common.loading')}
                 </td>
               </tr>
             ) : filteredCafes.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-on-surface-variant" colSpan={6}>
+                <td className="px-4 py-6 text-on-surface-variant" colSpan={7}>
                   {t('platform.empty')}
                 </td>
               </tr>
@@ -168,6 +169,15 @@ export default function CafesPage() {
                     <td className="px-4 py-3 text-on-surface-variant">{cafe.ownerEmail || t('common.none')}</td>
                   <td className="px-4 py-3 text-on-surface-variant">
                     {t('platform.menuStats', { categories: cafe.categoryCount, products: cafe.productCount })}
+                  </td>
+                  <td className="px-4 py-3 text-on-surface-variant">
+                    {cafe.pendingQrChange
+                      ? t('qr.statusPending')
+                      : cafe.qrChangeAllowed
+                        ? t('qr.statusUnlocked')
+                        : cafe.qrGeneratedAt
+                          ? t('qr.statusGenerated')
+                          : t('qr.statusNotGenerated')}
                   </td>
                   <td className="px-4 py-3 text-on-surface-variant">{formatDate(cafe.createdAt, locale)}</td>
                   <td className="px-4 py-3">

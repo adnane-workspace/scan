@@ -36,3 +36,20 @@ export async function resetPlatformCafePassword(id, password) {
   const { data } = await api.post(`/platform/cafes/${id}/password`, { password });
   return data.data;
 }
+
+export async function listQrChangeRequests(status = 'pending') {
+  const { data } = await api.get('/platform/qr-requests', {
+    params: status && status !== 'all' ? { status } : undefined,
+  });
+  return data.data;
+}
+
+export async function reviewQrChangeRequest(id, payload) {
+  const { data } = await api.post(`/platform/qr-requests/${id}/review`, payload);
+  return data.data.request;
+}
+
+export async function unlockCafeQr(id) {
+  const { data } = await api.post(`/platform/cafes/${id}/qr/unlock`);
+  return data.data.qr;
+}

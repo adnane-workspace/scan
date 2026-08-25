@@ -17,6 +17,7 @@ const emptyForm = {
   slug: '',
   description: '',
   logo: '',
+  cover: '',
   address: '',
   phone: '',
   latitude: null,
@@ -84,9 +85,10 @@ export default function SettingsPage() {
   const { refreshStats } = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
   const [form, setForm] = useState(emptyForm);
+  const [qr, setQr] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -126,11 +128,13 @@ export default function SettingsPage() {
             slug: cafe.slug || '',
             description: cafe.description || '',
             logo: cafe.logo || '',
+            cover: cafe.cover || '',
             address: cafe.address || '',
             phone: cafe.phone || '',
             latitude: cafe.latitude ?? null,
             longitude: cafe.longitude ?? null,
           });
+          setQr(cafe.qr || null);
         }
       })
       .catch((err) => {
@@ -154,25 +158,62 @@ export default function SettingsPage() {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  async function handleImageChange(event) {
-    const file = event.target.files?.[0];
-    event.target.value = '';
+  function applyCafe(cafe) {
+    setForm({
+      name: cafe.name || '',
+      slug: cafe.slug || '',
+      description: cafe.description || '',
+      logo: cafe.logo || '',
+      cover: cafe.cover || '',
+      address: cafe.address || '',
+      phone: cafe.phone || '',
+      latitude: cafe.latitude ?? null,
+      longitude: cafe.longitude ?? null,
+    });
+    setQr(cafe.qr || null);
+    clearPublicMenuCache(cafe.slug);
+  }
 
-    if (!file) {
-      return;
-    }
+  function cafePayload(overrides = {}) {
+    return {
+      name: form.name,
+      slug: form.slug,
+      description: form.description,
+      logo: form.logo,
+      cover: form.cover,
+      address: form.address,
+      phone: form.phone,
+      latitude: form.latitude,
+      longitude: form.longitude,
+      ...overrides,
+    };
+  }
 
-    setUploading(true);
-    setError('');
+  function handleImageChange(field) {
+    return async (event) => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
 
-    try {
-      const url = await uploadCafeLogo(file);
-      setForm((current) => ({ ...current, logo: url }));
-    } catch (err) {
-      setError(err.response?.data?.message || t('settings.uploadError'));
-    } finally {
-      setUploading(false);
-    }
+      if (!file) {
+        return;
+      }
+
+      setUploading(field);
+      setError('');
+      setSuccess('');
+
+      try {
+        const url = await uploadCafeLogo(file);
+        const cafe = await updateMyCafe(cafePayload({ [field]: url }));
+        applyCafe(cafe);
+        setSuccess(t('settings.saved'));
+        await refreshStats?.();
+      } catch (err) {
+        setError(err.response?.data?.message || t('settings.uploadError'));
+      } finally {
+        setUploading('');
+      }
+    };
   }
 
   async function handleSubmit(event) {
@@ -182,28 +223,9 @@ export default function SettingsPage() {
     setSuccess('');
 
     try {
-      const cafe = await updateMyCafe({
-        name: form.name,
-        slug: form.slug,
-        description: form.description,
-        logo: form.logo,
-        address: form.address,
-        phone: form.phone,
-        latitude: form.latitude,
-        longitude: form.longitude,
-      });
-      setForm({
-        name: cafe.name || '',
-        slug: cafe.slug || '',
-        description: cafe.description || '',
-        logo: cafe.logo || '',
-        address: cafe.address || '',
-        phone: cafe.phone || '',
-        latitude: cafe.latitude ?? null,
-        longitude: cafe.longitude ?? null,
-      });
+      const cafe = await updateMyCafe(cafePayload());
+      applyCafe(cafe);
       setSuccess(t('settings.saved'));
-      clearPublicMenuCache(cafe.slug);
       await refreshStats?.();
     } catch (err) {
       setError(err.response?.data?.message || t('settings.saveError'));
@@ -325,8 +347,21 @@ export default function SettingsPage() {
                 <SettingsField id="name" label={t('settings.cafeName')} icon="badge">
                   <input id="name" name="name" value={form.name} onChange={handleChange} className={inputClass} required />
                 </SettingsField>
-                <SettingsField id="slug" label={t('settings.publicLink')} icon="link" hint={t('settings.slugHint')}>
-                  <input id="slug" name="slug" value={form.slug} onChange={handleChange} className={inputClass} required />
+                <SettingsField
+                  id="slug"
+                  label={t('settings.publicLink')}
+                  icon="link"
+                  hint={qr?.locked ? t('settings.slugLockedHint') : t('settings.slugHint')}
+                >
+                  <input
+                    id="slug"
+                    name="slug"
+                    value={form.slug}
+                    onChange={handleChange}
+                    className={`${inputClass} disabled:cursor-not-allowed disabled:opacity-60`}
+                    required
+                    disabled={Boolean(qr?.locked)}
+                  />
                 </SettingsField>
                 <div className="group flex flex-col gap-1.5">
                   <label htmlFor="description" className="text-label-md font-medium tracking-wider text-on-surface-variant uppercase">
@@ -406,7 +441,7 @@ export default function SettingsPage() {
               <SectionCard icon="image" title={t('settings.logo')} subtitle={t('settings.logoHint')}>
                 <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
                   {form.logo ? (
-                    <img src={form.logo} alt="Logo" className="h-28 w-28 rounded-2xl object-cover shadow-sm" />
+                    <img src={form.logo} alt="" className="h-28 w-28 rounded-2xl object-cover shadow-sm" />
                   ) : (
                     <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-surface-container-low text-on-surface-variant">
                       <MaterialIcon name="add_photo_alternate" className="text-3xl" />
@@ -415,8 +450,18 @@ export default function SettingsPage() {
                   <div className="flex flex-col gap-2">
                     <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary">
                       <MaterialIcon name="upload" className="text-[20px]" />
-                      {uploading ? t('settings.uploading') : form.logo ? t('settings.replaceLogo') : t('settings.chooseLogo')}
-                      <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} disabled={uploading} />
+                      {uploading === 'logo'
+                        ? t('settings.uploading')
+                        : form.logo
+                          ? t('settings.replaceLogo')
+                          : t('settings.chooseLogo')}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange('logo')}
+                        disabled={Boolean(uploading)}
+                      />
                     </label>
                     {form.logo ? (
                       <button
@@ -428,6 +473,46 @@ export default function SettingsPage() {
                       </button>
                     ) : (
                       <p className="text-sm text-on-surface-variant">{t('settings.logoHintEmpty')}</p>
+                    )}
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard icon="wallpaper" title={t('settings.cover')} subtitle={t('settings.coverHint')}>
+                <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+                  {form.cover ? (
+                    <img src={form.cover} alt="" className="h-28 w-44 rounded-2xl object-cover shadow-sm" />
+                  ) : (
+                    <div className="flex h-28 w-44 items-center justify-center rounded-2xl bg-surface-container-low text-on-surface-variant">
+                      <MaterialIcon name="add_photo_alternate" className="text-3xl" />
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary">
+                      <MaterialIcon name="upload" className="text-[20px]" />
+                      {uploading === 'cover'
+                        ? t('settings.uploading')
+                        : form.cover
+                          ? t('settings.replaceCover')
+                          : t('settings.chooseCover')}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange('cover')}
+                        disabled={Boolean(uploading)}
+                      />
+                    </label>
+                    {form.cover ? (
+                      <button
+                        type="button"
+                        onClick={() => setForm((current) => ({ ...current, cover: '' }))}
+                        className="text-sm font-medium text-error hover:underline"
+                      >
+                        {t('settings.removeCover')}
+                      </button>
+                    ) : (
+                      <p className="text-sm text-on-surface-variant">{t('settings.coverHintEmpty')}</p>
                     )}
                   </div>
                 </div>

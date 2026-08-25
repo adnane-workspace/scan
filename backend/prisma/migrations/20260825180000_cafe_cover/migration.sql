@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Cafe" ADD COLUMN "cover" TEXT NOT NULL DEFAULT '';

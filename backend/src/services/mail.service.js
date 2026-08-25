@@ -33,6 +33,73 @@ function buildResetEmail(code, locale) {
   return { subject: copy.subject, text, html };
 }
 
+function dashboardOrigin() {
+  return env.CLIENT_URL.split(',')[0].trim().replace(/\/$/, '') || 'http://localhost:5173';
+}
+
+function buildQrChangeEmail({ cafeName, slug, requesterName, requesterEmail, reason }) {
+  const reviewUrl = `${dashboardOrigin()}/dashboard/qr-requests`;
+  const subject = `Demande de changement de QR — ${cafeName}`;
+  const text = [
+    `${requesterName} (${requesterEmail}) demande un changement de QR pour ${cafeName} (/${slug}).`,
+    '',
+    `Raison : ${reason}`,
+    '',
+    `Traiter la demande : ${reviewUrl}`,
+  ].join('\n');
+  const html = `
+    <div style="font-family:Georgia,serif;background:#16110e;padding:32px;color:#fff8f3">
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e8c27a;margin:0 0 16px">Epicurean</p>
+      <h1 style="font-size:28px;margin:0 0 12px">Changement de QR</h1>
+      <p style="margin:0 0 16px;color:#fff8f3c7;line-height:1.5">
+        <strong style="color:#fff8f3">${escapeHtml(requesterName)}</strong>
+        (${escapeHtml(requesterEmail)}) demande un nouveau QR pour
+        <strong style="color:#fff8f3">${escapeHtml(cafeName)}</strong>
+        (/${escapeHtml(slug)}).
+      </p>
+      <p style="margin:0 0 24px;color:#fff8f3c7;line-height:1.5">
+        <span style="display:block;letter-spacing:.12em;text-transform:uppercase;font-size:11px;color:#e8c27a;margin-bottom:8px">Raison</span>
+        ${escapeHtml(reason)}
+      </p>
+      <p style="margin:0 0 24px">
+        <a href="${reviewUrl}" style="display:inline-block;background:#9e3d00;color:#fff8f3;text-decoration:none;padding:12px 20px;border-radius:12px;font-weight:700">
+          Voir la demande
+        </a>
+      </p>
+      <p style="margin:0;color:#fff8f38f;font-size:14px;line-height:1.5">${reviewUrl}</p>
+    </div>
+  `;
+
+  return { subject, text, html };
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function dispatchEmail(payload) {
+  if (env.RESEND_API_KEY) {
+    await sendWithResend(payload);
+    return 'resend';
+  }
+
+  if (env.SMTP_HOST) {
+    await sendWithSmtp(payload);
+    return 'smtp';
+  }
+
+  if (env.NODE_ENV === 'production') {
+    throw new ApiError(503, 'Email is not configured');
+  }
+
+  console.info(`[mail] to=${payload.to} subject=${payload.subject}\n${payload.text}`);
+  return 'log';
+}
+
 async function sendWithResend({ to, subject, html, text }) {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -87,25 +154,22 @@ async function sendWithSmtp({ to, subject, html, text }) {
 }
 
 export async function sendPasswordResetCode({ to, code, locale = 'fr' }) {
-  const payload = {
+  return dispatchEmail({
     to,
     ...buildResetEmail(code, locale),
-  };
+  });
+}
 
-  if (env.RESEND_API_KEY) {
-    await sendWithResend(payload);
-    return 'resend';
-  }
-
-  if (env.SMTP_HOST) {
-    await sendWithSmtp(payload);
-    return 'smtp';
-  }
-
-  if (env.NODE_ENV === 'production') {
-    throw new ApiError(503, 'Email is not configured');
-  }
-
-  console.info(`[password-reset] ${to} code=${code}`);
-  return 'log';
+export async function sendQrChangeRequestAlert({
+  to,
+  cafeName,
+  slug,
+  requesterName,
+  requesterEmail,
+  reason,
+}) {
+  return dispatchEmail({
+    to,
+    ...buildQrChangeEmail({ cafeName, slug, requesterName, requesterEmail, reason }),
+  });
 }

@@ -6,17 +6,48 @@ import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
 
-function LandingStatus({ title, message }) {
+function telHref(phone) {
+  return `tel:${String(phone).replace(/[^\d+]/g, '')}`;
+}
+
+function useLockPageScroll() {
+  useEffect(() => {
+    const html = document.documentElement;
+    const { body } = document;
+    const previousHtml = html.style.overflow;
+    const previousBody = body.style.overflow;
+
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+
+    return () => {
+      html.style.overflow = previousHtml;
+      body.style.overflow = previousBody;
+    };
+  }, []);
+}
+
+function LandingShell({ children, className = '' }) {
+  useLockPageScroll();
+
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-center px-6 text-center">
-      <h1 className="font-display text-2xl font-semibold text-on-surface">{title}</h1>
-      <p className="mt-2 max-w-md text-sm text-on-surface-variant">{message}</p>
+    <div
+      className={`fixed inset-0 z-10 flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none bg-[#1a120e] text-white ${className}`}
+    >
+      {children}
     </div>
   );
 }
 
-function telHref(phone) {
-  return `tel:${String(phone).replace(/[^\d+]/g, '')}`;
+function LandingStatus({ title, message }) {
+  return (
+    <LandingShell className="items-center justify-center">
+      <div className="px-6 text-center">
+        <h1 className="font-display text-2xl font-semibold text-white">{title}</h1>
+        <p className="mt-2 max-w-md text-sm text-white/70">{message}</p>
+      </div>
+    </LandingShell>
+  );
 }
 
 export default function PublicMenuLandingPage() {
@@ -43,10 +74,9 @@ export default function PublicMenuLandingPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[80vh] flex-col items-center justify-center gap-4">
-        <div className="h-24 w-24 animate-pulse rounded-full bg-surface-container-high" />
-        <div className="h-6 w-40 animate-pulse rounded-lg bg-surface-container-high" />
-      </div>
+      <LandingShell className="items-center justify-center">
+        <div className="h-20 w-20 animate-pulse rounded-full bg-white/10" />
+      </LandingShell>
     );
   }
 
@@ -59,66 +89,89 @@ export default function PublicMenuLandingPage() {
   }
 
   const { cafe } = menu;
+  const cover = cafe.cover || '';
+  const backdrop = cover || cafe.logo || '';
+  const backdropIsLogo = !cover && Boolean(cafe.logo);
+  const located = Boolean(cafe.address || hasCoordinates(cafe));
 
   return (
-    <div className="relative flex min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col items-center justify-center overflow-hidden px-6 py-12">
-      <div className="absolute top-4 right-4 z-20 sm:top-6 sm:right-6">
-        <LanguageSwitcher />
+    <LandingShell>
+      {backdrop ? (
+        <img
+          src={backdrop}
+          alt=""
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover ${
+            backdropIsLogo ? 'scale-125 blur-2xl' : ''
+          }`}
+        />
+      ) : null}
+      <div className="pointer-events-none absolute inset-0 bg-black/35" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/25" />
+
+      <div className="absolute top-0 right-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
+        <LanguageSwitcher onDark />
       </div>
-      <div className="pointer-events-none absolute top-1/4 left-1/4 h-[40vw] w-[40vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-container/15 blur-[100px]" />
-      <div className="pointer-events-none absolute right-1/4 bottom-1/4 h-[30vw] w-[30vw] translate-x-1/2 translate-y-1/2 rounded-full bg-tertiary-container/15 blur-[80px]" />
 
-      <div className="relative z-10 flex w-full max-w-md flex-col items-center text-center">
-        {cafe.logo ? (
-          <img
-            src={cafe.logo}
-            alt=""
-            className="h-28 w-28 rounded-2xl object-cover shadow-md sm:h-32 sm:w-32"
-          />
-        ) : (
-          <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-surface-container-lowest font-display text-4xl font-semibold text-primary shadow-md sm:h-32 sm:w-32">
-            {cafe.name.slice(0, 1)}
-          </div>
-        )}
+      <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-lg flex-col justify-end px-4 pt-16 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center min-[480px]:px-6 sm:max-w-xl sm:justify-center sm:px-8 sm:py-16">
+        <div className="flex min-h-0 w-full shrink flex-col items-center">
+          {cafe.logo ? (
+            <img
+              src={cafe.logo}
+              alt=""
+              className="h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 rounded-full object-cover ring-4 ring-white/80"
+            />
+          ) : (
+            <div className="flex h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 items-center justify-center rounded-full bg-white/15 font-display text-[clamp(1.25rem,6vmin,2.5rem)] font-semibold ring-4 ring-white/40">
+              {cafe.name.slice(0, 1)}
+            </div>
+          )}
 
-        <h1 className="mt-6 font-display text-4xl font-semibold tracking-tight text-on-surface sm:text-5xl">
-          {cafe.name}
-        </h1>
+          <h1 className="mt-[clamp(0.5rem,2.5vmin,1.5rem)] max-w-full shrink-0 line-clamp-2 break-words text-balance font-display text-[clamp(1.5rem,7vmin,3.5rem)] leading-tight font-semibold tracking-tight drop-shadow-sm">
+            {cafe.name}
+          </h1>
 
-        {cafe.description ? (
-          <p className="mt-3 max-w-sm text-body-lg text-on-surface-variant">{cafe.description}</p>
-        ) : null}
+          {cafe.description ? (
+            <p className="mt-2 hidden max-w-md shrink-0 line-clamp-2 text-sm leading-relaxed text-white/80 min-[520px]:block max-h-[500px]:hidden sm:text-base">
+              {cafe.description}
+            </p>
+          ) : null}
 
-        {cafe.address || cafe.phone || hasCoordinates(cafe) ? (
-          <div className="mt-5 flex flex-col items-center gap-2 text-sm text-on-surface-variant">
-            {cafe.address || hasCoordinates(cafe) ? (
-              <a
-                href={mapsHref(cafe)}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 hover:text-primary"
-              >
-                <MaterialIcon name="location_on" className="text-[18px]" />
-                {cafe.address || t('menu.directions')}
-              </a>
-            ) : null}
-            {cafe.phone ? (
-              <a href={telHref(cafe.phone)} className="inline-flex items-center gap-2 hover:text-primary">
-                <MaterialIcon name="call" className="text-[18px]" />
-                {cafe.phone}
-              </a>
-            ) : null}
-          </div>
-        ) : null}
+          {located || cafe.phone ? (
+            <div className="mt-[clamp(0.5rem,2vmin,1.5rem)] flex w-full max-w-md shrink-0 flex-col items-center gap-2">
+              {located ? (
+                <a
+                  href={mapsHref(cafe)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center gap-2 rounded-full bg-white/15 px-3.5 py-2 text-left text-sm text-white/90 ring-1 ring-white/20 backdrop-blur-md hover:bg-white/25 sm:w-auto sm:max-w-full sm:px-4"
+                >
+                  <MaterialIcon name="location_on" className="shrink-0 text-[18px]" />
+                  <span className="min-w-0 truncate">
+                    {cafe.address || t('menu.directions')}
+                  </span>
+                </a>
+              ) : null}
+              {cafe.phone ? (
+                <a
+                  href={telHref(cafe.phone)}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm text-white/85 ring-1 ring-white/15 backdrop-blur-md hover:bg-white/20"
+                >
+                  <MaterialIcon name="call" className="text-[18px]" />
+                  {cafe.phone}
+                </a>
+              ) : null}
+            </div>
+          ) : null}
 
-        <Link
-          to={`/menu/${slug}/categories`}
-          className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] sm:w-auto sm:min-w-56"
-        >
-          {t('menu.viewMenu')}
-          <MaterialIcon name="arrow_forward" className="text-[20px]" />
-        </Link>
+          <Link
+            to={`/menu/${slug}/categories`}
+            className="mt-[clamp(0.75rem,3vmin,2rem)] inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-[#1a120e] transition-transform hover:bg-white/90 active:scale-[0.98] sm:w-auto sm:min-w-56"
+          >
+            {t('menu.viewMenu')}
+            <MaterialIcon name="arrow_forward" className="text-[20px]" />
+          </Link>
+        </div>
       </div>
-    </div>
+    </LandingShell>
   );
 }

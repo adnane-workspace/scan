@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import PopularProducts from '../components/dashboard/PopularProducts.jsx';
+import QrChangeRequestModal from '../components/dashboard/QrChangeRequestModal.jsx';
 import QrCodeModal from '../components/dashboard/QrCodeModal.jsx';
 import RecentProducts from '../components/dashboard/RecentProducts.jsx';
 import StatCard from '../components/dashboard/StatCard.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { generateCafeQr, requestQrChange } from '../services/cafe.service.js';
 import { getStorageReport } from '../services/platform.service.js';
 import { updateProduct } from '../services/product.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
@@ -18,9 +20,22 @@ export default function DashboardPage() {
   const { stats, platformCafes = [], loading, error, refreshStats } = useOutletContext();
   const [actionError, setActionError] = useState('');
   const [isQrOpen, setIsQrOpen] = useState(false);
+  const [isQrRequestOpen, setIsQrRequestOpen] = useState(false);
+  const [qrIssuing, setQrIssuing] = useState(false);
+  const [qrIssueError, setQrIssueError] = useState('');
+  const [qrRequestError, setQrRequestError] = useState('');
+  const [qrRequesting, setQrRequesting] = useState(false);
+  const [qrMode, setQrMode] = useState('view');
   const [storage, setStorage] = useState(null);
   const isSuperAdmin = user?.role === 'superadmin';
   const menuUrl = getPublicMenuUrl(stats.cafe?.slug);
+  const qr = stats.cafe?.qr || {
+    generated: false,
+    locked: false,
+    canGenerate: true,
+    changeAllowed: false,
+    pendingRequest: null,
+  };
   const greetingName = firstName(user?.name, t('dashboard.fallbackName'));
   const activeCafes = platformCafes.filter((cafe) => cafe.isActive).length;
 
@@ -47,6 +62,43 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [isSuperAdmin]);
+
+  async function handleConfirmIssue() {
+    setQrIssuing(true);
+    setQrIssueError('');
+
+    try {
+      await generateCafeQr();
+      await refreshStats();
+    } catch (err) {
+      setQrIssueError(err.response?.data?.message || t('qr.issueError'));
+    } finally {
+      setQrIssuing(false);
+    }
+  }
+
+  async function handleQrRequest(reason) {
+    setQrRequesting(true);
+    setQrRequestError('');
+
+    try {
+      await requestQrChange(reason);
+      await refreshStats();
+      setIsQrRequestOpen(false);
+      return true;
+    } catch (err) {
+      setQrRequestError(err.response?.data?.message || t('qr.requestError'));
+      return false;
+    } finally {
+      setQrRequesting(false);
+    }
+  }
+
+  function openQr(mode) {
+    setQrIssueError('');
+    setQrMode(mode);
+    setIsQrOpen(true);
+  }
 
   async function handleToggleAvailable(product) {
     setActionError('');
@@ -93,16 +145,48 @@ export default function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="relative z-10">
+          <div className="relative z-10 flex flex-col items-stretch gap-2 sm:items-end">
             <button
               type="button"
               disabled={!menuUrl}
-              onClick={() => setIsQrOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+              onClick={() => openQr(qr.canGenerate ? 'issue' : 'view')}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
               <MaterialIcon name="qr_code_scanner" />
-              {t('dashboard.generateQr')}
+              {qr.canGenerate
+                ? qr.generated
+                  ? t('dashboard.generateNewQr')
+                  : t('dashboard.generateQr')
+                : t('dashboard.viewQr')}
             </button>
+            {qr.changeAllowed ? (
+              <button
+                type="button"
+                disabled={!menuUrl}
+                onClick={() => openQr('view')}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-surface-container-lowest px-5 py-2.5 text-sm font-semibold text-on-surface"
+              >
+                {t('dashboard.viewQr')}
+              </button>
+            ) : null}
+            {qr.locked && !qr.pendingRequest ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setQrRequestError('');
+                  setIsQrRequestOpen(true);
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-surface-container-lowest px-5 py-2.5 text-sm font-semibold text-on-surface"
+              >
+                {t('dashboard.requestQrChange')}
+              </button>
+            ) : null}
+            {qr.pendingRequest ? (
+              <p className="max-w-xs text-right text-sm text-on-surface-variant">{t('dashboard.qrRequestPending')}</p>
+            ) : null}
+            {qr.changeAllowed ? (
+              <p className="max-w-xs text-right text-sm text-on-surface-variant">{t('dashboard.qrChangeAllowed')}</p>
+            ) : null}
           </div>
         )}
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
@@ -156,8 +240,8 @@ export default function DashboardPage() {
           <div className="grid gap-3 md:grid-cols-3">
             {[
               { to: '/dashboard/cafes', icon: 'storefront', label: t('nav.cafes'), hint: t('dashboard.quickCafes') },
+              { to: '/dashboard/qr-requests', icon: 'qr_code_2', label: t('nav.qrRequests'), hint: t('dashboard.quickQr') },
               { to: '/dashboard/logs', icon: 'history', label: t('nav.logs'), hint: t('dashboard.quickLogs') },
-              { to: '/dashboard/storage', icon: 'cloud', label: t('nav.storage'), hint: t('dashboard.quickStorage') },
             ].map((item) => (
               <Link
                 key={item.to}
@@ -252,13 +336,27 @@ export default function DashboardPage() {
       )}
 
       {isSuperAdmin ? null : (
+      <>
       <QrCodeModal
         open={isQrOpen}
         cafeName={stats.cafe?.name}
         menuUrl={menuUrl}
         slug={stats.cafe?.slug}
+        needsIssue={qrMode === 'issue' && qr.canGenerate}
+        issuing={qrIssuing}
+        issueError={qrIssueError}
+        onConfirmIssue={handleConfirmIssue}
+        locked={qr.locked}
         onClose={() => setIsQrOpen(false)}
       />
+      <QrChangeRequestModal
+        open={isQrRequestOpen}
+        submitting={qrRequesting}
+        error={qrRequestError}
+        onSubmit={handleQrRequest}
+        onClose={() => setIsQrRequestOpen(false)}
+      />
+      </>
       )}
     </div>
   );

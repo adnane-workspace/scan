@@ -3,7 +3,7 @@ import { Link, Navigate, useOutletContext, useParams } from 'react-router-dom';
 import PasswordField from '../components/ui/PasswordField.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
-import { getPlatformCafe, resetPlatformCafePassword, updatePlatformCafe } from '../services/platform.service.js';
+import { getPlatformCafe, resetPlatformCafePassword, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
 import { formatDate } from '../utils/format.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
 
@@ -32,6 +32,8 @@ export default function CafeDetailPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState('');
+  const [qrBusy, setQrBusy] = useState(false);
+  const [reviewNote, setReviewNote] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +118,64 @@ export default function CafeDetailPage() {
     }
   }
 
+  async function handleUnlockQr() {
+    if (!cafe) {
+      return;
+    }
+
+    setQrBusy(true);
+    setError('');
+
+    try {
+      const qr = await unlockCafeQr(cafe._id);
+      setCafe((current) => ({ ...current, qr, qrChangeAllowed: true, pendingQrChange: false }));
+      await refreshCafes?.();
+    } catch (err) {
+      setError(err.response?.data?.message || t('qr.unlockError'));
+    } finally {
+      setQrBusy(false);
+    }
+  }
+
+  async function handleReviewQr(decision) {
+    const requestId = cafe?.qr?.pendingRequest?._id;
+
+    if (!requestId) {
+      return;
+    }
+
+    setQrBusy(true);
+    setError('');
+
+    try {
+      await reviewQrChangeRequest(requestId, { decision, note: reviewNote.trim() || undefined });
+      const data = await getPlatformCafe(id);
+      setCafe(data);
+      setReviewNote('');
+      await refreshCafes?.();
+    } catch (err) {
+      setError(err.response?.data?.message || t('qr.reviewError'));
+    } finally {
+      setQrBusy(false);
+    }
+  }
+
+  function qrStatusLabel() {
+    if (cafe?.qr?.pendingRequest) {
+      return t('qr.statusPending');
+    }
+
+    if (cafe?.qr?.changeAllowed) {
+      return t('qr.statusUnlocked');
+    }
+
+    if (cafe?.qr?.generated) {
+      return t('qr.statusGenerated');
+    }
+
+    return t('qr.statusNotGenerated');
+  }
+
   return (
     <section className="mx-auto w-full max-w-3xl space-y-5">
       <Link to="/dashboard/cafes" className="text-sm font-semibold text-primary hover:underline">
@@ -190,6 +250,56 @@ export default function CafeDetailPage() {
             >
               {cafe.isActive ? t('platform.deactivate') : t('platform.activate')}
             </button>
+          </div>
+
+          <div className="space-y-3 border-t border-outline-variant/30 pt-5">
+            <h2 className="text-lg font-semibold text-on-surface">{t('qr.platformTitle')}</h2>
+            <p className="text-sm text-on-surface-variant">{t('qr.platformHint')}</p>
+            <p className="font-semibold text-on-surface">{qrStatusLabel()}</p>
+            {cafe.qr?.pendingRequest ? (
+              <div className="rounded-xl bg-surface-container-high px-4 py-3 text-sm text-on-surface">
+                <p className="font-medium">{t('qr.colReason')}</p>
+                <p className="mt-1 text-on-surface-variant">{cafe.qr.pendingRequest.reason}</p>
+              </div>
+            ) : null}
+            {cafe.qr?.pendingRequest ? (
+              <div className="grid gap-3">
+                <input
+                  value={reviewNote}
+                  onChange={(event) => setReviewNote(event.target.value)}
+                  className="w-full rounded-xl bg-surface-container-high px-3 py-2.5 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary"
+                  placeholder={t('qr.reviewNotePlaceholder')}
+                  maxLength={400}
+                />
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    disabled={qrBusy}
+                    onClick={() => handleReviewQr('approved')}
+                    className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary disabled:opacity-60"
+                  >
+                    {t('qr.approve')}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={qrBusy}
+                    onClick={() => handleReviewQr('rejected')}
+                    className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface disabled:opacity-60"
+                  >
+                    {t('qr.reject')}
+                  </button>
+                </div>
+              </div>
+            ) : cafe.qr?.generated && !cafe.qr?.changeAllowed ? (
+              <button
+                type="button"
+                disabled={qrBusy}
+                onClick={handleUnlockQr}
+                className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface disabled:opacity-60"
+              >
+                {t('qr.unlock')}
+              </button>
+            ) : null}
           </div>
 
           <div className="space-y-3 border-t border-outline-variant/30 pt-5">
