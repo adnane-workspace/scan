@@ -4,10 +4,12 @@ import { useLocale } from '../../hooks/useLocale.js';
 import { categoryBadgeClass, formatPrice } from '../../utils/format.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import AvailabilityToggle from './AvailabilityToggle.jsx';
+import DashboardCard from './DashboardCard.jsx';
+import SectionHeader from './SectionHeader.jsx';
 
 function ProductThumb({ product }) {
   return (
-    <div className="h-10 w-10 overflow-hidden rounded-md bg-surface-container-highest">
+    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-surface-container">
       {product.image ? (
         <img
           src={product.image}
@@ -16,7 +18,7 @@ function ProductThumb({ product }) {
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
-          <MaterialIcon name="image" />
+          <MaterialIcon name="image" className="text-[18px]" />
         </div>
       )}
     </div>
@@ -42,16 +44,19 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
   }
 
   return (
-    <section className="flex flex-col gap-stack-md rounded-2xl bg-surface-container-lowest p-stack-lg shadow-sm">
-      <div className="flex items-center justify-between">
-        <h2 className="text-headline-md font-semibold text-on-surface">{t('dashboard.recentTitle')}</h2>
-        <Link
-          to="/dashboard/products"
-          className="flex items-center gap-1 text-label-md font-medium tracking-wider text-primary uppercase transition-colors hover:text-primary-container"
-        >
-          {t('common.seeAll')} <MaterialIcon name="arrow_forward" className="text-sm" />
-        </Link>
-      </div>
+    <DashboardCard>
+      <SectionHeader
+        title={t('dashboard.recentTitle')}
+        action={
+          <Link
+            to="/dashboard/products"
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary-hover"
+          >
+            {t('common.seeAll')}
+            <MaterialIcon name="arrow_forward" className="text-[16px]" />
+          </Link>
+        }
+      />
 
       {loading ? (
         <p className="text-sm text-on-surface-variant">{t('dashboard.loading')}</p>
@@ -59,18 +64,18 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
         <p className="text-sm text-on-surface-variant">{t('dashboard.noProducts')}</p>
       ) : (
         <>
-          <ul className="divide-y divide-outline-variant/20 md:hidden">
+          <ul className="divide-y divide-outline-variant md:hidden">
             {products.map((product) => (
               <li
                 key={product._id}
-                className={`flex items-center gap-3 py-3 ${product.available ? '' : 'opacity-60'}`}
+                className={`flex items-center gap-3 py-3.5 ${product.available ? '' : 'opacity-55'}`}
               >
                 <ProductThumb product={product} />
                 <div className="min-w-0 flex-1">
-                  <p className={`truncate font-medium ${product.available ? '' : 'line-through'}`}>
+                  <p className={`truncate font-medium text-on-surface ${product.available ? '' : 'line-through'}`}>
                     {product.name}
                   </p>
-                  <p className="truncate text-sm text-on-surface-variant">
+                  <p className="mt-0.5 truncate text-sm text-on-surface-variant">
                     {product.categoryName || t('dashboard.uncategorized')} · {formatPrice(product.price, locale)}
                   </p>
                 </div>
@@ -84,39 +89,43 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
             ))}
           </ul>
 
-          <div className="hidden w-full overflow-x-auto pb-4 md:block">
-            <table className="w-full min-w-[600px] border-collapse text-left">
+          <div className="hidden md:block">
+            <table className="w-full text-start">
               <thead>
-                <tr className="bg-surface-container-low text-on-surface-variant">
-                  <th className="rounded-l-lg p-4 text-label-md font-medium tracking-wider uppercase">
+                <tr className="text-on-surface-variant">
+                  <th className="pb-3 text-start text-[11px] font-semibold tracking-[0.12em] uppercase">
                     {t('dashboard.productName')}
                   </th>
-                  <th className="p-4 text-label-md font-medium tracking-wider uppercase">{t('dashboard.category')}</th>
-                  <th className="p-4 text-label-md font-medium tracking-wider uppercase">{t('dashboard.price')}</th>
-                  <th className="rounded-r-lg p-4 text-center text-label-md font-medium tracking-wider uppercase">
+                  <th className="pb-3 text-start text-[11px] font-semibold tracking-[0.12em] uppercase">
+                    {t('dashboard.category')}
+                  </th>
+                  <th className="pb-3 text-start text-[11px] font-semibold tracking-[0.12em] uppercase">
+                    {t('dashboard.price')}
+                  </th>
+                  <th className="pb-3 text-end text-[11px] font-semibold tracking-[0.12em] uppercase">
                     {t('dashboard.availability')}
                   </th>
                 </tr>
               </thead>
-              <tbody className="text-on-surface">
+              <tbody>
                 {products.map((product) => (
                   <tr
                     key={product._id}
-                    className={`border-b-4 border-transparent transition-colors hover:bg-surface-container-low/50 ${
-                      product.available ? '' : 'opacity-60'
+                    className={`border-t border-outline-variant transition-colors duration-150 hover:bg-[#F7F5F0]/80 ${
+                      product.available ? '' : 'opacity-55'
                     }`}
                   >
-                    <td className="p-4">
+                    <td className="py-3.5 pe-3">
                       <div className="flex items-center gap-3">
                         <ProductThumb product={product} />
-                        <span className={`text-body-lg font-medium ${product.available ? '' : 'line-through'}`}>
+                        <span className={`font-medium text-on-surface ${product.available ? '' : 'line-through'}`}>
                           {product.name}
                         </span>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="py-3.5 pe-3">
                       <span
-                        className={`rounded-full px-3 py-1 text-label-md ${categoryBadgeClass(
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${categoryBadgeClass(
                           product.categoryName,
                           product.available,
                         )}`}
@@ -124,10 +133,10 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
                         {product.categoryName || t('dashboard.uncategorized')}
                       </span>
                     </td>
-                    <td className="p-4 text-label-lg font-semibold tracking-[0.05em]">
+                    <td className="py-3.5 pe-3 font-semibold text-on-surface">
                       {formatPrice(product.price, locale)}
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="py-3.5 text-end">
                       <AvailabilityToggle
                         checked={Boolean(product.available)}
                         disabled={pendingId === product._id}
@@ -142,6 +151,6 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
           </div>
         </>
       )}
-    </section>
+    </DashboardCard>
   );
 }

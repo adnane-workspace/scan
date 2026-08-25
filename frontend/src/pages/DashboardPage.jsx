@@ -115,44 +115,42 @@ export default function DashboardPage() {
     stats.totalProducts > 0 ? Math.round((stats.availableProducts / stats.totalProducts) * 100) : 0;
 
   return (
-    <div className="flex w-full flex-col space-y-stack-lg">
+    <div className="flex w-full flex-col gap-6 lg:gap-8">
       {error || actionError ? (
         <p className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error">
           {actionError || error}
         </p>
       ) : null}
 
-      <div className="relative flex w-full flex-col gap-6 overflow-hidden rounded-2xl bg-surface-container-high p-stack-lg ring-1 ring-outline-variant/20 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative z-10 flex max-w-2xl flex-col gap-2">
-          <p className="text-label-md font-semibold tracking-[0.18em] text-primary uppercase">
+      <section className="flex flex-col gap-6 rounded-[18px] border border-outline-variant bg-surface-container-lowest p-6 shadow-[0_1px_2px_rgba(31,37,35,0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-7">
+        <div className="max-w-2xl">
+          <p className="text-[11px] font-semibold tracking-[0.16em] text-primary uppercase">
             {isSuperAdmin ? t('dashboard.roleSuper') : t('dashboard.roleAdmin')}
           </p>
-          <h1 className="font-display text-display-md font-bold text-on-surface">
+          <h1 className="mt-2 font-display text-[1.75rem] leading-tight font-semibold tracking-tight text-on-surface sm:text-[2rem]">
             {t('dashboard.hello', { name: greetingName })}
           </h1>
-          <p className="text-body-lg text-on-surface-variant">
+          <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
             {isSuperAdmin ? t('dashboard.subtitleSuper') : t('dashboard.subtitleAdmin')}
           </p>
         </div>
         {isSuperAdmin ? (
-          <div className="relative z-10">
-            <Link
-              to="/dashboard/cafes/new"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95"
-            >
-              <MaterialIcon name="add" />
-              {t('platform.createCafe')}
-            </Link>
-          </div>
+          <Link
+            to="/dashboard/cafes/new"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors duration-200 hover:bg-primary-hover active:scale-[0.98]"
+          >
+            <MaterialIcon name="add" className="text-[20px]" />
+            {t('platform.createCafe')}
+          </Link>
         ) : (
-          <div className="relative z-10 flex flex-col items-stretch gap-2 sm:items-end">
+          <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
             <button
               type="button"
               disabled={!menuUrl}
               onClick={() => openQr(qr.canGenerate ? 'issue' : 'view')}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors duration-200 hover:bg-primary-hover active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-primary"
             >
-              <MaterialIcon name="qr_code_scanner" />
+              <MaterialIcon name="qr_code_scanner" className="text-[20px]" />
               {qr.canGenerate
                 ? qr.generated
                   ? t('dashboard.generateNewQr')
@@ -164,7 +162,7 @@ export default function DashboardPage() {
                 type="button"
                 disabled={!menuUrl}
                 onClick={() => openQr('view')}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-surface-container-lowest px-5 py-2.5 text-sm font-semibold text-on-surface"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
               >
                 {t('dashboard.viewQr')}
               </button>
@@ -176,28 +174,26 @@ export default function DashboardPage() {
                   setQrRequestError('');
                   setIsQrRequestOpen(true);
                 }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-surface-container-lowest px-5 py-2.5 text-sm font-semibold text-on-surface"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
               >
                 {t('dashboard.requestQrChange')}
               </button>
             ) : null}
             {qr.pendingRequest ? (
-              <p className="max-w-xs text-right text-sm text-on-surface-variant">{t('dashboard.qrRequestPending')}</p>
+              <p className="max-w-xs text-end text-xs text-on-surface-variant">{t('dashboard.qrRequestPending')}</p>
             ) : null}
             {qr.changeAllowed ? (
-              <p className="max-w-xs text-right text-sm text-on-surface-variant">{t('dashboard.qrChangeAllowed')}</p>
+              <p className="max-w-xs text-end text-xs text-on-surface-variant">{t('dashboard.qrChangeAllowed')}</p>
             ) : null}
           </div>
         )}
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute right-40 -bottom-20 h-48 w-48 rounded-full bg-tertiary/10 blur-2xl" />
-      </div>
+      </section>
 
-      <div className="grid w-full grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-4">
+      <div className={`grid w-full grid-cols-1 gap-5 sm:grid-cols-2 ${isSuperAdmin ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
         {isSuperAdmin ? (
           <>
             <StatCard label={t('dashboard.cafes')} value={platformCafes.length} icon="storefront" loading={loading} />
-            <StatCard label={t('dashboard.activeCafes')} value={activeCafes} icon="verified" tone="tertiary" loading={loading} />
+            <StatCard label={t('dashboard.activeCafes')} value={activeCafes} icon="verified" loading={loading} />
             <StatCard
               label={t('storage.photos')}
               value={storage ? storage.totals.photos : '—'}
@@ -216,20 +212,13 @@ export default function DashboardPage() {
         ) : (
           <>
             <StatCard label={t('dashboard.totalProducts')} value={stats.totalProducts} icon="inventory_2" loading={loading} />
-            <StatCard
-              label={t('dashboard.categories')}
-              value={stats.totalCategories}
-              icon="category"
-              tone="tertiary"
-              loading={loading}
-            />
+            <StatCard label={t('dashboard.categories')} value={stats.totalCategories} icon="category" loading={loading} />
             <StatCard
               label={t('dashboard.availableProducts')}
               value={stats.availableProducts}
-              icon="trending_up"
-              wide
+              icon="check_circle"
               loading={loading}
-              trend={loading ? undefined : `${availableRatio}%`}
+              hint={loading ? undefined : `${availableRatio}%`}
             />
           </>
         )}
@@ -237,7 +226,7 @@ export default function DashboardPage() {
 
       {isSuperAdmin ? (
         <>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-3">
             {[
               { to: '/dashboard/cafes', icon: 'storefront', label: t('nav.cafes'), hint: t('dashboard.quickCafes') },
               { to: '/dashboard/qr-requests', icon: 'qr_code_2', label: t('nav.qrRequests'), hint: t('dashboard.quickQr') },
@@ -246,9 +235,9 @@ export default function DashboardPage() {
               <Link
                 key={item.to}
                 to={item.to}
-                className="group flex items-start gap-3 rounded-2xl bg-surface-container p-4 ring-1 ring-outline-variant/20 transition-colors hover:bg-surface-container-high"
+                className="group flex items-start gap-3 rounded-[18px] border border-outline-variant bg-surface-container-lowest p-5 transition-colors duration-200 hover:bg-surface-container-high"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container text-primary">
                   <MaterialIcon name={item.icon} />
                 </span>
                 <span>
@@ -260,10 +249,10 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <div className="overflow-hidden rounded-2xl bg-surface-container-lowest ring-1 ring-outline-variant/20">
-            <div className="flex items-center justify-between border-b border-outline-variant/20 px-5 py-4">
+          <div className="overflow-hidden rounded-[18px] border border-outline-variant bg-surface-container-lowest shadow-[0_1px_2px_rgba(31,37,35,0.04)]">
+            <div className="flex items-center justify-between border-b border-outline-variant px-5 py-4">
               <h2 className="font-display text-xl font-semibold text-on-surface">{t('dashboard.recentCafes')}</h2>
-              <Link to="/dashboard/cafes" className="text-sm font-semibold text-primary hover:underline">
+              <Link to="/dashboard/cafes" className="text-sm font-medium text-primary hover:text-primary-hover">
                 {t('dashboard.viewAllCafes')}
               </Link>
             </div>
@@ -323,7 +312,7 @@ export default function DashboardPage() {
           </div>
         </>
       ) : (
-      <div className="grid w-full grid-cols-1 gap-gutter xl:grid-cols-3">
+      <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-6">
         <div className="xl:col-span-2">
           <RecentProducts
             products={stats.recentProducts}

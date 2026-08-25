@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import DashboardCard from './DashboardCard.jsx';
+import SectionHeader from './SectionHeader.jsx';
 
 export default function PopularProducts({ products, loading }) {
   const { t } = useLocale();
@@ -9,48 +11,52 @@ export default function PopularProducts({ products, loading }) {
     .slice(0, 3);
 
   return (
-    <section className="flex flex-col gap-stack-md rounded-2xl bg-surface-container p-stack-lg shadow-sm">
-      <div className="mb-2 flex items-center gap-2">
-        <MaterialIcon name="local_fire_department" className="text-tertiary" />
-        <h2 className="text-headline-md font-semibold text-on-surface">{t('dashboard.popularTitle')}</h2>
-      </div>
+    <DashboardCard className="h-full">
+      <SectionHeader title={t('dashboard.popularTitle')} />
 
       {loading ? (
         <p className="text-sm text-on-surface-variant">{t('dashboard.loading')}</p>
       ) : popular.length === 0 ? (
         <p className="text-sm text-on-surface-variant">{t('dashboard.noProductsYet')}</p>
       ) : (
-        popular.map((product, index) => (
-          <Link
-            key={product._id}
-            to="/dashboard/products"
-            className="flex cursor-pointer items-center gap-4 rounded-xl bg-surface-container-lowest p-3 shadow-sm transition-transform hover:scale-[1.02]"
-          >
-            <div className="font-display text-display-md font-bold text-primary opacity-30">{index + 1}</div>
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate text-label-lg font-semibold tracking-[0.05em] text-on-surface">
-                {product.name}
-              </h3>
-              <p className="text-label-md text-on-surface-variant">
-                {product.categoryName || t('dashboard.uncategorized')}
-              </p>
-            </div>
-            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-surface-container-highest">
-              {product.image ? (
-                <img src={product.image} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
-                  <MaterialIcon name="image" />
-                </div>
-              )}
-            </div>
-          </Link>
-        ))
-      )}
+        <ol className="flex flex-col gap-4">
+          {popular.map((product, index) => {
+            const rank = String(index + 1).padStart(2, '0');
+            const barWidth = `${Math.max(34, 100 - index * 28)}%`;
 
-      <div className="mt-auto flex justify-center pt-stack-md">
-        <div className="h-1 w-24 rounded-full bg-surface-variant" />
-      </div>
-    </section>
+            return (
+              <li key={product._id}>
+                <Link
+                  to="/dashboard/products"
+                  className="group flex items-center gap-4 rounded-xl p-1 transition-colors duration-150 hover:bg-[#F7F5F0]"
+                >
+                  <span className="w-8 shrink-0 font-display text-xl font-semibold text-primary/35">
+                    {rank}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-medium text-on-surface">{product.name}</h3>
+                    <p className="mt-0.5 text-sm text-on-surface-variant">
+                      {product.categoryName || t('dashboard.uncategorized')}
+                    </p>
+                    <div className="mt-2 h-1 overflow-hidden rounded-full bg-outline-variant">
+                      <div className="h-full rounded-full bg-primary/70" style={{ width: barWidth }} />
+                    </div>
+                  </div>
+                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-surface-container">
+                    {product.image ? (
+                      <img src={product.image} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
+                        <MaterialIcon name="image" className="text-[18px]" />
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </DashboardCard>
   );
 }

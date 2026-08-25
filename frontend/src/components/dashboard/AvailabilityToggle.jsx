@@ -9,7 +9,7 @@ export default function AvailabilityToggle({ checked, disabled, onChange, label 
         disabled={disabled}
         onChange={onChange}
       />
-      <div className="relative h-6 w-11 rounded-full bg-surface-variant after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-disabled:cursor-not-allowed peer-disabled:opacity-60" />
+      <div className="relative h-6 w-11 rounded-full bg-outline-variant transition-colors duration-200 after:absolute after:top-[2px] after:start-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-200 after:content-[''] peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-primary/30 peer-disabled:cursor-not-allowed peer-disabled:opacity-50" />
     </label>
   );
 }

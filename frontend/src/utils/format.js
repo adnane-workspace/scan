@@ -1,8 +1,8 @@
 const CATEGORY_BADGES = [
-  "bg-secondary-container text-on-secondary-container",
-  "bg-tertiary-container text-on-tertiary-container",
-  "bg-primary-container text-on-primary-container",
-  "bg-surface-variant text-on-surface-variant",
+  "bg-[#F0E6D8] text-[#5F625E]",
+  "bg-[#E4F0E8] text-[#2C5A3E]",
+  "bg-[#F7EDE3] text-[#873A06]",
+  "bg-[#EBE6DC] text-[#6F716D]",
 ];
 
 const INTL_LOCALE = {

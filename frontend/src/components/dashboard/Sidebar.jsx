@@ -4,14 +4,14 @@ import MaterialIcon from '../ui/MaterialIcon.jsx';
 
 function navClassName(isSuperAdmin) {
   return ({ isActive }) =>
-    `flex items-center rounded-xl px-4 py-3 text-label-lg font-semibold tracking-[0.05em] transition-all ${
+    `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-200 ${
       isActive
         ? isSuperAdmin
-          ? 'bg-primary/15 font-bold text-primary ring-1 ring-primary/20'
-          : 'bg-primary-container font-bold text-on-primary-container'
+          ? 'bg-primary/15 font-semibold text-primary'
+          : 'bg-primary font-semibold text-on-primary'
         : isSuperAdmin
           ? 'text-zinc-400 hover:bg-white/5 hover:text-white'
-          : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+          : 'text-[#5F625E] hover:bg-[#F0E6D8] hover:text-on-surface'
     }`;
 }
 
@@ -37,31 +37,33 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
 
   return (
     <div
-      className={`flex h-full flex-col pt-stack-lg pb-stack-lg ${
+      className={`flex h-full flex-col ${
         isSuperAdmin
           ? 'border-e border-white/10 bg-[#08080a]'
-          : 'bg-surface-container-low shadow-[0_1px_8px_rgba(0,0,0,0.04)]'
+          : 'border-e border-outline-variant bg-sidebar'
       }`}
     >
-      <div className="mb-stack-lg flex items-center gap-3 px-gutter">
+      <div className="flex items-center gap-3 px-5 pt-7 pb-6">
         <span
           className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-            isSuperAdmin ? 'bg-primary/15 text-primary' : 'text-primary'
+            isSuperAdmin ? 'bg-primary/15 text-primary' : 'bg-primary/10 text-primary'
           }`}
         >
-          <MaterialIcon name="restaurant_menu" className="text-2xl" />
+          <MaterialIcon name="restaurant_menu" className="text-[22px]" />
         </span>
         <div className="min-w-0">
-          <span className={`block font-display text-headline-md tracking-tight ${isSuperAdmin ? 'text-white' : 'text-primary'}`}>
+          <span className={`block font-display text-xl tracking-tight ${isSuperAdmin ? 'text-white' : 'text-on-surface'}`}>
             Epicurean
           </span>
           {isSuperAdmin ? (
-            <span className="text-[11px] font-semibold tracking-[0.16em] text-primary uppercase">{t('header.platform')}</span>
-          ) : null}
+            <span className="text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">{t('header.platform')}</span>
+          ) : (
+            <span className="truncate text-xs text-on-surface-variant">{cafe?.name || t('auth.digitalMenu')}</span>
+          )}
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3">
         {links.map((link) => (
           <NavLink
             key={link.to}
@@ -70,43 +72,48 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
             className={navClassName(isSuperAdmin)}
             onClick={onNavigate}
           >
-            <MaterialIcon name={link.icon} className="me-3" />
+            <MaterialIcon name={link.icon} className="text-[20px]" />
             <span className="flex-1">{link.label}</span>
             {link.badge ? (
-              <span className="ms-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">
+              <span className="rounded-full bg-black/10 px-2 py-0.5 text-[11px] font-bold">
                 {link.badge}
               </span>
             ) : null}
           </NavLink>
         ))}
+      </nav>
 
+      <div className="mt-auto px-3 pb-5">
         {menuPath ? (
-          <div className="mt-4 border-t border-outline-variant/30 pt-4">
+          <div className="mb-3 border-t border-outline-variant pt-4">
             <NavLink
               to={menuPath}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center rounded-xl px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant transition-all hover:bg-surface-container-high hover:text-on-surface"
+              className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-200 ${
+                isSuperAdmin
+                  ? 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                  : 'text-[#5F625E] hover:bg-[#F0E6D8] hover:text-on-surface'
+              }`}
               onClick={onNavigate}
             >
-              <MaterialIcon name="open_in_new" className="me-3" />
+              <MaterialIcon name="open_in_new" className="text-[20px]" />
               {t('nav.viewMenu')}
             </NavLink>
           </div>
-        ) : null}
-      </nav>
-
-      <div className="px-4">
+        ) : (
+          <div className="mb-3 border-t border-outline-variant pt-4" />
+        )}
         <button
           type="button"
           onClick={onLogout}
-          className={`flex w-full items-center rounded-xl px-4 py-3 text-start text-label-lg font-semibold tracking-[0.05em] transition-all ${
+          className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-start text-sm font-medium transition-colors duration-200 ${
             isSuperAdmin
               ? 'text-zinc-400 hover:bg-white/5 hover:text-white'
-              : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+              : 'text-[#5F625E] hover:bg-[#F0E6D8] hover:text-on-surface'
           }`}
         >
-          <MaterialIcon name="logout" className="me-3" />
+          <MaterialIcon name="logout" className="text-[20px]" />
           {t('nav.logout')}
         </button>
       </div>

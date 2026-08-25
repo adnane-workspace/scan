@@ -165,11 +165,13 @@ export default function DashboardLayout() {
         </aside>
 
         <div className="lg:ps-72">
-          <header className={`fixed top-0 inset-x-0 z-40 flex h-[calc(5rem+env(safe-area-inset-top))] items-center justify-between px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-6 lg:start-72 lg:inset-e-0 lg:px-container ${
-            isSuperAdmin
-              ? 'border-b border-white/10 bg-background/80'
-              : 'bg-surface/80 shadow-[0_1px_8px_rgba(0,0,0,0.04)]'
-          }`}>
+          <header
+            className={`fixed top-0 inset-x-0 z-40 flex h-[calc(4.25rem+env(safe-area-inset-top))] items-center justify-between gap-3 border-b px-4 pt-[env(safe-area-inset-top)] sm:px-6 lg:start-72 lg:inset-e-0 lg:px-8 ${
+              isSuperAdmin
+                ? 'border-white/10 bg-background/90 backdrop-blur-md'
+                : 'border-outline-variant bg-background/90 backdrop-blur-md'
+            }`}
+          >
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
@@ -180,30 +182,32 @@ export default function DashboardLayout() {
                 <MaterialIcon name="menu" />
               </button>
               <div className="min-w-0">
-                <p className="truncate text-headline-md font-semibold tracking-tight text-on-surface">{cafeName}</p>
-                <p className="text-label-md font-medium text-on-surface-variant">{headerSubtitle}</p>
+                <p className="truncate font-display text-lg font-semibold tracking-tight text-on-surface sm:text-xl">
+                  {cafeName}
+                </p>
+                <p className="text-xs font-medium text-on-surface-variant sm:text-sm">{headerSubtitle}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <LanguageSwitcher compact />
               <div className="hidden text-end sm:block">
-                <div className="text-label-lg font-semibold tracking-[0.05em] text-on-surface">
+                <div className="text-sm font-semibold text-on-surface">
                   {user?.name || t('dashboard.profile')}
                 </div>
-                <div className="text-label-md font-medium text-on-surface-variant">
-                  {roleLabel}
-                </div>
+                <div className="text-xs text-on-surface-variant">{roleLabel}</div>
               </div>
-              <div className={`flex h-10 w-10 items-center justify-center rounded-full shadow-md ${
-                isSuperAdmin ? 'bg-primary/15 text-primary ring-1 ring-primary/30' : 'bg-primary'
-              }`}>
-                <MaterialIcon name="person" className={`text-[20px] ${isSuperAdmin ? 'text-primary' : 'text-on-primary'}`} />
+              <div
+                className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                  isSuperAdmin ? 'bg-primary/15 text-primary ring-1 ring-primary/30' : 'bg-primary text-on-primary'
+                }`}
+              >
+                <MaterialIcon name="person" className="text-[18px]" />
               </div>
             </div>
           </header>
 
-          <main className="min-h-screen bg-background px-4 pt-[calc(6rem+env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 lg:px-container">
+          <main className="min-h-screen bg-background px-4 pt-[calc(5.25rem+env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 lg:px-8">
             <Outlet context={outletContext} />
           </main>
         </div>
