@@ -6,14 +6,14 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "prisma migrate deploy && node src/server.js",
-    "build": "prisma generate && prisma migrate deploy",
-    "vercel-build": "prisma generate && prisma migrate deploy",
+    "start": "npx prisma migrate deploy && node src/server.js",
+    "build": "npx prisma generate && npx prisma migrate deploy",
+    "vercel-build": "npx prisma generate && npx prisma migrate deploy",
     "seed": "node src/seed.js",
-    "postinstall": "prisma generate",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate deploy",
-    "db:push": "prisma db push",
+    "postinstall": "npx prisma generate",
+    "db:generate": "npx prisma generate",
+    "db:migrate": "npx prisma migrate deploy",
+    "db:push": "npx prisma db push",
     "lint": "eslint src",
     "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --runInBand"
   },
@@ -31,6 +31,12 @@
     "nodemailer": "^7.0.11",
     "prisma": "^6.19.3",
     "zod": "^4.0.17"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true,
+    "bcrypt@6.0.0": true
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
