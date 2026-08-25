@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "prisma migrate deploy && node src/server.js",
+    "build": "prisma generate && prisma migrate deploy",
+    "vercel-build": "prisma generate && prisma migrate deploy",
     "seed": "node src/seed.js",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
