@@ -40,12 +40,12 @@ function SettingsField({ id, label, icon, hint, children }) {
         {icon ? (
           <MaterialIcon
             name={icon}
-            className="ml-3 pointer-events-none text-[20px] text-on-surface-variant/50 group-focus-within:text-primary"
+            className="ms-3 pointer-events-none text-[20px] text-on-surface-variant/50 group-focus-within:text-primary"
           />
         ) : null}
         {children}
       </div>
-      {hint ? <p className="pl-1 text-xs text-on-surface-variant">{hint}</p> : null}
+      {hint ? <p className="ps-1 text-xs text-on-surface-variant">{hint}</p> : null}
     </div>
   );
 }
@@ -316,7 +316,7 @@ export default function SettingsPage() {
                 key={item.id}
                 type="button"
                 onClick={() => setSearchParams({ tab: item.id })}
-                className={`inline-flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition-colors ${
+                className={`inline-flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-start text-sm font-semibold transition-colors ${
                   active
                     ? 'bg-primary-container text-on-primary-container'
                     : 'bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
@@ -630,7 +630,7 @@ export default function SettingsPage() {
                         setLocale(item.id);
                         setLanguageSaved(true);
                       }}
-                      className={`rounded-2xl px-5 py-4 text-left ring-2 transition-colors ${
+                      className={`rounded-2xl px-5 py-4 text-start ring-2 transition-colors ${
                         active
                           ? 'bg-primary/10 ring-primary'
                           : 'bg-surface-container-low ring-transparent hover:bg-surface-container-high'

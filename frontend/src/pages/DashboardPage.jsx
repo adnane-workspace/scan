@@ -255,7 +255,7 @@ export default function DashboardPage() {
                   <span className="block font-semibold text-on-surface">{item.label}</span>
                   <span className="mt-0.5 block text-sm text-on-surface-variant">{item.hint}</span>
                 </span>
-                <MaterialIcon name="chevron_right" className="ml-auto text-on-surface-variant group-hover:text-primary" />
+                <MaterialIcon name="chevron_right" className="ms-auto text-on-surface-variant group-hover:text-primary" />
               </Link>
             ))}
           </div>

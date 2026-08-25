@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { messages } from '../i18n/messages.js';
+import { LOCALES, messages } from '../i18n/messages.js';
 import { LocaleContext } from './locale-context.js';
 
 export const LOCALE_STORAGE_KEY = 'digital-menu-locale';
 
+const SUPPORTED = new Set(LOCALES.map((item) => item.id));
+
+function localeMeta(id) {
+  return LOCALES.find((item) => item.id === id) || LOCALES[0];
+}
+
 function readLocale() {
   const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-  return stored === 'en' || stored === 'fr' ? stored : 'fr';
+  return SUPPORTED.has(stored) ? stored : 'fr';
+}
+
+function applyDocumentLocale(id) {
+  const meta = localeMeta(id);
+  document.documentElement.lang = meta.id;
+  document.documentElement.dir = meta.dir;
 }
 
 function lookup(locale, key) {
@@ -42,18 +54,18 @@ export function LocaleProvider({ children }) {
   const [locale, setLocaleState] = useState(readLocale);
 
   const setLocale = useCallback((next) => {
-    const value = next === 'en' ? 'en' : 'fr';
+    const value = SUPPORTED.has(next) ? next : 'fr';
     window.localStorage.setItem(LOCALE_STORAGE_KEY, value);
-    document.documentElement.lang = value;
+    applyDocumentLocale(value);
     setLocaleState(value);
   }, []);
 
   const t = useCallback((key, vars) => interpolate(lookup(locale, key), vars), [locale]);
 
-  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
+  const value = useMemo(() => ({ locale, setLocale, t, dir: localeMeta(locale).dir }), [locale, setLocale, t]);
 
   useEffect(() => {
-    document.documentElement.lang = locale;
+    applyDocumentLocale(locale);
   }, [locale]);
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

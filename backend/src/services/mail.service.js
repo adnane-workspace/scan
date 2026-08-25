@@ -15,6 +15,12 @@ const COPY = {
     intro: 'Use this code to reset the password for your Epicurean space.',
     valid: 'This code expires in 10 minutes. If you did not request it, you can ignore this email.',
   },
+  ar: {
+    subject: 'رمز التحقق من Epicurean',
+    title: 'رمز التحقق',
+    intro: 'استخدم هذا الرمز لإعادة تعيين كلمة مرور فضاء Epicurean.',
+    valid: 'ينتهي هذا الرمز خلال 10 دقائق. إذا لم تطلبه، يمكنك تجاهل هذا البريد.',
+  },
 };
 
 function buildResetEmail(code, locale) {

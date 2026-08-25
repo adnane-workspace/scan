@@ -36,7 +36,7 @@ export const changePasswordSchema = z.object({
 export const forgotPasswordSchema = z.object({
   body: z.object({
     email: z.string().trim().toLowerCase().email(),
-    locale: z.enum(['fr', 'en']).optional(),
+    locale: z.enum(['fr', 'en', 'ar']).optional(),
   }),
 });
 

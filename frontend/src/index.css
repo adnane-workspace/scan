@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "Inter", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", "Cairo", ui-serif, Georgia, serif;
 
   --color-background: #eefcfd;
   --color-surface: #eefcfd;
@@ -109,6 +109,11 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
+}
+
+html[dir="rtl"] {
+  --font-sans: "Cairo", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cairo", "Noto Naskh Arabic", ui-serif, serif;
 }
 
 .material-symbols-outlined {

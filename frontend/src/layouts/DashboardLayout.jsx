@@ -151,8 +151,8 @@ export default function DashboardLayout() {
         ) : null}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-200 lg:translate-x-0 ${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          className={`fixed inset-y-0 start-0 z-50 w-72 transition-transform duration-200 lg:translate-x-0 ${
+            isSidebarOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full lg:rtl:translate-x-0'
           }`}
         >
           <Sidebar
@@ -164,8 +164,8 @@ export default function DashboardLayout() {
           />
         </aside>
 
-        <div className="lg:pl-72">
-          <header className={`fixed top-0 right-0 left-0 z-40 flex h-[calc(5rem+env(safe-area-inset-top))] items-center justify-between px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-6 lg:left-72 lg:px-container ${
+        <div className="lg:ps-72">
+          <header className={`fixed top-0 inset-x-0 z-40 flex h-[calc(5rem+env(safe-area-inset-top))] items-center justify-between px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-6 lg:start-72 lg:inset-e-0 lg:px-container ${
             isSuperAdmin
               ? 'border-b border-white/10 bg-background/80'
               : 'bg-surface/80 shadow-[0_1px_8px_rgba(0,0,0,0.04)]'
@@ -187,7 +187,7 @@ export default function DashboardLayout() {
 
             <div className="flex items-center gap-3">
               <LanguageSwitcher compact />
-              <div className="hidden text-right sm:block">
+              <div className="hidden text-end sm:block">
                 <div className="text-label-lg font-semibold tracking-[0.05em] text-on-surface">
                   {user?.name || t('dashboard.profile')}
                 </div>

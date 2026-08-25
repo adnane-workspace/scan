@@ -5,9 +5,25 @@ const CATEGORY_BADGES = [
   "bg-surface-variant text-on-surface-variant",
 ];
 
+const INTL_LOCALE = {
+  fr: 'fr-FR',
+  en: 'en-US',
+  ar: 'ar-MA',
+};
+
+const BYTE_UNITS = {
+  fr: ['o', 'Ko', 'Mo', 'Go', 'To'],
+  en: ['B', 'KB', 'MB', 'GB', 'TB'],
+  ar: ['بايت', 'ك.ب', 'م.ب', 'ج.ب', 'ت.ب'],
+};
+
+function intlLocale(locale) {
+  return INTL_LOCALE[locale] || INTL_LOCALE.fr;
+}
+
 export function formatBytes(bytes, locale = 'fr') {
   const value = Number(bytes) || 0;
-  const units = locale === 'en' ? ['B', 'KB', 'MB', 'GB', 'TB'] : ['o', 'Ko', 'Mo', 'Go', 'To'];
+  const units = BYTE_UNITS[locale] || BYTE_UNITS.fr;
 
   if (value <= 0) {
     return `0 ${units[0]}`;
@@ -15,7 +31,7 @@ export function formatBytes(bytes, locale = 'fr') {
 
   const exponent = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
   const amount = value / 1024 ** exponent;
-  const formatted = new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
+  const formatted = new Intl.NumberFormat(intlLocale(locale), {
     maximumFractionDigits: exponent === 0 ? 0 : amount >= 100 ? 0 : 2,
   }).format(amount);
 
@@ -23,14 +39,14 @@ export function formatBytes(bytes, locale = 'fr') {
 }
 
 export function formatCount(value, locale = 'fr', digits = 0) {
-  return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
+  return new Intl.NumberFormat(intlLocale(locale), {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(Number(value) || 0);
 }
 
 export function formatPrice(value, locale = 'fr') {
-  const amount = new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
+  const amount = new Intl.NumberFormat(intlLocale(locale), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(value));
@@ -46,11 +62,19 @@ export function formatRelativeTime(value, locale = 'fr') {
   const date = new Date(value);
   const diffMs = Date.now() - date.getTime();
   const diffMinutes = Math.round(diffMs / 60000);
-  const language = locale === 'en' ? 'en' : 'fr';
+  const language = locale === 'en' || locale === 'ar' ? locale : 'fr';
   const formatter = new Intl.RelativeTimeFormat(language, { numeric: 'auto' });
 
   if (Math.abs(diffMinutes) < 1) {
-    return language === 'en' ? 'just now' : 'à l’instant';
+    if (language === 'en') {
+      return 'just now';
+    }
+
+    if (language === 'ar') {
+      return 'الآن';
+    }
+
+    return 'à l’instant';
   }
 
   if (Math.abs(diffMinutes) < 60) {
@@ -77,7 +101,7 @@ export function formatDateTime(value, locale = 'fr') {
     return '—';
   }
 
-  return new Date(value).toLocaleString(locale === 'en' ? 'en-GB' : 'fr-FR', {
+  return new Date(value).toLocaleString(intlLocale(locale), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -91,7 +115,7 @@ export function formatDate(value, locale = 'fr') {
     return '—';
   }
 
-  return new Date(value).toLocaleDateString(locale === 'en' ? 'en-GB' : 'fr-FR', {
+  return new Date(value).toLocaleDateString(intlLocale(locale), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -119,12 +143,12 @@ export function firstName(name, fallback = "Admin") {
 }
 
 const CATEGORY_ICONS = [
-  { test: /petit.?d[ée]jeuner|breakfast|brunch/i, icon: "bakery_dining" },
-  { test: /caf[ée]|espresso|coffee/i, icon: "local_cafe" },
-  { test: /entr[ée]|tapas|partage/i, icon: "tapas" },
-  { test: /plat|principal|d[ée]jeuner|lunch/i, icon: "restaurant" },
-  { test: /dessert|g[aâ]teau|chocolat|sucr/i, icon: "icecream" },
-  { test: /cocktail|boisson|drink|bar/i, icon: "local_bar" },
+  { test: /petit.?d[ée]jeuner|breakfast|brunch|فطور/i, icon: "bakery_dining" },
+  { test: /caf[ée]|espresso|coffee|قهوة/i, icon: "local_cafe" },
+  { test: /entr[ée]|tapas|partage|مقبلات/i, icon: "tapas" },
+  { test: /plat|principal|d[ée]jeuner|lunch|أطباق/i, icon: "restaurant" },
+  { test: /dessert|g[aâ]teau|chocolat|sucr|حلويات/i, icon: "icecream" },
+  { test: /cocktail|boisson|drink|bar|مشروبات/i, icon: "local_bar" },
 ];
 
 export function categoryIcon(name) {

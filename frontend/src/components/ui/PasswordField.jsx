@@ -26,12 +26,12 @@ export default function PasswordField({
           minLength={minLength}
           required={required}
           autoComplete={autoComplete}
-          className="w-full rounded-xl bg-surface-container-low px-4 py-3.5 pr-12 text-on-surface outline-none ring-1 ring-transparent transition-shadow focus:ring-2 focus:ring-primary"
+          className="w-full rounded-xl bg-surface-container-low px-4 py-3.5 pe-12 text-on-surface outline-none ring-1 ring-transparent transition-shadow focus:ring-2 focus:ring-primary"
         />
         <button
           type="button"
           onClick={onToggleShow}
-          className="absolute inset-y-0 right-0 flex items-center px-3 text-on-surface-variant hover:text-on-surface"
+          className="absolute inset-y-0 end-0 flex items-center px-3 text-on-surface-variant hover:text-on-surface"
           aria-label={show ? t('auth.hidePassword') : t('auth.showPassword')}
         >
           <MaterialIcon name={show ? 'visibility_off' : 'visibility'} className="text-[20px]" />

@@ -17,12 +17,12 @@ function AuthChrome({ title, subtitle, children, footer }) {
         <div className="pointer-events-none absolute top-0 right-0 h-64 w-64 rounded-full bg-primary/8 blur-[90px] lg:hidden" />
         <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 rounded-full bg-tertiary/10 blur-[80px] lg:hidden" />
 
-        <div className="absolute top-4 right-4 z-20 sm:top-6 sm:right-6">
+        <div className="absolute top-4 end-4 z-20 sm:top-6 sm:end-6">
           <LanguageSwitcher />
         </div>
 
         <div className="relative z-10 w-full max-w-[420px]">
-          <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
+          <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
             <div className="mb-5 flex items-center gap-3 lg:hidden">
               <img
                 src="/epicurean-logo.png"
@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
   }
 
   const footer = (
-    <p className="mt-8 text-center text-sm text-on-surface-variant lg:text-left">
+    <p className="mt-8 text-center text-sm text-on-surface-variant lg:text-start">
       <Link to="/login" className="font-semibold text-primary hover:underline">
         {t('auth.backToLogin')}
       </Link>
@@ -217,7 +217,7 @@ export default function ForgotPasswordPage() {
             <button
               type="button"
               aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-              className="mr-2 rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="me-2 rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               onClick={() => setShowPassword((visible) => !visible)}
             >
               <MaterialIcon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[20px]" />

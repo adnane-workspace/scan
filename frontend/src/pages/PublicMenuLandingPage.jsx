@@ -108,7 +108,7 @@ export default function PublicMenuLandingPage() {
       <div className="pointer-events-none absolute inset-0 bg-black/35" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/25" />
 
-      <div className="absolute top-0 right-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
+      <div className="absolute top-0 end-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))] pe-[max(1rem,env(safe-area-inset-right))]">
         <LanguageSwitcher onDark />
       </div>
 
@@ -143,7 +143,7 @@ export default function PublicMenuLandingPage() {
                   href={mapsHref(cafe)}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex w-full items-center gap-2 rounded-full bg-white/15 px-3.5 py-2 text-left text-sm text-white/90 ring-1 ring-white/20 backdrop-blur-md hover:bg-white/25 sm:w-auto sm:max-w-full sm:px-4"
+                  className="inline-flex w-full items-center gap-2 rounded-full bg-white/15 px-3.5 py-2 text-start text-sm text-white/90 ring-1 ring-white/20 backdrop-blur-md hover:bg-white/25 sm:w-auto sm:max-w-full sm:px-4"
                 >
                   <MaterialIcon name="location_on" className="shrink-0 text-[18px]" />
                   <span className="min-w-0 truncate">

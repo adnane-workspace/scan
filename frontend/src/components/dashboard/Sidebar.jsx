@@ -39,7 +39,7 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
     <div
       className={`flex h-full flex-col pt-stack-lg pb-stack-lg ${
         isSuperAdmin
-          ? 'border-r border-white/10 bg-[#08080a]'
+          ? 'border-e border-white/10 bg-[#08080a]'
           : 'bg-surface-container-low shadow-[0_1px_8px_rgba(0,0,0,0.04)]'
       }`}
     >
@@ -70,10 +70,10 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
             className={navClassName(isSuperAdmin)}
             onClick={onNavigate}
           >
-            <MaterialIcon name={link.icon} className="mr-3" />
+            <MaterialIcon name={link.icon} className="me-3" />
             <span className="flex-1">{link.label}</span>
             {link.badge ? (
-              <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">
+              <span className="ms-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">
                 {link.badge}
               </span>
             ) : null}
@@ -89,7 +89,7 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
               className="flex items-center rounded-xl px-4 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant transition-all hover:bg-surface-container-high hover:text-on-surface"
               onClick={onNavigate}
             >
-              <MaterialIcon name="open_in_new" className="mr-3" />
+              <MaterialIcon name="open_in_new" className="me-3" />
               {t('nav.viewMenu')}
             </NavLink>
           </div>
@@ -100,13 +100,13 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
         <button
           type="button"
           onClick={onLogout}
-          className={`flex w-full items-center rounded-xl px-4 py-3 text-left text-label-lg font-semibold tracking-[0.05em] transition-all ${
+          className={`flex w-full items-center rounded-xl px-4 py-3 text-start text-label-lg font-semibold tracking-[0.05em] transition-all ${
             isSuperAdmin
               ? 'text-zinc-400 hover:bg-white/5 hover:text-white'
               : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
           }`}
         >
-          <MaterialIcon name="logout" className="mr-3" />
+          <MaterialIcon name="logout" className="me-3" />
           {t('nav.logout')}
         </button>
       </div>

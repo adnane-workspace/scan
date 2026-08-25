@@ -33,7 +33,7 @@ export default function AuthField({
       >
         <MaterialIcon
           name={icon}
-          className="ml-3 pointer-events-none text-[20px] text-on-surface-variant/50 group-focus-within:text-primary"
+          className="ms-3 pointer-events-none text-[20px] text-on-surface-variant/50 group-focus-within:text-primary"
         />
         <input
           id={id}
