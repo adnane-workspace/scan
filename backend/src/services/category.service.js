@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { recordActivity } from './activity.service.js';
+import { deleteCloudinaryImage, deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 import {
   MAX_CATEGORY_DEPTH,
   collectDescendantIds,
@@ -132,7 +133,7 @@ export async function createCategory(user, payload) {
       parentId,
       name: payload.name,
       description: payload.description ?? '',
-      image: payload.image ?? '',
+      image: normalizeImageUrl(payload.image),
       order: payload.order ?? 0,
     },
     include: {
@@ -176,14 +177,17 @@ export async function getCategoryById(user, categoryId) {
 
 export async function updateCategory(user, categoryId, payload) {
   const cafeId = requireCafeId(user);
-  await findOwnedCategory(cafeId, categoryId);
+  const current = await findOwnedCategory(cafeId, categoryId);
 
   const data = {
     ...(payload.name !== undefined && { name: payload.name }),
     ...(payload.description !== undefined && { description: payload.description }),
-    ...(payload.image !== undefined && { image: payload.image }),
     ...(payload.order !== undefined && { order: payload.order }),
   };
+
+  if (payload.image !== undefined) {
+    data.image = normalizeImageUrl(payload.image);
+  }
 
   if (payload.parentId !== undefined) {
     const parentId = normalizeParentId(payload.parentId);
@@ -199,6 +203,10 @@ export async function updateCategory(user, categoryId, payload) {
     },
   });
 
+  if (payload.image !== undefined) {
+    await deleteReplacedImage(current.image, category.image);
+  }
+
   return toCategoryResponse(category);
 }
 
@@ -210,7 +218,15 @@ export async function deleteCategory(user, categoryId) {
     throw new ApiError(409, 'Supprime d’abord les sous-catégories');
   }
 
+  const products = await prisma.product.findMany({
+    where: { categoryId, cafeId },
+    select: { image: true },
+  });
+
+  const urls = [...new Set([category.image, ...products.map((item) => item.image)].filter(Boolean))];
+
   await prisma.category.delete({ where: { id: categoryId } });
+  await Promise.all(urls.map((url) => deleteCloudinaryImage(url)));
 
   await recordActivity({
     action: 'category_deleted',

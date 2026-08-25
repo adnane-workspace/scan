@@ -1,55 +1,10 @@
 import { getPrismaForUrl, prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
-import { cloudinary } from './storage.service.js';
+import { cloudinary, extractPublicId, isCloudinaryUrl } from './storage.service.js';
 
 const CACHE_TTL_MS = 60_000;
 let cachedReport = null;
 let cachedAt = 0;
-
-function extractPublicId(url, folder) {
-  const value = String(url || '').trim();
-
-  if (!value) {
-    return null;
-  }
-
-  const marker = `/${folder}/`;
-  const index = value.indexOf(marker);
-
-  if (index >= 0) {
-    return value
-      .slice(index + 1)
-      .split('?')[0]
-      .replace(/\.[a-z0-9]+$/i, '');
-  }
-
-  if (!value.includes('res.cloudinary.com')) {
-    return null;
-  }
-
-  const afterUpload = value.split('/upload/')[1];
-
-  if (!afterUpload) {
-    return null;
-  }
-
-  const parts = afterUpload.split('?')[0].split('/');
-  let start = 0;
-
-  while (start < parts.length && !/^v\d+$/.test(parts[start]) && parts[start].includes(',')) {
-    start += 1;
-  }
-
-  if (start < parts.length && /^v\d+$/.test(parts[start])) {
-    start += 1;
-  }
-
-  return parts.slice(start).join('/').replace(/\.[a-z0-9]+$/i, '') || null;
-}
-
-function isCloudinaryUrl(url) {
-  return String(url || '').includes('res.cloudinary.com');
-}
 
 async function fetchFolderResources(folder) {
   const resources = [];

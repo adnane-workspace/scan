@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from './MaterialIcon.jsx';
+import CloudinaryImage from './CloudinaryImage.jsx';
 
 export default function ImageLightbox({ src, alt = '', onClose }) {
   const { t } = useLocale();
@@ -47,9 +48,10 @@ export default function ImageLightbox({ src, alt = '', onClose }) {
       >
         <MaterialIcon name="close" />
       </button>
-      <img
+      <CloudinaryImage
         src={src}
         alt={alt}
+        preset="lightbox"
         className="relative z-10 max-h-[90dvh] max-w-full rounded-2xl object-contain shadow-2xl"
       />
     </div>

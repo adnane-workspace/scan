@@ -1,6 +1,12 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
+import {
+  extractPublicId,
+  isAppCloudinaryAsset,
+  isCloudinaryUrl,
+  stripCloudinaryTransforms,
+} from '../utils/cloudinaryUrl.js';
 
 cloudinary.config({
   cloud_name: env.CLOUDINARY_CLOUD_NAME,
@@ -8,14 +14,32 @@ cloudinary.config({
   api_secret: env.CLOUDINARY_API_SECRET,
 });
 
-export { cloudinary };
+export { cloudinary, extractPublicId, isCloudinaryUrl };
+
+const IMAGE_FOLDERS = {
+  products: 'products',
+  categories: 'categories',
+  logos: 'logos',
+  banners: 'banners',
+};
 
 export function normalizeImageUrl(image) {
   if (!image) {
     return '';
   }
 
-  return image.trim();
+  return stripCloudinaryTransforms(image.trim());
+}
+
+function resolveUploadFolder(subfolder) {
+  const base = env.CLOUDINARY_FOLDER;
+
+  if (!subfolder) {
+    return base;
+  }
+
+  const safe = IMAGE_FOLDERS[subfolder] || String(subfolder).replace(/[^a-z0-9/_-]/gi, '');
+  return `${base}/${safe}`;
 }
 
 export async function uploadProductImage(file, options = {}) {
@@ -24,7 +48,7 @@ export async function uploadProductImage(file, options = {}) {
   }
 
   const uploadOptions = {
-    folder: env.CLOUDINARY_FOLDER,
+    folder: resolveUploadFolder(options.folder),
     resource_type: 'image',
   };
 
@@ -47,4 +71,32 @@ export async function uploadProductImage(file, options = {}) {
 
     stream.end(file.buffer);
   });
+}
+
+export async function deleteCloudinaryImage(url) {
+  if (!isAppCloudinaryAsset(url, env.CLOUDINARY_FOLDER)) {
+    return false;
+  }
+
+  const publicId = extractPublicId(url, env.CLOUDINARY_FOLDER);
+
+  if (!publicId) {
+    return false;
+  }
+
+  try {
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'image', invalidate: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteReplacedImage(previousUrl, nextUrl) {
+  const previous = normalizeImageUrl(previousUrl);
+  const next = normalizeImageUrl(nextUrl);
+
+  if (previous && previous !== next) {
+    await deleteCloudinaryImage(previous);
+  }
 }

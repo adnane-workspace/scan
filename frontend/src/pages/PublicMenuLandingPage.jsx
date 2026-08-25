@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
@@ -97,9 +98,11 @@ export default function PublicMenuLandingPage() {
   return (
     <LandingShell>
       {backdrop ? (
-        <img
+        <CloudinaryImage
           src={backdrop}
           alt=""
+          preset="cover"
+          fetchPriority="high"
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover ${
             backdropIsLogo ? 'scale-125 blur-2xl' : ''
           }`}
@@ -115,9 +118,12 @@ export default function PublicMenuLandingPage() {
       <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-lg flex-col justify-end px-4 pt-16 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center min-[480px]:px-6 sm:max-w-xl sm:justify-center sm:px-8 sm:py-16">
         <div className="flex min-h-0 w-full shrink flex-col items-center">
           {cafe.logo ? (
-            <img
+            <CloudinaryImage
               src={cafe.logo}
               alt=""
+              preset="logoHero"
+              width={144}
+              height={144}
               className="h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 rounded-full object-cover ring-4 ring-white/80"
             />
           ) : (

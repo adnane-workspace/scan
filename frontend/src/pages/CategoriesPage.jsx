@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CategoryFormModal from '../components/dashboard/CategoryFormModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
 import {
@@ -30,7 +31,7 @@ function CategoryIdentity({ category, t }) {
     <div className="flex min-w-0 items-center gap-4">
       <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-container text-primary shadow-sm">
         {category.image ? (
-          <img src={category.image} alt="" className="h-full w-full object-cover" />
+          <CloudinaryImage src={category.image} alt="" preset="thumb" className="h-full w-full object-cover" />
         ) : (
           <>
             <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10" />

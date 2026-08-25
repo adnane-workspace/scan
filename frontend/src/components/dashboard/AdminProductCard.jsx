@@ -1,6 +1,7 @@
 import { useLocale } from '../../hooks/useLocale.js';
 import { formatPrice } from '../../utils/format.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import AvailabilityToggle from './AvailabilityToggle.jsx';
 
 export default function AdminProductCard({ product, toggling, onEdit, onDelete, onToggleAvailable }) {
@@ -34,7 +35,7 @@ export default function AdminProductCard({ product, toggling, onEdit, onDelete, 
 
       <div className={`relative h-48 w-full bg-surface-container-highest ${available ? '' : 'grayscale-[30%]'}`}>
         {product.image ? (
-          <img src={product.image} alt="" className="h-full w-full object-cover" />
+          <CloudinaryImage src={product.image} alt="" preset="productCard" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
             <MaterialIcon name="image" className="text-4xl" />

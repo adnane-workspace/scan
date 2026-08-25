@@ -1,7 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { recordActivity } from './activity.service.js';
-import { normalizeImageUrl } from './storage.service.js';
+import { deleteCloudinaryImage, deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 import { assertLeafCategory } from './category.service.js';
 
 function requireCafeId(user) {
@@ -90,25 +90,34 @@ export async function getProductById(user, productId) {
 
 export async function updateProduct(user, productId, payload) {
   const cafeId = requireCafeId(user);
-  await findOwnedProduct(cafeId, productId);
+  const current = await findOwnedProduct(cafeId, productId);
 
   if (payload.categoryId !== undefined) {
     await assertOwnedCategory(cafeId, payload.categoryId);
   }
 
+  const data = {
+    ...(payload.categoryId !== undefined && { categoryId: payload.categoryId }),
+    ...(payload.name !== undefined && { name: payload.name }),
+    ...(payload.description !== undefined && { description: payload.description }),
+    ...(payload.price !== undefined && { price: payload.price }),
+    ...(payload.available !== undefined && { available: payload.available }),
+    ...(payload.order !== undefined && { order: payload.order }),
+  };
+
+  if (payload.image !== undefined) {
+    data.image = normalizeImageUrl(payload.image);
+  }
+
   const product = await prisma.product.update({
     where: { id: productId },
-    data: {
-      ...(payload.categoryId !== undefined && { categoryId: payload.categoryId }),
-      ...(payload.name !== undefined && { name: payload.name }),
-      ...(payload.description !== undefined && { description: payload.description }),
-      ...(payload.price !== undefined && { price: payload.price }),
-      ...(payload.image !== undefined && { image: normalizeImageUrl(payload.image) }),
-      ...(payload.available !== undefined && { available: payload.available }),
-      ...(payload.order !== undefined && { order: payload.order }),
-    },
+    data,
     include: { category: { select: { name: true } } },
   });
+
+  if (payload.image !== undefined) {
+    await deleteReplacedImage(current.image, product.image);
+  }
 
   return toProductResponse(product);
 }
@@ -118,6 +127,7 @@ export async function deleteProduct(user, productId) {
   const product = await findOwnedProduct(cafeId, productId);
 
   await prisma.product.delete({ where: { id: productId } });
+  await deleteCloudinaryImage(product.image);
 
   await recordActivity({
     action: 'product_deleted',

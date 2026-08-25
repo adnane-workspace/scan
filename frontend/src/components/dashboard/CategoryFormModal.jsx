@@ -1,5 +1,6 @@
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 
 const fieldClass =
   'mt-1 w-full rounded-lg bg-surface-container-highest px-3 py-2 text-on-surface outline-none transition-shadow focus:ring-2 focus:ring-primary';
@@ -95,7 +96,7 @@ export default function CategoryFormModal({
             <p className="text-sm font-medium text-on-surface">{t('categoryForm.image')}</p>
             <div className="mt-2 flex flex-wrap items-center gap-4">
               {form.image ? (
-                <img src={form.image} alt="Aperçu catégorie" className="h-24 w-24 rounded-lg object-cover" />
+                <CloudinaryImage src={form.image} alt="Aperçu catégorie" preset="preview" className="h-24 w-24 rounded-lg object-cover" />
               ) : (
                 <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-surface-container-highest text-on-surface-variant">
                   <MaterialIcon name="image" />

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { firstPublicCover } from '../../utils/categoryTree.js';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 
 export default function CategoryGridCard({ category, slug }) {
   const cover = firstPublicCover(category);
@@ -10,9 +11,10 @@ export default function CategoryGridCard({ category, slug }) {
       className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-neutral-200 sm:aspect-[3/4] sm:rounded-2xl"
     >
       {cover ? (
-        <img
+        <CloudinaryImage
           src={cover}
           alt=""
+          preset="categoryCover"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
       ) : (

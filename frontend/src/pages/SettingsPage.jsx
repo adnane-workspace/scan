@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import ImageLightbox from '../components/ui/ImageLightbox.jsx';
+import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import LocationPickerModal from '../components/dashboard/LocationPickerModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import PasswordField from '../components/ui/PasswordField.jsx';
@@ -96,7 +97,7 @@ function ImagePicker({
           className={`group relative overflow-hidden rounded-2xl ${emptyClass}`}
           aria-label={viewLabel}
         >
-          <img src={preview} alt="" className="h-full w-full object-cover" />
+          <CloudinaryImage src={preview} alt="" preset="preview" className="h-full w-full object-cover" />
           <span className="absolute inset-0 flex items-center justify-center bg-[#1F2523]/0 transition-colors group-hover:bg-[#1F2523]/40">
             <MaterialIcon name="zoom_in" className="text-[28px] text-white opacity-0 transition-opacity group-hover:opacity-100" />
           </span>
@@ -263,7 +264,7 @@ export default function SettingsPage() {
       setSuccess('');
 
       try {
-        const url = await uploadCafeLogo(file);
+        const url = await uploadCafeLogo(file, field);
         const cafe = await updateMyCafe(cafePayload({ [field]: url }));
         applyCafe(cafe);
         setSuccess(t('settings.saved'));

@@ -1,5 +1,6 @@
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import AvailabilityToggle from './AvailabilityToggle.jsx';
 
 const fieldClass =
@@ -115,7 +116,7 @@ export default function ProductFormModal({
             <p className="text-sm font-medium text-on-surface">{t('productForm.photo')}</p>
             <div className="mt-2 flex flex-wrap items-center gap-4">
               {form.image ? (
-                <img src={form.image} alt="Aperçu produit" className="h-24 w-24 rounded-lg object-cover" />
+                <CloudinaryImage src={form.image} alt="Aperçu produit" preset="preview" className="h-24 w-24 rounded-lg object-cover" />
               ) : (
                 <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-surface-container-highest text-on-surface-variant">
                   <MaterialIcon name="image" />

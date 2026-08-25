@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
 import { categoryBadgeClass, formatPrice } from '../../utils/format.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import AvailabilityToggle from './AvailabilityToggle.jsx';
 import DashboardCard from './DashboardCard.jsx';
 import SectionHeader from './SectionHeader.jsx';
@@ -11,9 +12,12 @@ function ProductThumb({ product }) {
   return (
     <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-surface-container">
       {product.image ? (
-        <img
+        <CloudinaryImage
           src={product.image}
           alt=""
+          preset="thumb"
+          width={40}
+          height={40}
           className={`h-full w-full object-cover ${product.available ? '' : 'grayscale'}`}
         />
       ) : (

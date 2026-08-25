@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useOutletContext, useParams } from 'react-router-dom';
 import PasswordField from '../components/ui/PasswordField.jsx';
+import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { getPlatformCafe, resetPlatformCafePassword, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
@@ -193,7 +194,14 @@ export default function CafeDetailPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-4">
               {cafe.logo ? (
-                <img src={cafe.logo} alt="" className="h-16 w-16 rounded-xl object-cover" />
+                <CloudinaryImage
+                  src={cafe.logo}
+                  alt=""
+                  preset="logo"
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 rounded-xl object-cover"
+                />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
                   {cafe.name.slice(0, 1)}

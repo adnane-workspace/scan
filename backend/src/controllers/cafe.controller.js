@@ -27,7 +27,9 @@ export const uploadLogo = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Image file is required');
   }
 
-  const url = await uploadProductImage(req.file);
+  const kind = Array.isArray(req.query.kind) ? req.query.kind[0] : req.query.kind;
+  const folder = kind === 'cover' ? 'banners' : 'logos';
+  const url = await uploadProductImage(req.file, { folder });
 
   res.status(201).json({
     success: true,

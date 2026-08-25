@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
 import LanguageSwitcher from '../ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 
 export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
   const { t } = useLocale();
@@ -22,7 +23,14 @@ export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
           className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 hover:bg-surface-container-high"
         >
           {cafe?.logo ? (
-            <img src={cafe.logo} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+            <CloudinaryImage
+              src={cafe.logo}
+              alt=""
+              preset="logo"
+              width={40}
+              height={40}
+              className="h-10 w-10 shrink-0 rounded-lg object-cover"
+            />
           ) : (
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-container-high font-display text-lg font-semibold text-primary">
               {(cafe?.name || '?').slice(0, 1)}

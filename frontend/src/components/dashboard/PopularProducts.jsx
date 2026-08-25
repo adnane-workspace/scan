@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import DashboardCard from './DashboardCard.jsx';
 import SectionHeader from './SectionHeader.jsx';
 
@@ -44,7 +45,14 @@ export default function PopularProducts({ products, loading }) {
                   </div>
                   <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-surface-container">
                     {product.image ? (
-                      <img src={product.image} alt="" className="h-full w-full object-cover" />
+                      <CloudinaryImage
+                        src={product.image}
+                        alt=""
+                        preset="thumb"
+                        width={44}
+                        height={44}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
                         <MaterialIcon name="image" className="text-[18px]" />

@@ -1,5 +1,6 @@
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import { formatPrice } from '../../utils/format.js';
 
 export default function PublicProductCard({ product, onSelect }) {
@@ -12,7 +13,7 @@ export default function PublicProductCard({ product, onSelect }) {
     >
       <div className="aspect-square w-full bg-surface-container-high">
         {product.image ? (
-          <img src={product.image} alt="" loading="lazy" className="h-full w-full object-cover" />
+          <CloudinaryImage src={product.image} alt="" preset="productCard" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
             <MaterialIcon name="restaurant" className="text-3xl" />

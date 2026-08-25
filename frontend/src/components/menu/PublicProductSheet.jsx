@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocale } from '../../hooks/useLocale.js';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import { formatPrice } from '../../utils/format.js';
 
 export default function PublicProductSheet({ product, onClose }) {
@@ -42,7 +43,7 @@ export default function PublicProductSheet({ product, onClose }) {
       >
         <div className="relative aspect-[4/3] bg-surface-container-high">
           {product.image ? (
-            <img src={product.image} alt="" className="h-full w-full object-cover" />
+            <CloudinaryImage src={product.image} alt="" preset="productSheet" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
               <MaterialIcon name="restaurant" className="text-5xl" />

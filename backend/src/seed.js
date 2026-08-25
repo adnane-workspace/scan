@@ -182,7 +182,7 @@ async function resolveImage(product) {
 
     const url = await uploadProductImage(
       { buffer: Buffer.from(await response.arrayBuffer()), mimetype: 'image/jpeg' },
-      { publicId: publicIdFromFile(product.file) },
+      { publicId: publicIdFromFile(product.file), folder: product.folder },
     );
     console.log(`Photo: ${product.name} → ${url}`);
     return url;
@@ -267,6 +267,7 @@ async function seed() {
           photo: categoryData.photo,
           file: categoryData.file,
           name: categoryData.name,
+          folder: 'categories',
         }),
         order: categoryData.order,
       },
@@ -280,7 +281,7 @@ async function seed() {
           name: product.name,
           description: product.description,
           price: product.price,
-          image: await resolveImage(product),
+          image: await resolveImage({ ...product, folder: 'products' }),
           available: product.available !== false,
           order: product.order,
         },

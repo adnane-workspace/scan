@@ -20,10 +20,11 @@ export async function requestQrChange(reason) {
   return data.data.qr;
 }
 
-export async function uploadCafeLogo(file) {
+export async function uploadCafeLogo(file, kind = 'logo') {
   const formData = new FormData();
   formData.append('image', file);
 
-  const { data } = await api.post('/cafe/upload', formData);
+  const query = kind === 'cover' ? '?kind=cover' : '';
+  const { data } = await api.post(`/cafe/upload${query}`, formData);
   return data.data.url;
 }

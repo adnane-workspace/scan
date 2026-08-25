@@ -3,7 +3,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
-import { normalizeImageUrl } from './storage.service.js';
+import { deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
@@ -53,6 +53,8 @@ export async function updateMyCafe(user, payload) {
       slug: true,
       qrGeneratedAt: true,
       qrChangeAllowed: true,
+      logo: true,
+      cover: true,
     },
   });
 
@@ -134,6 +136,14 @@ export async function updateMyCafe(user, payload) {
     where: { id: cafeId },
     data,
   });
+
+  if (payload.logo !== undefined) {
+    await deleteReplacedImage(current.logo, cafe.logo);
+  }
+
+  if (payload.cover !== undefined) {
+    await deleteReplacedImage(current.cover, cafe.cover);
+  }
 
   await recordActivity({
     action: 'cafe_updated',
