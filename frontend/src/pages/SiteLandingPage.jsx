@@ -122,7 +122,7 @@ export default function SiteLandingPage() {
               <span className="text-[11px] font-medium tracking-wide text-on-surface uppercase sm:text-label-md sm:tracking-wider">{t('landing.badge')}</span>
             </div>
             <h1 className="mb-5 max-w-4xl font-display text-[1.5rem] leading-snug font-semibold tracking-tight text-on-surface sm:mb-6 sm:text-4xl sm:leading-tight lg:text-5xl">
-              {t('landing.heroTitle')} <span className="text-primary italic">{t('landing.heroHighlight')}</span>
+              {t('landing.heroTitle')} <span className="text-primary">{t('landing.heroHighlight')}</span>
             </h1>
             <p className="mb-8 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:mb-10 sm:text-lg">{t('landing.heroBody')}</p>
             <div className="flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center sm:gap-4">
@@ -335,7 +335,7 @@ export default function SiteLandingPage() {
               href={DEVELOPER_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1 inline-block font-display text-2xl italic tracking-tight text-primary hover:underline"
+              className="mt-1 inline-block font-display text-2xl tracking-tight text-primary hover:underline"
             >
               {DEVELOPER_NAME}
             </a>

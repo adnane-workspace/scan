@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: "Inter", "Cairo", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Playfair Display", "Cairo", ui-serif, Georgia, serif;
+  --font-display: "Inter", "Cairo", ui-sans-serif, system-ui, sans-serif;
 
   --color-oxford: #0d1b2a;
   --color-gunmetal: #1b263b;
@@ -127,7 +127,7 @@ body {
 
 html[dir="rtl"] {
   --font-sans: "Cairo", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Cairo", "Noto Naskh Arabic", ui-serif, serif;
+  --font-display: "Cairo", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
 }
 
 .material-symbols-outlined {

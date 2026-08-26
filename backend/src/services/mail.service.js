@@ -27,7 +27,7 @@ function buildResetEmail(code, locale) {
   const copy = COPY[locale] || COPY.fr;
   const text = `${copy.intro}\n\n${code}\n\n${copy.valid}`;
   const html = `
-    <div style="font-family:Georgia,serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
+    <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
       <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">QTable</p>
       <h1 style="font-size:28px;margin:0 0 12px">${copy.title}</h1>
       <p style="margin:0 0 24px;color:#e0e1ddb8;line-height:1.5">${copy.intro}</p>
@@ -54,7 +54,7 @@ function buildQrChangeEmail({ cafeName, slug, requesterName, requesterEmail, rea
     `Traiter la demande : ${reviewUrl}`,
   ].join('\n');
   const html = `
-    <div style="font-family:Georgia,serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
+    <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
       <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">QTable</p>
       <h1 style="font-size:28px;margin:0 0 12px">Changement de QR</h1>
       <p style="margin:0 0 16px;color:#e0e1ddb8;line-height:1.5">

@@ -3,7 +3,7 @@ import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { prisma } from './config/prisma.js';
 import { uploadProductImage } from './services/storage.service.js';
 
-const DEMO_PASSWORD = 'DemoAdmin123!';
+const DEMO_PASSWORD = 'adnane2004';
 
 const PHOTO = (id) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&h=900&q=80`;
