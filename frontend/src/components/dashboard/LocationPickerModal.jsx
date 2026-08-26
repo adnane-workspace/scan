@@ -62,9 +62,9 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
         } else {
           markerRef.current = L.circleMarker([lat, lng], {
             radius: 10,
-            color: '#ffffff',
+            color: '#b8f7e4',
             weight: 2,
-            fillColor: '#9e3d00',
+            fillColor: '#25272c',
             fillOpacity: 1,
           }).addTo(map);
         }

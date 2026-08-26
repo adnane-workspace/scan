@@ -41,8 +41,8 @@ export default function QrCodeModal({
           margin: 2,
           errorCorrectionLevel: 'M',
           color: {
-            dark: '#121e1f',
-            light: '#ffffff',
+            dark: '#25272c',
+            light: '#b8f7e4',
           },
         });
       })
@@ -133,7 +133,7 @@ export default function QrCodeModal({
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4">
-            <div className="rounded-2xl bg-white p-4 shadow-sm">
+            <div className="rounded-2xl bg-[#b8f7e4] p-4 shadow-sm">
               {dataUrl ? (
                 <img src={dataUrl} alt={`QR code du menu ${cafeName || ''}`.trim()} className="h-56 w-56" />
               ) : (

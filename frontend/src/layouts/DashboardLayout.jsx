@@ -6,6 +6,7 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { APP_NAME } from '../utils/constants.js';
 import { getDashboardStats } from '../services/dashboard.service.js';
 import { listPlatformCafes } from '../services/platform.service.js';
 
@@ -126,7 +127,7 @@ export default function DashboardLayout() {
     navigate('/login', { replace: true });
   }
 
-  const cafeName = isSuperAdmin ? t('header.platform') : stats.cafe?.name || 'Digital Menu';
+  const cafeName = isSuperAdmin ? t('header.platform') : stats.cafe?.name || APP_NAME;
   const qrRequestCount = platformCafes.filter((item) => item.pendingQrChange).length;
   const subtitleKey = headerSubtitleKeys[location.pathname];
   const headerSubtitle = subtitleKey
@@ -137,6 +138,10 @@ export default function DashboardLayout() {
         ? t('dashboard.roleSuper')
         : t('header.dashboard');
   const roleLabel = isSuperAdmin ? t('dashboard.roleSuper') : t('dashboard.roleAdmin');
+
+  useEffect(() => {
+    document.title = `${headerSubtitle} · ${APP_NAME}`;
+  }, [headerSubtitle]);
 
   return (
     <ProtectedRoute>

@@ -98,7 +98,7 @@ function ImagePicker({
           aria-label={viewLabel}
         >
           <CloudinaryImage src={preview} alt="" preset="preview" className="h-full w-full object-cover" />
-          <span className="absolute inset-0 flex items-center justify-center bg-[#1F2523]/0 transition-colors group-hover:bg-[#1F2523]/40">
+          <span className="absolute inset-0 flex items-center justify-center bg-[#25272c]/0 transition-colors group-hover:bg-[#25272c]/40">
             <MaterialIcon name="zoom_in" className="text-[28px] text-white opacity-0 transition-opacity group-hover:opacity-100" />
           </span>
         </button>

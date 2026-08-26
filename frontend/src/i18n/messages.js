@@ -115,6 +115,7 @@ export const messages = {
       none: '—',
       closeMenu: 'Fermer le menu',
       openMenu: 'Ouvrir le menu',
+      appName: 'QTable',
     },
     validation: {
       nameRequired: 'Le nom est requis',
@@ -126,7 +127,7 @@ export const messages = {
       uploadImage: 'Impossible d’envoyer l’image',
     },
     auth: {
-      digitalMenu: 'Menu digital',
+      digitalMenu: 'QTable',
       headline: 'Le menu QR de votre café.',
       tagline: 'Un lien, un scan, votre carte. Gérez catégories, photos et disponibilité depuis un seul espace.',
       featureQr: 'QR code prêt à poser sur les tables',
@@ -647,6 +648,7 @@ export const messages = {
       none: '—',
       closeMenu: 'Close menu',
       openMenu: 'Open menu',
+      appName: 'QTable',
     },
     validation: {
       nameRequired: 'Name is required',
@@ -658,7 +660,7 @@ export const messages = {
       uploadImage: 'Unable to upload the image',
     },
     auth: {
-      digitalMenu: 'Digital menu',
+      digitalMenu: 'QTable',
       headline: 'The QR menu for your cafe.',
       tagline: 'One link, one scan, your card. Manage categories, photos and availability from a single space.',
       featureQr: 'QR code ready for your tables',
@@ -1179,6 +1181,7 @@ export const messages = {
       none: '—',
       closeMenu: 'إغلاق القائمة',
       openMenu: 'فتح القائمة',
+      appName: 'QTable',
     },
     validation: {
       nameRequired: 'الاسم مطلوب',
@@ -1190,7 +1193,7 @@ export const messages = {
       uploadImage: 'تعذر رفع الصورة',
     },
     auth: {
-      digitalMenu: 'قائمة رقمية',
+      digitalMenu: 'QTable',
       headline: 'قائمة QR لمقهاك.',
       tagline: 'رابط واحد، مسح واحد، قائمتك. أدِر التصنيفات والصور والتوفر من فضاء واحد.',
       featureQr: 'رمز QR جاهز للطاولات',

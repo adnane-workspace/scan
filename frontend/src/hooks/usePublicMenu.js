@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getPublicMenu } from '../services/menu.service.js';
+import { APP_NAME } from '../utils/constants.js';
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const menuCache = new Map();
@@ -33,7 +34,7 @@ export function clearPublicMenuCache(slug) {
 }
 
 export function setPageMeta({ title, description }) {
-  document.title = title;
+  document.title = title ? `${title} · ${APP_NAME}` : APP_NAME;
 
   let meta = document.querySelector('meta[name="description"]');
 

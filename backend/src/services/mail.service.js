@@ -4,21 +4,21 @@ import { ApiError } from '../utils/ApiError.js';
 
 const COPY = {
   fr: {
-    subject: 'Votre code de vérification Epicurean',
+    subject: 'Votre code de vérification QTable',
     title: 'Code de vérification',
-    intro: 'Utilisez ce code pour réinitialiser le mot de passe de votre espace Epicurean.',
+    intro: 'Utilisez ce code pour réinitialiser le mot de passe de votre espace QTable.',
     valid: 'Ce code expire dans 10 minutes. Si vous n’êtes pas à l’origine de cette demande, ignorez cet email.',
   },
   en: {
-    subject: 'Your Epicurean verification code',
+    subject: 'Your QTable verification code',
     title: 'Verification code',
-    intro: 'Use this code to reset the password for your Epicurean space.',
+    intro: 'Use this code to reset the password for your QTable space.',
     valid: 'This code expires in 10 minutes. If you did not request it, you can ignore this email.',
   },
   ar: {
-    subject: 'رمز التحقق من Epicurean',
+    subject: 'رمز التحقق من QTable',
     title: 'رمز التحقق',
-    intro: 'استخدم هذا الرمز لإعادة تعيين كلمة مرور فضاء Epicurean.',
+    intro: 'استخدم هذا الرمز لإعادة تعيين كلمة مرور فضاء QTable.',
     valid: 'ينتهي هذا الرمز خلال 10 دقائق. إذا لم تطلبه، يمكنك تجاهل هذا البريد.',
   },
 };
@@ -27,12 +27,12 @@ function buildResetEmail(code, locale) {
   const copy = COPY[locale] || COPY.fr;
   const text = `${copy.intro}\n\n${code}\n\n${copy.valid}`;
   const html = `
-    <div style="font-family:Georgia,serif;background:#16110e;padding:32px;color:#fff8f3">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e8c27a;margin:0 0 16px">Epicurean</p>
+    <div style="font-family:Georgia,serif;background:#25272c;padding:32px;color:#b8f7e4">
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#b8f7e4;margin:0 0 16px">QTable</p>
       <h1 style="font-size:28px;margin:0 0 12px">${copy.title}</h1>
-      <p style="margin:0 0 24px;color:#fff8f3c7;line-height:1.5">${copy.intro}</p>
+      <p style="margin:0 0 24px;color:#b8f7e4b8;line-height:1.5">${copy.intro}</p>
       <p style="font-size:36px;letter-spacing:.28em;font-weight:700;margin:0 0 24px">${code}</p>
-      <p style="margin:0;color:#fff8f38f;font-size:14px;line-height:1.5">${copy.valid}</p>
+      <p style="margin:0;color:#b8f7e48f;font-size:14px;line-height:1.5">${copy.valid}</p>
     </div>
   `;
 
@@ -54,25 +54,25 @@ function buildQrChangeEmail({ cafeName, slug, requesterName, requesterEmail, rea
     `Traiter la demande : ${reviewUrl}`,
   ].join('\n');
   const html = `
-    <div style="font-family:Georgia,serif;background:#16110e;padding:32px;color:#fff8f3">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e8c27a;margin:0 0 16px">Epicurean</p>
+    <div style="font-family:Georgia,serif;background:#25272c;padding:32px;color:#b8f7e4">
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#b8f7e4;margin:0 0 16px">QTable</p>
       <h1 style="font-size:28px;margin:0 0 12px">Changement de QR</h1>
-      <p style="margin:0 0 16px;color:#fff8f3c7;line-height:1.5">
-        <strong style="color:#fff8f3">${escapeHtml(requesterName)}</strong>
+      <p style="margin:0 0 16px;color:#b8f7e4b8;line-height:1.5">
+        <strong style="color:#b8f7e4">${escapeHtml(requesterName)}</strong>
         (${escapeHtml(requesterEmail)}) demande un nouveau QR pour
-        <strong style="color:#fff8f3">${escapeHtml(cafeName)}</strong>
+        <strong style="color:#b8f7e4">${escapeHtml(cafeName)}</strong>
         (/${escapeHtml(slug)}).
       </p>
-      <p style="margin:0 0 24px;color:#fff8f3c7;line-height:1.5">
-        <span style="display:block;letter-spacing:.12em;text-transform:uppercase;font-size:11px;color:#e8c27a;margin-bottom:8px">Raison</span>
+      <p style="margin:0 0 24px;color:#b8f7e4b8;line-height:1.5">
+        <span style="display:block;letter-spacing:.12em;text-transform:uppercase;font-size:11px;color:#b8f7e4;margin-bottom:8px">Raison</span>
         ${escapeHtml(reason)}
       </p>
       <p style="margin:0 0 24px">
-        <a href="${reviewUrl}" style="display:inline-block;background:#9e3d00;color:#fff8f3;text-decoration:none;padding:12px 20px;border-radius:12px;font-weight:700">
+        <a href="${reviewUrl}" style="display:inline-block;background:#b8f7e4;color:#25272c;text-decoration:none;padding:12px 20px;border-radius:12px;font-weight:700">
           Voir la demande
         </a>
       </p>
-      <p style="margin:0;color:#fff8f38f;font-size:14px;line-height:1.5">${reviewUrl}</p>
+      <p style="margin:0;color:#b8f7e48f;font-size:14px;line-height:1.5">${reviewUrl}</p>
     </div>
   `;
 

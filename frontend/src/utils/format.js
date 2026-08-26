@@ -1,8 +1,8 @@
 const CATEGORY_BADGES = [
-  "bg-[#F0E6D8] text-[#5F625E]",
-  "bg-[#E4F0E8] text-[#2C5A3E]",
-  "bg-[#F7EDE3] text-[#873A06]",
-  "bg-[#EBE6DC] text-[#6F716D]",
+  "bg-[#b8f7e4] text-[#25272c]",
+  "bg-[#25272c] text-[#b8f7e4]",
+  "bg-[#9eecd8] text-[#25272c]",
+  "bg-[#2e3138] text-[#b8f7e4]",
 ];
 
 const INTL_LOCALE = {

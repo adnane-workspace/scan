@@ -115,7 +115,7 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
                 {products.map((product) => (
                   <tr
                     key={product._id}
-                    className={`border-t border-outline-variant transition-colors duration-150 hover:bg-[#F7F5F0]/80 ${
+                    className={`border-t border-outline-variant transition-colors duration-150 hover:bg-surface-container-low/80 ${
                       product.available ? '' : 'opacity-55'
                     }`}
                   >

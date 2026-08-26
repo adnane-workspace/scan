@@ -13,7 +13,7 @@ const transformed =
 describe('cloudinaryUrl', () => {
   it('detects Cloudinary URLs', () => {
     expect(isCloudinaryUrl(original)).toBe(true);
-    expect(isCloudinaryUrl('/epicurean-logo.png')).toBe(false);
+    expect(isCloudinaryUrl('/logosombre.svg')).toBe(false);
     expect(isCloudinaryUrl('')).toBe(false);
   });
 

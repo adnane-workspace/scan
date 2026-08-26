@@ -1,8 +1,8 @@
 {
-  "name": "digital-menu",
+  "name": "qtable",
   "version": "1.0.0",
   "private": true,
-  "description": "Digital QR menu application for cafes and restaurants",
+  "description": "QTable — digital QR menus for cafes and restaurants",
   "type": "module",
   "workspaces": [
     "frontend",

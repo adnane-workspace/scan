@@ -13,6 +13,7 @@ function normalizeApiUrl(url) {
 }
 
 export const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL);
+export const APP_NAME = 'QTable';
 export const TOKEN_STORAGE_KEY = 'digital-menu-token';
 export const USER_STORAGE_KEY = 'digital-menu-user';
 

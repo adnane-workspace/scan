@@ -162,7 +162,7 @@ export default function DashboardPage() {
                 type="button"
                 disabled={!menuUrl}
                 onClick={() => openQr('view')}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
               >
                 {t('dashboard.viewQr')}
               </button>
@@ -174,7 +174,7 @@ export default function DashboardPage() {
                   setQrRequestError('');
                   setIsQrRequestOpen(true);
                 }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
               >
                 {t('dashboard.requestQrChange')}
               </button>

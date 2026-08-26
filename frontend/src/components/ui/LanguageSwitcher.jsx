@@ -7,7 +7,7 @@ export default function LanguageSwitcher({ compact = false, className = '', onDa
   return (
     <div
       className={`inline-flex rounded-xl p-1 ${
-        onDark ? 'bg-white/15 ring-1 ring-white/20 backdrop-blur-md' : 'bg-surface-container'
+        onDark ? 'bg-[#b8f7e4]/15 ring-1 ring-[#b8f7e4]/25 backdrop-blur-md' : 'bg-surface-container'
       } ${className}`}
     >
       {LOCALES.map((item) => {
@@ -21,10 +21,10 @@ export default function LanguageSwitcher({ compact = false, className = '', onDa
             className={`rounded-lg px-2 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors duration-200 sm:px-2.5 sm:text-xs ${
               active
                 ? onDark
-                  ? 'bg-white text-[#1a120e]'
-                  : 'bg-white text-primary'
+                  ? 'bg-[#b8f7e4] text-[#25272c]'
+                  : 'bg-surface-container-lowest text-primary'
                 : onDark
-                  ? 'text-white/80 hover:text-white'
+                  ? 'text-[#b8f7e4]/80 hover:text-[#b8f7e4]'
                   : 'text-on-surface-variant hover:text-on-surface'
             }`}
             aria-pressed={active}

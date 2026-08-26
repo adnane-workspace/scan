@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import AuthBrandPanel from '../components/auth/AuthBrandPanel.jsx';
 import AuthField from '../components/auth/AuthField.jsx';
+import BrandLogo from '../components/ui/BrandLogo.jsx';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
@@ -23,13 +24,8 @@ function AuthChrome({ title, subtitle, children, footer }) {
 
         <div className="relative z-10 w-full max-w-[420px]">
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
-            <div className="mb-5 flex items-center gap-3 lg:hidden">
-              <img
-                src="/epicurean-logo.png"
-                alt=""
-                className="h-12 w-12 rounded-xl bg-surface-container-lowest object-contain p-1.5 shadow-sm"
-              />
-              <span className="font-display text-2xl tracking-tight text-primary">Epicurean</span>
+            <div className="mb-5 lg:hidden">
+              <BrandLogo />
             </div>
             <h2 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface sm:text-4xl">
               {title}
