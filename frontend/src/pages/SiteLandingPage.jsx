@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
+import LandingSeo from '../components/seo/LandingSeo.jsx';
 import BrandLogo from '../components/ui/BrandLogo.jsx';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { APP_NAME, DEVELOPER_NAME, DEVELOPER_URL } from '../utils/constants.js';
-import { getHomePath } from '../utils/paths.js';
+import { LANDING_FEATURES, LANDING_HOME, LANDING_PRODUCT, getHomePath, landingSectionId } from '../utils/paths.js';
 
 const FEATURES = [
   { icon: 'flash_on', titleKey: 'landing.featureFastTitle', bodyKey: 'landing.featureFastBody' },
@@ -17,11 +18,26 @@ const FEATURES = [
 export default function SiteLandingPage() {
   const { isAuthenticated, isReady, user } = useAuth();
   const { t } = useLocale();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const sectionId = landingSectionId(location.pathname);
 
   useEffect(() => {
-    document.title = APP_NAME;
-  }, []);
+    if (!isReady || isAuthenticated) {
+      return undefined;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      if (sectionId === 'accueil') {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return;
+      }
+
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isAuthenticated, isReady, sectionId]);
 
   if (!isReady) {
     return (
@@ -37,6 +53,7 @@ export default function SiteLandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-on-surface">
+      <LandingSeo path={location.pathname} />
       <header className="fixed top-0 z-50 w-full border-b border-outline-variant/20 bg-surface/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:px-10">
           <Link to="/" className="flex min-w-0 shrink items-center" aria-label={APP_NAME}>
@@ -44,15 +61,30 @@ export default function SiteLandingPage() {
           </Link>
 
           <nav className="hidden items-center gap-6 lg:flex xl:gap-8">
-            <a href="#accueil" className="text-label-lg font-semibold tracking-[0.05em] text-primary uppercase">
+            <Link
+              to={LANDING_HOME}
+              className={`text-label-lg font-semibold tracking-[0.05em] uppercase ${
+                sectionId === 'accueil' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
+              }`}
+            >
               {t('landing.navHome')}
-            </a>
-            <a href="#fonctionnalites" className="text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant uppercase hover:text-primary">
+            </Link>
+            <Link
+              to={LANDING_FEATURES}
+              className={`text-label-lg font-semibold tracking-[0.05em] uppercase ${
+                sectionId === 'fonctionnalites' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
+              }`}
+            >
               {t('landing.navFeatures')}
-            </a>
-            <a href="#produit" className="text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant uppercase hover:text-primary">
+            </Link>
+            <Link
+              to={LANDING_PRODUCT}
+              className={`text-label-lg font-semibold tracking-[0.05em] uppercase ${
+                sectionId === 'produit' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
+              }`}
+            >
               {t('landing.navProduct')}
-            </a>
+            </Link>
           </nav>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -84,15 +116,15 @@ export default function SiteLandingPage() {
         {menuOpen ? (
           <div className="border-t border-outline-variant/20 bg-surface px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] lg:hidden">
             <nav className="flex flex-col gap-1">
-              <a href="#accueil" className="py-2.5 font-semibold text-on-surface" onClick={() => setMenuOpen(false)}>
+              <Link to={LANDING_HOME} className="py-2.5 font-semibold text-on-surface" onClick={() => setMenuOpen(false)}>
                 {t('landing.navHome')}
-              </a>
-              <a href="#fonctionnalites" className="py-2.5 font-semibold text-on-surface" onClick={() => setMenuOpen(false)}>
+              </Link>
+              <Link to={LANDING_FEATURES} className="py-2.5 font-semibold text-on-surface" onClick={() => setMenuOpen(false)}>
                 {t('landing.navFeatures')}
-              </a>
-              <a href="#produit" className="py-2.5 font-semibold text-on-surface" onClick={() => setMenuOpen(false)}>
+              </Link>
+              <Link to={LANDING_PRODUCT} className="py-2.5 font-semibold text-on-surface" onClick={() => setMenuOpen(false)}>
                 {t('landing.navProduct')}
-              </a>
+              </Link>
               <div className="py-2 md:hidden">
                 <LanguageSwitcher compact />
               </div>
@@ -133,12 +165,12 @@ export default function SiteLandingPage() {
                 {t('landing.ctaStart')}
                 <MaterialIcon name="arrow_forward" className="text-[20px]" />
               </Link>
-              <a
-                href="#produit"
+              <Link
+                to={LANDING_PRODUCT}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-surface shadow-sm hover:bg-surface-container sm:px-8 sm:py-4"
               >
                 {t('landing.ctaDemo')}
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -298,10 +330,10 @@ export default function SiteLandingPage() {
               <h4 className="mb-6 text-label-lg font-semibold tracking-[0.05em] text-on-surface uppercase">{t('landing.footerProduct')}</h4>
               <ul className="flex flex-col gap-4 text-on-surface-variant">
                 <li>
-                  <a href="#fonctionnalites" className="hover:text-primary">{t('landing.navFeatures')}</a>
+                  <Link to={LANDING_FEATURES} className="hover:text-primary">{t('landing.navFeatures')}</Link>
                 </li>
                 <li>
-                  <a href="#produit" className="hover:text-primary">{t('landing.navProduct')}</a>
+                  <Link to={LANDING_PRODUCT} className="hover:text-primary">{t('landing.navProduct')}</Link>
                 </li>
                 <li>
                   <Link to="/register" className="hover:text-primary">{t('landing.ctaStart')}</Link>

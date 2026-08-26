@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, useOutletContext, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import PasswordField from '../components/ui/PasswordField.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
-import { getPlatformCafe, resetPlatformCafePassword, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
+import { deletePlatformCafe, getPlatformCafe, resetPlatformCafePassword, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
@@ -24,6 +24,7 @@ export default function CafeDetailPage() {
   const { user } = useAuth();
   const { t, locale } = useLocale();
   const { refreshCafes } = useOutletContext();
+  const navigate = useNavigate();
   const [cafe, setCafe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
@@ -37,6 +38,8 @@ export default function CafeDetailPage() {
   const [resetSuccess, setResetSuccess] = useState('');
   const [qrBusy, setQrBusy] = useState(false);
   const [reviewNote, setReviewNote] = useState('');
+  const [deleteName, setDeleteName] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -160,6 +163,24 @@ export default function CafeDetailPage() {
       setError(getApiError(err, t, 'qr.reviewError'));
     } finally {
       setQrBusy(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!cafe) {
+      return;
+    }
+
+    setDeleting(true);
+    setError('');
+
+    try {
+      await deletePlatformCafe(cafe._id);
+      await refreshCafes?.();
+      navigate('/platform/cafes', { replace: true });
+    } catch (err) {
+      setError(getApiError(err, t, 'platform.deleteError'));
+      setDeleting(false);
     }
   }
 
@@ -377,6 +398,28 @@ export default function CafeDetailPage() {
                 {t('platform.changePassword')}
               </button>
             )}
+          </div>
+
+          <div className="space-y-3 border-t border-error/20 pt-5">
+            <h2 className="text-lg font-semibold text-error">{t('platform.deleteTitle')}</h2>
+            <p className="text-sm text-on-surface-variant">{t('platform.deleteHint')}</p>
+            <label className="block text-sm font-medium text-on-surface">
+              {t('platform.deleteConfirm', { name: cafe.name })}
+              <input
+                value={deleteName}
+                onChange={(event) => setDeleteName(event.target.value)}
+                className="mt-1 w-full rounded-xl bg-surface-container-high px-3 py-2.5 text-sm text-on-surface outline-none focus:ring-2 focus:ring-error"
+                autoComplete="off"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={deleting || deleteName.trim() !== cafe.name}
+              onClick={handleDelete}
+              className="rounded-xl bg-error px-5 py-2.5 text-sm font-semibold text-on-error disabled:opacity-60"
+            >
+              {deleting ? t('platform.deleting') : t('platform.delete')}
+            </button>
           </div>
         </div>
       ) : null}

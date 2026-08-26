@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import PublicLayout from './layouts/PublicLayout.jsx';
 import DashboardLegacyRedirect from './components/common/DashboardLegacyRedirect.jsx';
+import LandingSeoRedirect from './components/common/LandingSeoRedirect.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import { useLocale } from './hooks/useLocale.js';
 
@@ -40,6 +41,13 @@ export default function App() {
     <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<SiteLandingPage />} />
+        <Route path="/fonctionnalites" element={<SiteLandingPage />} />
+        <Route path="/produit" element={<SiteLandingPage />} />
+        <Route path="/accueil" element={<LandingSeoRedirect />} />
+        <Route path="/home" element={<LandingSeoRedirect />} />
+        <Route path="/features" element={<LandingSeoRedirect />} />
+        <Route path="/product" element={<LandingSeoRedirect />} />
+        <Route path="/menu-digital" element={<LandingSeoRedirect />} />
 
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />

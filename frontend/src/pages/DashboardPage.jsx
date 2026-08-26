@@ -4,6 +4,7 @@ import PopularProducts from '../components/dashboard/PopularProducts.jsx';
 import QrChangeRequestModal from '../components/dashboard/QrChangeRequestModal.jsx';
 import QrCodeModal from '../components/dashboard/QrCodeModal.jsx';
 import RecentProducts from '../components/dashboard/RecentProducts.jsx';
+import SetupChecklist, { readSetupFlag, writeSetupFlag } from '../components/dashboard/SetupChecklist.jsx';
 import StatCard from '../components/dashboard/StatCard.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
@@ -39,6 +40,9 @@ export default function DashboardPage() {
   };
   const greetingName = firstName(user?.name, t('dashboard.fallbackName'));
   const activeCafes = platformCafes.filter((cafe) => cafe.isActive).length;
+  const cafeSlug = stats.cafe?.slug || '';
+  const [previewSeen, setPreviewSeen] = useState(false);
+  const [setupDismissed, setSetupDismissed] = useState(false);
 
   useEffect(() => {
     if (!isSuperAdmin) {
@@ -63,6 +67,15 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [isSuperAdmin]);
+
+  useEffect(() => {
+    if (!cafeSlug) {
+      return;
+    }
+
+    setPreviewSeen(readSetupFlag('preview', cafeSlug));
+    setSetupDismissed(readSetupFlag('dismissed', cafeSlug));
+  }, [cafeSlug]);
 
   async function handleConfirmIssue() {
     setQrIssuing(true);
@@ -132,7 +145,11 @@ export default function DashboardPage() {
             {t('dashboard.hello', { name: greetingName })}
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
-            {isSuperAdmin ? t('dashboard.subtitleSuper') : t('dashboard.subtitleAdmin')}
+            {isSuperAdmin
+              ? t('dashboard.subtitleSuper')
+              : stats.totalProducts > 0
+                ? t('dashboard.subtitleAdmin')
+                : t('dashboard.subtitleSetup')}
           </p>
         </div>
         {isSuperAdmin ? (
@@ -189,6 +206,26 @@ export default function DashboardPage() {
           </div>
         )}
       </section>
+
+      {!isSuperAdmin ? (
+        <SetupChecklist
+          stats={stats}
+          qr={qr}
+          menuUrl={menuUrl}
+          previewSeen={previewSeen}
+          dismissed={setupDismissed}
+          loading={loading}
+          onOpenQr={openQr}
+          onPreview={() => {
+            writeSetupFlag('preview', cafeSlug);
+            setPreviewSeen(true);
+          }}
+          onDismiss={() => {
+            writeSetupFlag('dismissed', cafeSlug);
+            setSetupDismissed(true);
+          }}
+        />
+      ) : null}
 
       <div className={`grid w-full grid-cols-1 gap-5 sm:grid-cols-2 ${isSuperAdmin ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
         {isSuperAdmin ? (

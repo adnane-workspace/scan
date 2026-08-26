@@ -4,6 +4,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
+import { deleteCloudinaryImage } from './storage.service.js';
 
 function ownerFromUsers(users = []) {
   const owner = users[0];
@@ -259,4 +260,58 @@ export async function resetPlatformCafePassword(cafeId, password, actor) {
   });
 
   return { email: owner.email };
+}
+
+export async function deletePlatformCafe(cafeId, actor) {
+  const cafe = await prisma.cafe.findUnique({
+    where: { id: cafeId },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+      cover: true,
+    },
+  });
+
+  if (!cafe) {
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
+  }
+
+  const [categories, products, owners] = await Promise.all([
+    prisma.category.findMany({ where: { cafeId }, select: { image: true } }),
+    prisma.product.findMany({ where: { cafeId }, select: { image: true } }),
+    prisma.user.findMany({
+      where: { cafeId, role: 'admin' },
+      select: { email: true },
+      orderBy: { createdAt: 'asc' },
+    }),
+  ]);
+
+  const imageUrls = [
+    ...new Set([cafe.logo, cafe.cover, ...categories.map((item) => item.image), ...products.map((item) => item.image)].filter(Boolean)),
+  ];
+
+  await prisma.$transaction(async (tx) => {
+    await tx.product.deleteMany({ where: { cafeId } });
+    await tx.category.updateMany({ where: { cafeId }, data: { parentId: null } });
+    await tx.category.deleteMany({ where: { cafeId } });
+    await tx.qrChangeRequest.deleteMany({ where: { cafeId } });
+    await tx.user.deleteMany({ where: { cafeId, role: 'admin' } });
+    await tx.cafe.delete({ where: { id: cafeId } });
+  });
+
+  await recordActivity({
+    action: 'cafe_deleted',
+    actorId: actor?.id,
+    metadata: {
+      cafeName: cafe.name,
+      slug: cafe.slug,
+      ownerEmail: owners[0]?.email || null,
+    },
+  });
+
+  await Promise.all(imageUrls.map((url) => deleteCloudinaryImage(url)));
+
+  return { _id: cafe.id, name: cafe.name, slug: cafe.slug };
 }

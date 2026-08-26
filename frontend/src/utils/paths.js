@@ -1,8 +1,38 @@
 export const APP_HOME = '/app';
 export const PLATFORM_HOME = '/platform';
+export const LANDING_HOME = '/';
+export const LANDING_FEATURES = '/fonctionnalites';
+export const LANDING_PRODUCT = '/produit';
+
+const LANDING_SEO_REDIRECTS = {
+  '/accueil': LANDING_HOME,
+  '/home': LANDING_HOME,
+  '/features': LANDING_FEATURES,
+  '/product': LANDING_PRODUCT,
+  '/menu-digital': LANDING_PRODUCT,
+};
 
 export function getHomePath(user) {
   return user?.role === 'superadmin' ? PLATFORM_HOME : APP_HOME;
+}
+
+export function mapLandingSeoRedirect(pathname) {
+  const path = String(pathname || '').replace(/\/$/, '') || '/';
+  return LANDING_SEO_REDIRECTS[path] || null;
+}
+
+export function landingSectionId(pathname) {
+  const path = String(pathname || '').replace(/\/$/, '') || '/';
+
+  if (path === LANDING_FEATURES) {
+    return 'fonctionnalites';
+  }
+
+  if (path === LANDING_PRODUCT) {
+    return 'produit';
+  }
+
+  return 'accueil';
 }
 
 const PLATFORM_PREFIXES = ['cafes', 'qr-requests', 'logs', 'storage'];

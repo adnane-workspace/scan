@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AdminProductCard from '../components/dashboard/AdminProductCard.jsx';
 import ProductFormModal from '../components/dashboard/ProductFormModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
@@ -29,6 +30,7 @@ const selectClass =
 
 export default function ProductsPage() {
   const { t } = useLocale();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -116,6 +118,17 @@ export default function ProductsPage() {
     setError('');
     setIsFormOpen(true);
   }
+
+  useEffect(() => {
+    if (loading || searchParams.get('new') !== '1' || leafOptions.length === 0) {
+      return;
+    }
+
+    openCreateForm();
+    const next = new URLSearchParams(searchParams);
+    next.delete('new');
+    setSearchParams(next, { replace: true });
+  }, [leafOptions.length, loading, searchParams, setSearchParams]);
 
   function startEdit(product) {
     setEditingId(product._id);

@@ -51,7 +51,7 @@ export async function getDashboardStats(user) {
       }),
       prisma.cafe.findUnique({
         where: { id: cafeId },
-        select: { name: true, slug: true, qrGeneratedAt: true, qrChangeAllowed: true },
+        select: { name: true, slug: true, logo: true, qrGeneratedAt: true, qrChangeAllowed: true },
       }),
     ]);
 
@@ -77,6 +77,7 @@ export async function getDashboardStats(user) {
       ? {
           name: cafe.name,
           slug: cafe.slug,
+          logo: cafe.logo || '',
           qr: toQrStatus(cafe, pendingQr),
         }
       : null,

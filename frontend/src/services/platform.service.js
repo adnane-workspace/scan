@@ -32,6 +32,11 @@ export async function updatePlatformCafe(id, payload) {
   return data.data.cafe;
 }
 
+export async function deletePlatformCafe(id) {
+  const { data } = await api.delete(`/platform/cafes/${id}`);
+  return data.data.cafe;
+}
+
 export async function resetPlatformCafePassword(id, password) {
   const { data } = await api.post(`/platform/cafes/${id}/password`, { password });
   return data.data;

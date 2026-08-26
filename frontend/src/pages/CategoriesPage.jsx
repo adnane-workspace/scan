@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import CategoryFormModal from '../components/dashboard/CategoryFormModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
@@ -87,6 +88,7 @@ function CategoryActions({ category, canAddChild, onEdit, onDelete, onAddChild, 
 
 export default function CategoriesPage() {
   const { t } = useLocale();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
@@ -164,6 +166,17 @@ export default function CategoriesPage() {
     setError('');
     setIsFormOpen(true);
   }
+
+  useEffect(() => {
+    if (loading || searchParams.get('new') !== '1') {
+      return;
+    }
+
+    openCreateForm();
+    const next = new URLSearchParams(searchParams);
+    next.delete('new');
+    setSearchParams(next, { replace: true });
+  }, [loading, searchParams, setSearchParams]);
 
   function startEdit(category) {
     setEditingId(category._id);

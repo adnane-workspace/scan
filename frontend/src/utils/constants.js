@@ -46,11 +46,24 @@ migrateStorageKey('digital-menu-token', TOKEN_STORAGE_KEY);
 migrateStorageKey('digital-menu-user', USER_STORAGE_KEY);
 migrateStorageKey('digital-menu-locale', LOCALE_STORAGE_KEY);
 
+export function getSiteOrigin() {
+  const fromEnv = (import.meta.env.VITE_PUBLIC_APP_URL || '').replace(/\/$/, '');
+
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin.replace(/\/$/, '');
+  }
+
+  return '';
+}
+
 export function getPublicMenuUrl(slug) {
   if (!slug) {
     return '';
   }
 
-  const origin = (import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin).replace(/\/$/, '');
-  return `${origin}/menu/${slug}`;
+  return `${getSiteOrigin()}/menu/${slug}`;
 }

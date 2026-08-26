@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    { "source": "/home", "destination": "/", "permanent": true },
+    { "source": "/accueil", "destination": "/", "permanent": true },
+    { "source": "/features", "destination": "/fonctionnalites", "permanent": true },
+    { "source": "/product", "destination": "/produit", "permanent": true },
+    { "source": "/menu-digital", "destination": "/produit", "permanent": true }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

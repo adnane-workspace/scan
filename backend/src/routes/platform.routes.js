@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createCafe,
+  deleteCafe,
   getCafe,
   getStorage,
   listCafes,
@@ -32,6 +33,7 @@ platformRouter.get('/cafes', listCafes);
 platformRouter.post('/cafes', validate(createPlatformCafeSchema), createCafe);
 platformRouter.get('/cafes/:id', validate(platformCafeIdSchema), getCafe);
 platformRouter.patch('/cafes/:id', validate(updatePlatformCafeSchema), updateCafeStatus);
+platformRouter.delete('/cafes/:id', validate(platformCafeIdSchema), deleteCafe);
 platformRouter.post('/cafes/:id/password', validate(resetPlatformCafePasswordSchema), resetCafePassword);
 platformRouter.post('/cafes/:id/qr/unlock', validate(platformCafeIdSchema), unlockQr);
 

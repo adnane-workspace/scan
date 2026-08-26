@@ -14,7 +14,7 @@ const fieldClass =
 const ACTION_GROUPS = [
   {
     id: 'groupCafe',
-    actions: ['cafe_created', 'cafe_activated', 'cafe_deactivated', 'cafe_password_reset', 'cafe_updated', 'qr_generated', 'qr_change_requested', 'qr_change_approved', 'qr_change_rejected'],
+    actions: ['cafe_created', 'cafe_activated', 'cafe_deactivated', 'cafe_deleted', 'cafe_password_reset', 'cafe_updated', 'qr_generated', 'qr_change_requested', 'qr_change_approved', 'qr_change_rejected'],
   },
   {
     id: 'groupMenu',
@@ -30,6 +30,7 @@ const ACTION_META = {
   cafe_created: { icon: 'add_business', tone: 'ok' },
   cafe_activated: { icon: 'verified', tone: 'ok' },
   cafe_deactivated: { icon: 'block', tone: 'bad' },
+  cafe_deleted: { icon: 'delete', tone: 'bad' },
   cafe_password_reset: { icon: 'lock_reset', tone: 'warn' },
   cafe_updated: { icon: 'storefront', tone: 'warn' },
   qr_generated: { icon: 'qr_code_2', tone: 'ok' },
@@ -69,6 +70,13 @@ function logDetail(item, t) {
 
   if (item.action === 'cafe_created') {
     return t('logs.detailCreated', { email: meta.ownerEmail || t('common.none') });
+  }
+
+  if (item.action === 'cafe_deleted') {
+    return t('logs.detailDeleted', {
+      name: meta.cafeName || t('common.none'),
+      slug: meta.slug || t('common.none'),
+    });
   }
 
   if (item.action === 'cafe_password_reset') {
@@ -214,6 +222,7 @@ export default function ActivityLogsPage() {
         item.cafe?.slug,
         item.metadata?.ownerEmail,
         item.metadata?.cafeName,
+        item.metadata?.slug,
         item.metadata?.email,
         item.metadata?.productName,
         item.metadata?.categoryName,
@@ -344,6 +353,11 @@ export default function ActivityLogsPage() {
                           <Link to={`/platform/cafes/${item.cafe._id}`} className="font-medium text-primary hover:underline">
                             {item.cafe.name}
                           </Link>
+                        </>
+                      ) : item.metadata?.cafeName ? (
+                        <>
+                          {' · '}
+                          <span>{item.metadata.cafeName}</span>
                         </>
                       ) : null}
                     </p>

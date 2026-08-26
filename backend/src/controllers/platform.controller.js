@@ -3,6 +3,7 @@ import { listActivityLogs } from '../services/activity.service.js';
 import { getStorageReport } from '../services/usage.service.js';
 import {
   createPlatformCafe,
+  deletePlatformCafe,
   getPlatformCafe,
   listPlatformCafes,
   resetPlatformCafePassword,
@@ -75,6 +76,16 @@ export const updateCafeStatus = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Cafe updated',
+    data: { cafe },
+  });
+});
+
+export const deleteCafe = asyncHandler(async (req, res) => {
+  const cafe = await deletePlatformCafe(req.validated.params.id, req.user);
+
+  res.status(200).json({
+    success: true,
+    message: 'Cafe deleted',
     data: { cafe },
   });
 });
