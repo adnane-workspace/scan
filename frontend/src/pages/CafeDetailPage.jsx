@@ -5,8 +5,10 @@ import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { getPlatformCafe, resetPlatformCafePassword, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
+import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
+import { getHomePath } from '../utils/paths.js';
 
 function Field({ label, value }) {
   return (
@@ -50,7 +52,7 @@ export default function CafeDetailPage() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err.response?.data?.message || t('platform.notFound'));
+          setError(getApiError(err, t, 'platform.notFound'));
           setCafe(null);
         }
       })
@@ -66,7 +68,7 @@ export default function CafeDetailPage() {
   }, [id, t]);
 
   if (user?.role !== 'superadmin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   async function handleToggle() {
@@ -82,7 +84,7 @@ export default function CafeDetailPage() {
       setCafe((current) => ({ ...current, ...updated }));
       await refreshCafes?.();
     } catch (err) {
-      setError(err.response?.data?.message || t('platform.updateError'));
+      setError(getApiError(err, t, 'platform.updateError'));
     } finally {
       setPending(false);
     }
@@ -113,7 +115,7 @@ export default function CafeDetailPage() {
       setShowResetForm(false);
       setResetSuccess(t('platform.passwordUpdated', { email: result.email }));
     } catch (err) {
-      setError(err.response?.data?.message || t('platform.resetError'));
+      setError(getApiError(err, t, 'platform.resetError'));
     } finally {
       setResetting(false);
     }
@@ -132,7 +134,7 @@ export default function CafeDetailPage() {
       setCafe((current) => ({ ...current, qr, qrChangeAllowed: true, pendingQrChange: false }));
       await refreshCafes?.();
     } catch (err) {
-      setError(err.response?.data?.message || t('qr.unlockError'));
+      setError(getApiError(err, t, 'qr.unlockError'));
     } finally {
       setQrBusy(false);
     }
@@ -155,7 +157,7 @@ export default function CafeDetailPage() {
       setReviewNote('');
       await refreshCafes?.();
     } catch (err) {
-      setError(err.response?.data?.message || t('qr.reviewError'));
+      setError(getApiError(err, t, 'qr.reviewError'));
     } finally {
       setQrBusy(false);
     }
@@ -179,7 +181,7 @@ export default function CafeDetailPage() {
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-5">
-      <Link to="/dashboard/cafes" className="text-sm font-semibold text-primary hover:underline">
+      <Link to="/platform/cafes" className="text-sm font-semibold text-primary hover:underline">
         {t('platform.backToCafes')}
       </Link>
 

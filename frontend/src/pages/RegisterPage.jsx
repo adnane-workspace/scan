@@ -7,9 +7,11 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { getApiError } from '../utils/apiError.js';
+import { getHomePath } from '../utils/paths.js';
 
 export default function RegisterPage() {
-  const { isAuthenticated, isReady, register } = useAuth();
+  const { isAuthenticated, isReady, register, user } = useAuth();
   const { t } = useLocale();
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -32,7 +34,7 @@ export default function RegisterPage() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   function handleChange(event) {
@@ -46,16 +48,16 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      await register({
+      const nextUser = await register({
         name: form.name,
         email: form.email,
         password: form.password,
         cafeName: form.cafeName,
         slug: form.slug.trim() || undefined,
       });
-      navigate('/dashboard', { replace: true });
+      navigate(getHomePath(nextUser), { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || t('auth.registerError'));
+      setError(getApiError(err, t, 'auth.registerError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -76,7 +78,9 @@ export default function RegisterPage() {
         <div className="relative z-10 w-full max-w-[420px] py-8">
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
             <div className="mb-5 lg:hidden">
-              <BrandLogo />
+              <Link to="/" aria-label={t('landing.navHome')}>
+                <BrandLogo />
+              </Link>
             </div>
             <h2 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface sm:text-4xl">
               {t('auth.registerTitle')}

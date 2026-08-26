@@ -1,22 +1,22 @@
 import api from './api.js';
 
 export async function getMyCafe() {
-  const { data } = await api.get('/cafe');
+  const { data } = await api.get('/me/cafe');
   return data.data.cafe;
 }
 
 export async function updateMyCafe(payload) {
-  const { data } = await api.put('/cafe', payload);
+  const { data } = await api.put('/me/cafe', payload);
   return data.data.cafe;
 }
 
 export async function generateCafeQr() {
-  const { data } = await api.post('/cafe/qr/generate');
+  const { data } = await api.post('/me/cafe/qr/generate');
   return data.data.qr;
 }
 
 export async function requestQrChange(reason) {
-  const { data } = await api.post('/cafe/qr/change-requests', { reason });
+  const { data } = await api.post('/me/cafe/qr/change-requests', { reason });
   return data.data.qr;
 }
 
@@ -25,6 +25,6 @@ export async function uploadCafeLogo(file, kind = 'logo') {
   formData.append('image', file);
 
   const query = kind === 'cover' ? '?kind=cover' : '';
-  const { data } = await api.post(`/cafe/upload${query}`, formData);
+  const { data } = await api.post(`/me/cafe/upload${query}`, formData);
   return data.data.url;
 }

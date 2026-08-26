@@ -53,7 +53,7 @@ export default function RecentProducts({ products, loading, onToggleAvailable })
         title={t('dashboard.recentTitle')}
         action={
           <Link
-            to="/dashboard/products"
+            to="/app/products"
             className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary-hover"
           >
             {t('common.seeAll')}

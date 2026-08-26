@@ -2,6 +2,7 @@
   "name": "qtable",
   "version": "1.0.0",
   "private": true,
+  "author": "Adnan Elmenouar",
   "description": "QTable — digital QR menus for cafes and restaurants",
   "type": "module",
   "workspaces": [
@@ -15,7 +16,7 @@
     "db:migrate": "npm run db:migrate -w backend",
     "lint": "npm run lint -w frontend && npm run lint -w backend",
     "seed": "npm run seed -w backend",
-    "test": "npm test -w backend"
+    "test": "npm test -w backend && npm test -w frontend"
   },
   "engines": {
     "node": ">=20"

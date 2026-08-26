@@ -3,6 +3,8 @@ import { Link, Navigate, useNavigate, useOutletContext } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { createPlatformCafe } from '../services/platform.service.js';
+import { getApiError } from '../utils/apiError.js';
+import { getHomePath } from '../utils/paths.js';
 
 const fieldClass =
   'mt-1 w-full rounded-lg bg-surface-container-highest px-3 py-2 text-on-surface outline-none focus:ring-2 focus:ring-primary';
@@ -25,7 +27,7 @@ export default function CreateCafePage() {
   const [error, setError] = useState('');
 
   if (user?.role !== 'superadmin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   function handleChange(event) {
@@ -47,9 +49,9 @@ export default function CreateCafePage() {
         slug: form.slug.trim() || undefined,
       });
       await refreshCafes?.();
-      navigate(`/dashboard/cafes/${cafe._id}`, { replace: true });
+      navigate(`/platform/cafes/${cafe._id}`, { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || t('platform.createError'));
+      setError(getApiError(err, t, 'platform.createError'));
     } finally {
       setSaving(false);
     }
@@ -57,7 +59,7 @@ export default function CreateCafePage() {
 
   return (
     <section className="mx-auto w-full max-w-2xl space-y-5">
-      <Link to="/dashboard/cafes" className="text-sm font-semibold text-primary hover:underline">
+      <Link to="/platform/cafes" className="text-sm font-semibold text-primary hover:underline">
         {t('platform.allCafes')}
       </Link>
 

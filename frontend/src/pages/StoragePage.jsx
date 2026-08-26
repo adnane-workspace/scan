@@ -4,7 +4,9 @@ import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { getStorageReport } from '../services/platform.service.js';
+import { getApiError } from '../utils/apiError.js';
 import { formatBytes, formatCount } from '../utils/format.js';
+import { getHomePath } from '../utils/paths.js';
 
 function SummaryCard({ icon, label, value, hint }) {
   return (
@@ -41,7 +43,7 @@ export default function StoragePage() {
         const data = await getStorageReport(force);
         setReport(data);
       } catch (err) {
-        setError(err.response?.data?.message || t('storage.loadError'));
+        setError(getApiError(err, t, 'storage.loadError'));
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -58,7 +60,7 @@ export default function StoragePage() {
   const cafes = useMemo(() => report?.cafes || [], [report]);
 
   if (user?.role !== 'superadmin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   return (
@@ -155,7 +157,7 @@ export default function StoragePage() {
                       <tr key={cafe._id} className="border-t border-outline-variant/20">
                         <td className="px-4 py-3">
                           {/^[0-9a-f-]{36}$/i.test(cafe._id) ? (
-                            <Link to={`/dashboard/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
+                            <Link to={`/platform/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
                               {cafe.name}
                             </Link>
                           ) : (

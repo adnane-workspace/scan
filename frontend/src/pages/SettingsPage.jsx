@@ -12,6 +12,7 @@ import { LOCALES } from '../i18n/messages.js';
 import { changePasswordRequest } from '../services/auth.service.js';
 import { getMyCafe, updateMyCafe, uploadCafeLogo } from '../services/cafe.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
+import { getApiError } from '../utils/apiError.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
 
 const emptyForm = {
@@ -98,7 +99,7 @@ function ImagePicker({
           aria-label={viewLabel}
         >
           <CloudinaryImage src={preview} alt="" preset="preview" className="h-full w-full object-cover" />
-          <span className="absolute inset-0 flex items-center justify-center bg-[#25272c]/0 transition-colors group-hover:bg-[#25272c]/40">
+          <span className="absolute inset-0 flex items-center justify-center bg-[#0d1b2a]/0 transition-colors group-hover:bg-[#0d1b2a]/40">
             <MaterialIcon name="zoom_in" className="text-[28px] text-white opacity-0 transition-opacity group-hover:opacity-100" />
           </span>
         </button>
@@ -200,7 +201,7 @@ export default function SettingsPage() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err.response?.data?.message || t('settings.loadError'));
+          setError(getApiError(err, t, 'settings.loadError'));
         }
       })
       .finally(() => {
@@ -270,7 +271,7 @@ export default function SettingsPage() {
         setSuccess(t('settings.saved'));
         await refreshStats?.();
       } catch (err) {
-        setError(err.response?.data?.message || t('settings.uploadError'));
+        setError(getApiError(err, t, 'settings.uploadError'));
       } finally {
         setUploading('');
       }
@@ -289,7 +290,7 @@ export default function SettingsPage() {
       setSuccess(t('settings.saved'));
       await refreshStats?.();
     } catch (err) {
-      setError(err.response?.data?.message || t('settings.saveError'));
+      setError(getApiError(err, t, 'settings.saveError'));
     } finally {
       setSaving(false);
     }
@@ -322,7 +323,7 @@ export default function SettingsPage() {
       setShowPasswordForm(false);
       setPasswordSuccess(t('settings.passwordUpdated'));
     } catch (err) {
-      setPasswordError(err.response?.data?.message || t('settings.passwordError'));
+      setPasswordError(getApiError(err, t, 'settings.passwordError'));
     } finally {
       setPasswordSaving(false);
     }

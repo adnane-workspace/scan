@@ -5,6 +5,6 @@ import { authenticate, requireAdmin } from '../middleware/authMiddleware.js';
 const dashboardRouter = Router();
 
 dashboardRouter.use(authenticate, requireAdmin);
-dashboardRouter.get('/stats', getStats);
+dashboardRouter.get('/', getStats);
 
 export { dashboardRouter };

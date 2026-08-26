@@ -12,7 +12,7 @@ import {
 
 function requireCafeId(user) {
   if (!user.cafeId) {
-    throw new ApiError(403, 'No cafe associated with this account');
+    throw new ApiError(403, 'No cafe associated with this account', null, 'NO_CAFE');
   }
 
   return user.cafeId;
@@ -66,7 +66,7 @@ async function findOwnedCategory(cafeId, categoryId) {
   });
 
   if (!category) {
-    throw new ApiError(404, 'Category not found');
+    throw new ApiError(404, 'Category not found', null, 'CATEGORY_NOT_FOUND');
   }
 
   return category;
@@ -78,25 +78,25 @@ async function assertParentRules(cafeId, categoryId, parentId) {
   }
 
   if (categoryId && parentId === categoryId) {
-    throw new ApiError(400, 'Une catégorie ne peut pas être son propre parent');
+    throw new ApiError(400, 'A category cannot be its own parent', null, 'CATEGORY_SELF_PARENT');
   }
 
   const categories = await loadCafeCategories(cafeId);
   const parent = categories.find((item) => item.id === parentId);
 
   if (!parent) {
-    throw new ApiError(400, 'Catégorie parente introuvable');
+    throw new ApiError(400, 'Parent category not found', null, 'CATEGORY_PARENT_NOT_FOUND');
   }
 
   if (parent._count.products > 0) {
-    throw new ApiError(400, 'Déplace d’abord les produits avant d’ajouter une sous-catégorie');
+    throw new ApiError(400, 'Move products first before adding a subcategory', null, 'CATEGORY_HAS_PRODUCTS');
   }
 
   if (categoryId) {
     const descendantIds = collectDescendantIds(categories, categoryId);
 
     if (descendantIds.includes(parentId)) {
-      throw new ApiError(400, 'Impossible de déplacer une catégorie sous l’une de ses sous-catégories');
+      throw new ApiError(400, 'Cannot move a category under one of its subcategories', null, 'CATEGORY_CYCLE');
     }
   }
 
@@ -105,7 +105,7 @@ async function assertParentRules(cafeId, categoryId, parentId) {
   const resultingDepth = parentDepth + movingHeight;
 
   if (resultingDepth > MAX_CATEGORY_DEPTH) {
-    throw new ApiError(400, `Maximum ${MAX_CATEGORY_DEPTH} niveaux de catégories`);
+    throw new ApiError(400, `Maximum ${MAX_CATEGORY_DEPTH} category levels`, { max: MAX_CATEGORY_DEPTH }, 'CATEGORY_MAX_DEPTH');
   }
 }
 
@@ -113,7 +113,7 @@ export async function assertLeafCategory(cafeId, categoryId) {
   const category = await findOwnedCategory(cafeId, categoryId);
 
   if (category._count.children > 0) {
-    throw new ApiError(400, 'Les produits se placent uniquement dans une catégorie sans sous-catégorie');
+    throw new ApiError(400, 'Products can only be placed in a category without subcategories', null, 'PRODUCTS_LEAF_ONLY');
   }
 
   return category;
@@ -215,7 +215,7 @@ export async function deleteCategory(user, categoryId) {
   const category = await findOwnedCategory(cafeId, categoryId);
 
   if (category._count.children > 0) {
-    throw new ApiError(409, 'Supprime d’abord les sous-catégories');
+    throw new ApiError(409, 'Delete subcategories first', null, 'CATEGORY_HAS_CHILDREN');
   }
 
   const products = await prisma.product.findMany({

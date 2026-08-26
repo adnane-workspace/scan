@@ -5,7 +5,7 @@ import { sendQrChangeRequestAlert } from './mail.service.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
-    throw new ApiError(403, 'No cafe associated with this account');
+    throw new ApiError(403, 'No cafe associated with this account', null, 'NO_CAFE');
   }
 
   return user.cafeId;
@@ -66,7 +66,7 @@ export async function getQrStatusForCafe(cafeId) {
   ]);
 
   if (!cafe) {
-    throw new ApiError(404, 'Cafe not found');
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
   return toQrStatus(cafe, pending);
@@ -118,13 +118,13 @@ export async function generateCafeQr(user) {
   });
 
   if (!cafe) {
-    throw new ApiError(404, 'Cafe not found');
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
   const canGenerate = !cafe.qrGeneratedAt || cafe.qrChangeAllowed;
 
   if (!canGenerate) {
-    throw new ApiError(409, 'Le QR code a déjà été généré. Demande un changement au superadmin.');
+    throw new ApiError(409, 'The QR code has already been generated. Request a change from the superadmin.', null, 'QR_ALREADY_GENERATED');
   }
 
   const updated = await prisma.cafe.update({
@@ -159,7 +159,7 @@ export async function requestQrChange(user, reason) {
   const trimmed = String(reason || '').trim();
 
   if (!trimmed) {
-    throw new ApiError(400, 'Indique la raison du changement');
+    throw new ApiError(400, 'Provide a reason for the change', null, 'QR_REASON_REQUIRED');
   }
 
   const cafe = await prisma.cafe.findUnique({
@@ -174,21 +174,21 @@ export async function requestQrChange(user, reason) {
   });
 
   if (!cafe) {
-    throw new ApiError(404, 'Cafe not found');
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
   if (!cafe.qrGeneratedAt) {
-    throw new ApiError(400, 'Génère d’abord le QR code');
+    throw new ApiError(400, 'Generate the QR code first', null, 'QR_NOT_GENERATED');
   }
 
   if (cafe.qrChangeAllowed) {
-    throw new ApiError(400, 'Un changement est déjà autorisé. Génère le nouveau QR code.');
+    throw new ApiError(400, 'A change is already allowed. Generate the new QR code.', null, 'QR_CHANGE_ALREADY_ALLOWED');
   }
 
   const existing = await findPendingQrRequest(cafeId);
 
   if (existing) {
-    throw new ApiError(409, 'Une demande de changement est déjà en attente');
+    throw new ApiError(409, 'A change request is already pending', null, 'QR_REQUEST_PENDING');
   }
 
   const request = await prisma.qrChangeRequest.create({
@@ -297,7 +297,7 @@ export async function listQrChangeRequests(status) {
 
 export async function reviewQrChangeRequest(requestId, { decision, note }, actor) {
   if (decision !== 'approved' && decision !== 'rejected') {
-    throw new ApiError(400, 'Décision invalide');
+    throw new ApiError(400, 'Invalid decision', null, 'QR_INVALID_DECISION');
   }
 
   const request = await prisma.qrChangeRequest.findUnique({
@@ -310,11 +310,11 @@ export async function reviewQrChangeRequest(requestId, { decision, note }, actor
   });
 
   if (!request) {
-    throw new ApiError(404, 'Demande introuvable');
+    throw new ApiError(404, 'Request not found', null, 'QR_REQUEST_NOT_FOUND');
   }
 
   if (request.status !== 'pending') {
-    throw new ApiError(409, 'Cette demande a déjà été traitée');
+    throw new ApiError(409, 'This request has already been reviewed', null, 'QR_REQUEST_ALREADY_REVIEWED');
   }
 
   const reviewNote = String(note || '').trim();
@@ -371,11 +371,11 @@ export async function unlockCafeQr(cafeId, actor) {
   });
 
   if (!cafe) {
-    throw new ApiError(404, 'Cafe not found');
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
   if (!cafe.qrGeneratedAt) {
-    throw new ApiError(400, 'Ce café n’a pas encore généré de QR code');
+    throw new ApiError(400, 'This cafe has not generated a QR code yet', null, 'QR_NOT_GENERATED');
   }
 
   const pending = await findPendingQrRequest(cafeId);

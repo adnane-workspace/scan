@@ -5,7 +5,7 @@ import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
-    throw new ApiError(403, 'No cafe associated with this account');
+    throw new ApiError(403, 'No cafe associated with this account', null, 'NO_CAFE');
   }
 
   return user.cafeId;

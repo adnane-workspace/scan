@@ -24,7 +24,7 @@ export const updateCafe = asyncHandler(async (req, res) => {
 
 export const uploadLogo = asyncHandler(async (req, res) => {
   if (!req.file) {
-    throw new ApiError(400, 'Image file is required');
+    throw new ApiError(400, 'Image file is required', null, 'IMAGE_REQUIRED');
   }
 
   const kind = Array.isArray(req.query.kind) ? req.query.kind[0] : req.query.kind;

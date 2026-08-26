@@ -31,7 +31,7 @@ export async function login({ email, password }) {
       action: 'auth_login_failed',
       metadata: { email: normalizedEmail, reason: 'invalid_credentials' },
     });
-    throw new ApiError(401, 'Invalid credentials');
+    throw new ApiError(401, 'Invalid credentials', null, 'INVALID_CREDENTIALS');
   }
 
   const isValidPassword = await bcrypt.compare(password, user.passwordHash);
@@ -43,7 +43,7 @@ export async function login({ email, password }) {
       cafeId: user.cafeId,
       metadata: { email: user.email, reason: 'invalid_credentials' },
     });
-    throw new ApiError(401, 'Invalid credentials');
+    throw new ApiError(401, 'Invalid credentials', null, 'INVALID_CREDENTIALS');
   }
 
   if (user.role !== 'admin' && user.role !== 'superadmin') {
@@ -53,7 +53,7 @@ export async function login({ email, password }) {
       cafeId: user.cafeId,
       metadata: { email: user.email, reason: 'forbidden_role' },
     });
-    throw new ApiError(403, 'Admin access required');
+    throw new ApiError(403, 'Admin access required', null, 'ADMIN_REQUIRED');
   }
 
   if (user.role === 'admin') {
@@ -63,7 +63,7 @@ export async function login({ email, password }) {
         actorId: user.id,
         metadata: { email: user.email, reason: 'no_cafe' },
       });
-      throw new ApiError(403, 'No cafe associated with this account');
+      throw new ApiError(403, 'No cafe associated with this account', null, 'NO_CAFE');
     }
 
     const cafe = await prisma.cafe.findUnique({
@@ -78,7 +78,7 @@ export async function login({ email, password }) {
         cafeId: user.cafeId,
         metadata: { email: user.email, reason: 'cafe_disabled' },
       });
-      throw new ApiError(403, 'Ce café est désactivé');
+      throw new ApiError(403, 'This cafe is disabled', null, 'CAFE_DISABLED');
     }
   }
 
@@ -96,7 +96,7 @@ export async function login({ email, password }) {
 
 export function getCurrentUser(user) {
   if (!user) {
-    throw new ApiError(401, 'Authentication required');
+    throw new ApiError(401, 'Authentication required', null, 'AUTH_REQUIRED');
   }
 
   return toPublicUser({
@@ -115,7 +115,7 @@ export async function register({ name, email, password, cafeName, slug }) {
   const cafeSlug = slugify(slug || cafeName);
 
   if (!cafeSlug) {
-    throw new ApiError(400, 'A valid cafe slug is required');
+    throw new ApiError(400, 'A valid cafe slug is required', null, 'INVALID_SLUG');
   }
 
   const [existingEmail, existingSlug] = await Promise.all([
@@ -124,11 +124,11 @@ export async function register({ name, email, password, cafeName, slug }) {
   ]);
 
   if (existingEmail) {
-    throw new ApiError(409, 'Email already in use');
+    throw new ApiError(409, 'Email already in use', null, 'EMAIL_IN_USE');
   }
 
   if (existingSlug) {
-    throw new ApiError(409, 'Cafe slug already in use');
+    throw new ApiError(409, 'Cafe slug already in use', null, 'SLUG_IN_USE');
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -185,17 +185,17 @@ export async function changePassword(userId, { currentPassword, newPassword }) {
   });
 
   if (!user) {
-    throw new ApiError(401, 'Authentication required');
+    throw new ApiError(401, 'Authentication required', null, 'AUTH_REQUIRED');
   }
 
   const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
 
   if (!isValidPassword) {
-    throw new ApiError(400, 'Mot de passe actuel incorrect');
+    throw new ApiError(400, 'Current password is incorrect', null, 'CURRENT_PASSWORD_INVALID');
   }
 
   if (currentPassword === newPassword) {
-    throw new ApiError(400, 'Le nouveau mot de passe doit être différent');
+    throw new ApiError(400, 'The new password must be different', null, 'PASSWORD_UNCHANGED');
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 10);
@@ -313,7 +313,7 @@ export async function verifyPasswordResetCode({ email, code }) {
       });
     }
 
-    throw new ApiError(400, 'Code invalide ou expiré');
+    throw new ApiError(400, 'Invalid or expired code', null, 'RESET_CODE_INVALID');
   }
 
   return { valid: true };
@@ -335,7 +335,7 @@ export async function resetPasswordWithCode({ email, code, newPassword }) {
       });
     }
 
-    throw new ApiError(400, 'Code invalide ou expiré');
+    throw new ApiError(400, 'Invalid or expired code', null, 'RESET_CODE_INVALID');
   }
 
   const user = await prisma.user.findUnique({
@@ -347,7 +347,7 @@ export async function resetPasswordWithCode({ email, code, newPassword }) {
       where: { id: reset.id },
       data: { consumedAt: new Date() },
     });
-    throw new ApiError(400, 'Code invalide ou expiré');
+    throw new ApiError(400, 'Invalid or expired code', null, 'RESET_CODE_INVALID');
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 10);

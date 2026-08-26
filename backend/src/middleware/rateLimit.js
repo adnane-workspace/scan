@@ -16,7 +16,7 @@ function prune(now) {
   }
 }
 
-export function rateLimit({ windowMs, max, message }) {
+export function rateLimit({ windowMs, max, message, code }) {
   return (req, res, next) => {
     const now = Date.now();
 
@@ -37,7 +37,7 @@ export function rateLimit({ windowMs, max, message }) {
     if (entry.count > max) {
       const retryAfter = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
       res.setHeader('Retry-After', String(retryAfter));
-      return next(new ApiError(429, message || 'Too many requests'));
+      return next(new ApiError(429, message || 'Too many requests', null, code || 'TOO_MANY_REQUESTS'));
     }
 
     return next();

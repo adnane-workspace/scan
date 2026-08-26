@@ -58,7 +58,7 @@ export const remove = asyncHandler(async (req, res) => {
 
 export const uploadImage = asyncHandler(async (req, res) => {
   if (!req.file) {
-    throw new ApiError(400, 'Image file is required');
+    throw new ApiError(400, 'Image file is required', null, 'IMAGE_REQUIRED');
   }
 
   const url = await uploadProductImage(req.file, { folder: 'products' });

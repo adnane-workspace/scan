@@ -44,7 +44,7 @@ function resolveUploadFolder(subfolder) {
 
 export async function uploadProductImage(file, options = {}) {
   if (!file?.buffer) {
-    throw new ApiError(400, 'Image file is required');
+    throw new ApiError(400, 'Image file is required', null, 'IMAGE_REQUIRED');
   }
 
   const uploadOptions = {
@@ -62,7 +62,7 @@ export async function uploadProductImage(file, options = {}) {
     const stream = cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
       if (error || !result?.secure_url) {
         const reason = error?.message || error?.error?.message || 'Image upload failed';
-        reject(new ApiError(500, `Image upload failed: ${reason}`));
+        reject(new ApiError(500, `Image upload failed: ${reason}`, null, 'IMAGE_UPLOAD_FAILED'));
         return;
       }
 

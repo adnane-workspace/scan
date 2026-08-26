@@ -4,7 +4,9 @@ import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { listActivityLogs } from '../services/platform.service.js';
+import { getApiError } from '../utils/apiError.js';
 import { formatDateTime, formatRelativeTime } from '../utils/format.js';
+import { getHomePath } from '../utils/paths.js';
 
 const fieldClass =
   'w-full rounded-lg bg-surface-container-highest px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary';
@@ -168,7 +170,7 @@ export default function ActivityLogsPage() {
         })
         .catch((err) => {
           if (!silent) {
-            setError(err.response?.data?.message || t('logs.loadError'));
+            setError(getApiError(err, t, 'logs.loadError'));
             setLogs([]);
           }
         })
@@ -226,7 +228,7 @@ export default function ActivityLogsPage() {
   }, [logs, query, t]);
 
   if (user?.role !== 'superadmin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   return (
@@ -339,7 +341,7 @@ export default function ActivityLogsPage() {
                       {item.cafe ? (
                         <>
                           {' · '}
-                          <Link to={`/dashboard/cafes/${item.cafe._id}`} className="font-medium text-primary hover:underline">
+                          <Link to={`/platform/cafes/${item.cafe._id}`} className="font-medium text-primary hover:underline">
                             {item.cafe.name}
                           </Link>
                         </>

@@ -28,7 +28,7 @@ export default function PopularProducts({ products, loading }) {
             return (
               <li key={product._id}>
                 <Link
-                  to="/dashboard/products"
+                  to="/app/products"
                   className="group flex items-center gap-4 rounded-xl p-1 transition-colors duration-150 hover:bg-surface-container-low"
                 >
                   <span className="w-8 shrink-0 font-display text-xl font-semibold text-primary/35">

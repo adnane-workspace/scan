@@ -44,7 +44,7 @@ export async function createPlatformCafe({ ownerName, email, password, cafeName,
   const cafeSlug = slugify(slug || cafeName);
 
   if (!cafeSlug) {
-    throw new ApiError(400, 'A valid cafe slug is required');
+    throw new ApiError(400, 'A valid cafe slug is required', null, 'INVALID_SLUG');
   }
 
   const [existingEmail, existingSlug] = await Promise.all([
@@ -53,11 +53,11 @@ export async function createPlatformCafe({ ownerName, email, password, cafeName,
   ]);
 
   if (existingEmail) {
-    throw new ApiError(409, 'Email already in use');
+    throw new ApiError(409, 'Email already in use', null, 'EMAIL_IN_USE');
   }
 
   if (existingSlug) {
-    throw new ApiError(409, 'Cafe slug already in use');
+    throw new ApiError(409, 'Cafe slug already in use', null, 'SLUG_IN_USE');
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -156,7 +156,7 @@ export async function updatePlatformCafe(cafeId, payload, actor) {
   });
 
   if (!cafe) {
-    throw new ApiError(404, 'Cafe not found');
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
   const updated = await prisma.cafe.update({
@@ -201,7 +201,7 @@ export async function getPlatformCafe(cafeId) {
   });
 
   if (!cafe) {
-    throw new ApiError(404, 'Cafe not found');
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
   const [productCount, categoryCount, pendingQr] = await Promise.all([
@@ -232,7 +232,7 @@ export async function resetPlatformCafePassword(cafeId, password, actor) {
   });
 
   if (!owner) {
-    throw new ApiError(404, 'Aucun gérant pour ce café');
+    throw new ApiError(404, 'No manager for this cafe', null, 'CAFE_OWNER_MISSING');
   }
 
   const passwordHash = await bcrypt.hash(password, 10);

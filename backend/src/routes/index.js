@@ -12,11 +12,17 @@ const router = Router();
 
 router.use('/health', healthRouter);
 router.use('/auth', authRouter);
-router.use('/cafe', cafeRouter);
 router.use('/platform', platformRouter);
+router.use('/menu', menuRouter);
+
+router.use('/me/cafe', cafeRouter);
+router.use('/me/categories', categoryRouter);
+router.use('/me/products', productRouter);
+router.use('/me/stats', dashboardRouter);
+
+router.use('/cafe', cafeRouter);
 router.use('/categories', categoryRouter);
 router.use('/products', productRouter);
-router.use('/dashboard', dashboardRouter);
-router.use('/menu', menuRouter);
+router.use('/dashboard/stats', dashboardRouter);
 
 export { router };

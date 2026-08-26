@@ -5,7 +5,7 @@ export async function getHealthStatus() {
   try {
     await prisma.$queryRaw`SELECT 1`;
   } catch {
-    throw new ApiError(503, 'Database unavailable');
+    throw new ApiError(503, 'Database unavailable', null, 'DATABASE_UNAVAILABLE');
   }
 
   return {

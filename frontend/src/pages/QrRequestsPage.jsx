@@ -4,7 +4,9 @@ import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { listQrChangeRequests, reviewQrChangeRequest } from '../services/platform.service.js';
+import { getApiError } from '../utils/apiError.js';
 import { formatDateTime } from '../utils/format.js';
+import { getHomePath } from '../utils/paths.js';
 
 const fieldClass =
   'w-full rounded-lg bg-surface-container-highest px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary';
@@ -49,7 +51,7 @@ export default function QrRequestsPage() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err.response?.data?.message || t('qr.requestsLoadError'));
+          setError(getApiError(err, t, 'qr.requestsLoadError'));
           setRequests([]);
         }
       })
@@ -65,7 +67,7 @@ export default function QrRequestsPage() {
   }, [status, t, user?.role]);
 
   if (user?.role !== 'superadmin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   async function handleReview(request, decision) {
@@ -80,7 +82,7 @@ export default function QrRequestsPage() {
       setPendingCount(result.pendingCount || 0);
       await refreshCafes?.();
     } catch (err) {
-      setError(err.response?.data?.message || t('qr.reviewError'));
+      setError(getApiError(err, t, 'qr.reviewError'));
     } finally {
       setPendingId('');
     }
@@ -163,7 +165,7 @@ export default function QrRequestsPage() {
                 <tr key={request._id} className="border-t border-outline-variant/20 align-top">
                   <td className="px-4 py-3">
                     {request.cafe?._id ? (
-                      <Link to={`/dashboard/cafes/${request.cafe._id}`} className="font-medium text-primary hover:underline">
+                      <Link to={`/platform/cafes/${request.cafe._id}`} className="font-medium text-primary hover:underline">
                         {request.cafe.name}
                       </Link>
                     ) : (

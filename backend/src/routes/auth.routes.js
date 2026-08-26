@@ -27,24 +27,28 @@ const loginLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Too many login attempts. Try again later.',
+  code: 'TOO_MANY_LOGIN_ATTEMPTS',
 });
 
 const resetRequestLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
   message: 'Too many password reset requests. Try again later.',
+  code: 'TOO_MANY_RESET_REQUESTS',
 });
 
 const resetVerifyLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Too many verification attempts. Try again later.',
+  code: 'TOO_MANY_VERIFY_ATTEMPTS',
 });
 
 const resetCompleteLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
   message: 'Too many password reset attempts. Try again later.',
+  code: 'TOO_MANY_RESET_ATTEMPTS',
 });
 
 authRouter.post('/register', validate(registerSchema), registerAdmin);

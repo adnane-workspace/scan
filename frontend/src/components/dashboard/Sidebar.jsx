@@ -21,18 +21,18 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
   const isSuperAdmin = role === 'superadmin';
   const links = isSuperAdmin
     ? [
-        { to: '/dashboard', label: t('nav.dashboard'), icon: 'home', end: true },
-        { to: '/dashboard/cafes', label: t('nav.cafes'), icon: 'storefront' },
-        { to: '/dashboard/qr-requests', label: t('nav.qrRequests'), icon: 'qr_code_2', badge: qrRequestCount },
-        { to: '/dashboard/logs', label: t('nav.logs'), icon: 'history' },
-        { to: '/dashboard/storage', label: t('nav.storage'), icon: 'cloud' },
-        { to: '/dashboard/settings', label: t('nav.settings'), icon: 'settings' },
+        { to: '/platform', label: t('nav.dashboard'), icon: 'home', end: true },
+        { to: '/platform/cafes', label: t('nav.cafes'), icon: 'storefront' },
+        { to: '/platform/qr-requests', label: t('nav.qrRequests'), icon: 'qr_code_2', badge: qrRequestCount },
+        { to: '/platform/logs', label: t('nav.logs'), icon: 'history' },
+        { to: '/platform/storage', label: t('nav.storage'), icon: 'cloud' },
+        { to: '/platform/settings', label: t('nav.settings'), icon: 'settings' },
       ]
     : [
-        { to: '/dashboard', label: t('nav.dashboard'), icon: 'home', end: true },
-        { to: '/dashboard/categories', label: t('nav.categories'), icon: 'grid_view' },
-        { to: '/dashboard/products', label: t('nav.products'), icon: 'lunch_dining' },
-        { to: '/dashboard/settings', label: t('nav.settings'), icon: 'settings' },
+        { to: '/app', label: t('nav.dashboard'), icon: 'home', end: true },
+        { to: '/app/categories', label: t('nav.categories'), icon: 'grid_view' },
+        { to: '/app/products', label: t('nav.products'), icon: 'lunch_dining' },
+        { to: '/app/settings', label: t('nav.settings'), icon: 'settings' },
       ];
   const menuPath = cafe?.slug ? `/menu/${cafe.slug}` : '';
 

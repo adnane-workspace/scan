@@ -1,7 +1,9 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import PublicLayout from './layouts/PublicLayout.jsx';
+import DashboardLegacyRedirect from './components/common/DashboardLegacyRedirect.jsx';
+import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import { useLocale } from './hooks/useLocale.js';
 
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout.jsx'));
@@ -21,6 +23,7 @@ const PublicMenuPage = lazy(() => import('./pages/PublicMenuPage.jsx'));
 const QrRequestsPage = lazy(() => import('./pages/QrRequestsPage.jsx'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'));
+const SiteLandingPage = lazy(() => import('./pages/SiteLandingPage.jsx'));
 
 function RouteFallback() {
   const { t } = useLocale();
@@ -36,7 +39,7 @@ export default function App() {
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<SiteLandingPage />} />
 
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
@@ -44,17 +47,29 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
         </Route>
 
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="categories" element={<CategoriesPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="cafes" element={<CafesPage />} />
-          <Route path="cafes/new" element={<CreateCafePage />} />
-          <Route path="cafes/:id" element={<CafeDetailPage />} />
-          <Route path="qr-requests" element={<QrRequestsPage />} />
-          <Route path="logs" element={<ActivityLogsPage />} />
-          <Route path="storage" element={<StoragePage />} />
+        <Route path="/dashboard" element={<DashboardLegacyRedirect />} />
+        <Route path="/dashboard/*" element={<DashboardLegacyRedirect />} />
+
+        <Route element={<ProtectedRoute roles={['admin']} />}>
+          <Route path="/app" element={<DashboardLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="products" element={<ProductsPage />} />
+            <Route path="categories" element={<CategoriesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Route>
+
+        <Route element={<ProtectedRoute roles={['superadmin']} />}>
+          <Route path="/platform" element={<DashboardLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="cafes" element={<CafesPage />} />
+            <Route path="cafes/new" element={<CreateCafePage />} />
+            <Route path="cafes/:id" element={<CafeDetailPage />} />
+            <Route path="qr-requests" element={<QrRequestsPage />} />
+            <Route path="logs" element={<ActivityLogsPage />} />
+            <Route path="storage" element={<StoragePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
         </Route>
 
         <Route element={<PublicLayout />}>

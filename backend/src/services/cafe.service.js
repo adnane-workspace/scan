@@ -7,7 +7,7 @@ import { deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
-    throw new ApiError(403, 'No cafe associated with this account');
+    throw new ApiError(403, 'No cafe associated with this account', null, 'NO_CAFE');
   }
 
   return user.cafeId;
@@ -37,7 +37,7 @@ export async function getMyCafe(user) {
   const cafe = await prisma.cafe.findUnique({ where: { id: cafeId } });
 
   if (!cafe) {
-    throw new ApiError(404, 'Cafe not found');
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
   const pending = await findPendingQrRequest(cafeId);
@@ -59,7 +59,7 @@ export async function updateMyCafe(user, payload) {
   });
 
   if (!current) {
-    throw new ApiError(404, 'Cafe not found');
+    throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
   const data = {};
@@ -100,7 +100,7 @@ export async function updateMyCafe(user, payload) {
     const nextSlug = slugify(payload.slug);
 
     if (!nextSlug) {
-      throw new ApiError(400, 'A valid cafe slug is required');
+      throw new ApiError(400, 'A valid cafe slug is required', null, 'INVALID_SLUG');
     }
 
     if (nextSlug !== current.slug) {
@@ -109,7 +109,9 @@ export async function updateMyCafe(user, payload) {
       if (slugLocked) {
         throw new ApiError(
           409,
-          'Le lien public est verrouillé après génération du QR. Demande un changement au superadmin.',
+          'The public link is locked after QR generation. Request a change from the superadmin.',
+          null,
+          'SLUG_LOCKED',
         );
       }
 
@@ -119,7 +121,7 @@ export async function updateMyCafe(user, payload) {
       });
 
       if (taken) {
-        throw new ApiError(409, 'Cafe slug already in use');
+        throw new ApiError(409, 'Cafe slug already in use', null, 'SLUG_IN_USE');
       }
 
       data.slug = nextSlug;

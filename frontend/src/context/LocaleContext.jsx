@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LOCALES, messages } from '../i18n/messages.js';
+import { LOCALE_STORAGE_KEY } from '../utils/constants.js';
 import { LocaleContext } from './locale-context.js';
-
-export const LOCALE_STORAGE_KEY = 'digital-menu-locale';
 
 const SUPPORTED = new Set(LOCALES.map((item) => item.id));
 

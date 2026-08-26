@@ -54,11 +54,11 @@ export async function getPublicMenu(slug) {
   });
 
   if (!cafe) {
-    throw new ApiError(404, 'Menu introuvable');
+    throw new ApiError(404, 'Menu not found', null, 'MENU_NOT_FOUND');
   }
 
   if (!cafe.isActive) {
-    throw new ApiError(403, 'Menu indisponible');
+    throw new ApiError(403, 'Menu unavailable', null, 'MENU_UNAVAILABLE');
   }
 
   const [categories, products] = await Promise.all([

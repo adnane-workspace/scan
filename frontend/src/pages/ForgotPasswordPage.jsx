@@ -8,8 +8,12 @@ import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { requestPasswordReset, resetPasswordWithCode, verifyResetCode } from '../services/auth.service.js';
+import { getApiError } from '../utils/apiError.js';
+import { getHomePath } from '../utils/paths.js';
 
 function AuthChrome({ title, subtitle, children, footer }) {
+  const { t } = useLocale();
+
   return (
     <main className="grid min-h-screen bg-background text-on-surface lg:grid-cols-2">
       <AuthBrandPanel />
@@ -25,7 +29,9 @@ function AuthChrome({ title, subtitle, children, footer }) {
         <div className="relative z-10 w-full max-w-[420px]">
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
             <div className="mb-5 lg:hidden">
-              <BrandLogo />
+              <Link to="/" aria-label={t('landing.navHome')}>
+                <BrandLogo />
+              </Link>
             </div>
             <h2 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface sm:text-4xl">
               {title}
@@ -41,7 +47,7 @@ function AuthChrome({ title, subtitle, children, footer }) {
 }
 
 export default function ForgotPasswordPage() {
-  const { isAuthenticated, isReady } = useAuth();
+  const { isAuthenticated, isReady, user } = useAuth();
   const { t, locale } = useLocale();
   const navigate = useNavigate();
   const [step, setStep] = useState('email');
@@ -76,7 +82,7 @@ export default function ForgotPasswordPage() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   async function sendCode(event) {
@@ -91,7 +97,7 @@ export default function ForgotPasswordPage() {
       setInfo(t('auth.resetCodeSent', { email }));
       setStep('code');
     } catch (err) {
-      setError(err.response?.data?.message || t('auth.resetSendError'));
+      setError(getApiError(err, t, 'auth.resetSendError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -107,7 +113,7 @@ export default function ForgotPasswordPage() {
       setInfo('');
       setStep('password');
     } catch (err) {
-      setError(err.response?.data?.message || t('auth.resetCodeError'));
+      setError(getApiError(err, t, 'auth.resetCodeError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -128,7 +134,7 @@ export default function ForgotPasswordPage() {
       await resetPasswordWithCode({ email, code, newPassword: password });
       navigate('/login', { replace: true, state: { resetSuccess: true } });
     } catch (err) {
-      setError(err.response?.data?.message || t('auth.resetSaveError'));
+      setError(getApiError(err, t, 'auth.resetSaveError'));
     } finally {
       setIsSubmitting(false);
     }

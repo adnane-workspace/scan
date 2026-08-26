@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AdminProductCard from '../components/dashboard/AdminProductCard.jsx';
 import ProductFormModal from '../components/dashboard/ProductFormModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
@@ -11,6 +11,7 @@ import {
   updateProduct,
   uploadProductImage,
 } from '../services/product.service.js';
+import { getApiError } from '../utils/apiError.js';
 import { categoryPathLabel, leafCategories, subtreeIds } from '../utils/categoryTree.js';
 
 const emptyForm = {
@@ -43,7 +44,7 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
 
-  async function loadData(silent = false) {
+  const loadData = useCallback(async (silent = false) => {
     if (!silent) {
       setLoading(true);
     }
@@ -54,17 +55,17 @@ export default function ProductsPage() {
       setProducts(productItems);
       setCategories(categoryItems);
     } catch (err) {
-      setError(err.response?.data?.message || t('products.loadError'));
+      setError(getApiError(err, t, 'products.loadError'));
     } finally {
       if (!silent) {
         setLoading(false);
       }
     }
-  }
+  }, [t]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const leafOptions = useMemo(
     () =>
@@ -147,7 +148,7 @@ export default function ProductsPage() {
       const url = await uploadProductImage(file);
       setForm((current) => ({ ...current, image: url }));
     } catch (err) {
-      setFormError(err.response?.data?.message || t('validation.uploadImage'));
+      setFormError(getApiError(err, t, 'validation.uploadImage'));
     } finally {
       setUploading(false);
     }
@@ -206,7 +207,7 @@ export default function ProductsPage() {
       closeForm();
       await loadData(true);
     } catch (err) {
-      setFormError(err.response?.data?.message || t('validation.saveProduct'));
+      setFormError(getApiError(err, t, 'validation.saveProduct'));
     } finally {
       setSaving(false);
     }
@@ -230,7 +231,7 @@ export default function ProductsPage() {
 
       await loadData(true);
     } catch (err) {
-      setError(err.response?.data?.message || t('products.deleteError'));
+      setError(getApiError(err, t, 'products.deleteError'));
     }
   }
 
@@ -246,7 +247,7 @@ export default function ProductsPage() {
         ),
       );
     } catch (err) {
-      setError(err.response?.data?.message || t('dashboard.availabilityError'));
+      setError(getApiError(err, t, 'dashboard.availabilityError'));
     } finally {
       setTogglingId(null);
     }

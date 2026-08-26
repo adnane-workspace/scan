@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import CategoryFormModal from '../components/dashboard/CategoryFormModal.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
@@ -11,6 +11,7 @@ import {
   updateCategory,
   uploadCategoryImage,
 } from '../services/category.service.js';
+import { getApiError } from '../utils/apiError.js';
 import {
   descendantIdSet,
   siblingCategories,
@@ -98,7 +99,7 @@ export default function CategoriesPage() {
   const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
 
-  async function loadData(silent = false) {
+  const loadData = useCallback(async (silent = false) => {
     if (!silent) {
       setLoading(true);
     }
@@ -108,17 +109,17 @@ export default function CategoriesPage() {
       const categoryItems = await listCategories();
       setCategories(categoryItems);
     } catch (err) {
-      setError(err.response?.data?.message || t('categories.loadError'));
+      setError(getApiError(err, t, 'categories.loadError'));
     } finally {
       if (!silent) {
         setLoading(false);
       }
     }
-  }
+  }, [t]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const rows = useMemo(() => walkPreOrder(categories), [categories]);
 
@@ -208,7 +209,7 @@ export default function CategoriesPage() {
       clearPublicMenuCache();
       await loadData(true);
     } catch (err) {
-      setFormError(err.response?.data?.message || t('validation.saveCategory'));
+      setFormError(getApiError(err, t, 'validation.saveCategory'));
     } finally {
       setSaving(false);
     }
@@ -229,7 +230,7 @@ export default function CategoriesPage() {
       const url = await uploadCategoryImage(file);
       setForm((current) => ({ ...current, image: url }));
     } catch (err) {
-      setFormError(err.response?.data?.message || t('validation.uploadImage'));
+      setFormError(getApiError(err, t, 'validation.uploadImage'));
     } finally {
       setUploading(false);
     }
@@ -254,7 +255,7 @@ export default function CategoriesPage() {
 
       await loadData(true);
     } catch (err) {
-      setError(err.response?.data?.message || t('categories.deleteError'));
+      setError(getApiError(err, t, 'categories.deleteError'));
     }
   }
 
@@ -279,7 +280,7 @@ export default function CategoriesPage() {
         ),
       );
     } catch (err) {
-      setError(err.response?.data?.message || t('categories.reorderError'));
+      setError(getApiError(err, t, 'categories.reorderError'));
       await loadData(true);
     } finally {
       setReordering(false);

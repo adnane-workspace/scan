@@ -10,7 +10,7 @@ export const productImageUpload = multer({
   },
   fileFilter(_req, file, callback) {
     if (!allowedTypes.has(file.mimetype)) {
-      callback(new ApiError(400, 'Only JPG, PNG, WEBP and GIF images are allowed'));
+      callback(new ApiError(400, 'Only JPG, PNG, WEBP and GIF images are allowed', null, 'IMAGE_TYPE'));
       return;
     }
 
@@ -20,7 +20,7 @@ export const productImageUpload = multer({
 
 export function handleUploadError(err, _req, _res, next) {
   if (err?.code === 'LIMIT_FILE_SIZE') {
-    return next(new ApiError(400, 'Image too large (max 5MB)'));
+    return next(new ApiError(400, 'Image too large (max 5MB)', null, 'IMAGE_TOO_LARGE'));
   }
 
   return next(err);

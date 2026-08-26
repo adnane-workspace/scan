@@ -9,7 +9,7 @@ export function validate(schema) {
     });
 
     if (!result.success) {
-      return next(new ApiError(400, 'Validation error', result.error.flatten()));
+      return next(new ApiError(400, 'Validation error', result.error.flatten(), 'VALIDATION_ERROR'));
     }
 
     req.validated = result.data;

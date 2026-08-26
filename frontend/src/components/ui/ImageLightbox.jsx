@@ -36,7 +36,7 @@ export default function ImageLightbox({ src, alt = '', onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
       <button
         type="button"
-        className="absolute inset-0 bg-[#25272c]/80"
+        className="absolute inset-0 bg-[#0d1b2a]/80"
         aria-label={t('common.close')}
         onClick={onClose}
       />

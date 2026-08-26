@@ -9,6 +9,7 @@ import { useLocale } from '../hooks/useLocale.js';
 import { APP_NAME } from '../utils/constants.js';
 import { getDashboardStats } from '../services/dashboard.service.js';
 import { listPlatformCafes } from '../services/platform.service.js';
+import { getApiError } from '../utils/apiError.js';
 
 const emptyStats = {
   totalProducts: 0,
@@ -21,15 +22,17 @@ const emptyStats = {
 };
 
 const headerSubtitleKeys = {
-  '/dashboard': 'header.dashboard',
-  '/dashboard/categories': 'header.categories',
-  '/dashboard/products': 'header.products',
-  '/dashboard/settings': 'header.settings',
-  '/dashboard/cafes': 'header.cafes',
-  '/dashboard/cafes/new': 'header.cafeNew',
-  '/dashboard/qr-requests': 'header.qrRequests',
-  '/dashboard/logs': 'header.logs',
-  '/dashboard/storage': 'header.storage',
+  '/app': 'header.dashboard',
+  '/app/categories': 'header.categories',
+  '/app/products': 'header.products',
+  '/app/settings': 'header.settings',
+  '/platform': 'header.dashboard',
+  '/platform/settings': 'header.settings',
+  '/platform/cafes': 'header.cafes',
+  '/platform/cafes/new': 'header.cafeNew',
+  '/platform/qr-requests': 'header.qrRequests',
+  '/platform/logs': 'header.logs',
+  '/platform/storage': 'header.storage',
 };
 
 export default function DashboardLayout() {
@@ -56,7 +59,7 @@ export default function DashboardLayout() {
       setError('');
       hasLoadedRef.current = true;
     } catch (err) {
-      setError(err.response?.data?.message || t('dashboard.loadError'));
+      setError(getApiError(err, t, 'dashboard.loadError'));
     } finally {
       if (!silent) {
         setLoading(false);
@@ -75,7 +78,7 @@ export default function DashboardLayout() {
       setError('');
       hasLoadedRef.current = true;
     } catch (err) {
-      setError(err.response?.data?.message || t('dashboard.loadCafesError'));
+      setError(getApiError(err, t, 'dashboard.loadCafesError'));
     } finally {
       if (!silent) {
         setLoading(false);
@@ -100,7 +103,7 @@ export default function DashboardLayout() {
       return undefined;
     }
 
-    if (hasLoadedRef.current && location.pathname !== '/dashboard') {
+    if (hasLoadedRef.current && location.pathname !== '/app') {
       return undefined;
     }
 
@@ -132,7 +135,7 @@ export default function DashboardLayout() {
   const subtitleKey = headerSubtitleKeys[location.pathname];
   const headerSubtitle = subtitleKey
     ? t(subtitleKey)
-    : location.pathname.startsWith('/dashboard/cafes/')
+    : location.pathname.startsWith('/platform/cafes/')
       ? t('header.cafeDetail')
       : isSuperAdmin
         ? t('dashboard.roleSuper')

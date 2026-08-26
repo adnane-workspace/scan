@@ -2,6 +2,7 @@
 node_modules/
 .cursor/
 stitch-assets/
+tmp-stitch*
 next.md*
 TECHNICAL.md*
 # Environment and secrets

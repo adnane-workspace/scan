@@ -33,7 +33,7 @@ function LandingShell({ children, className = '' }) {
 
   return (
     <div
-      className={`fixed inset-0 z-10 flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none bg-[#25272c] text-[#b8f7e4] ${className}`}
+      className={`fixed inset-0 z-10 flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none bg-[#0d1b2a] text-[#e0e1dd] ${className}`}
     >
       {children}
     </div>
@@ -44,8 +44,8 @@ function LandingStatus({ title, message }) {
   return (
     <LandingShell className="items-center justify-center">
       <div className="px-6 text-center">
-        <h1 className="font-display text-2xl font-semibold text-[#b8f7e4]">{title}</h1>
-        <p className="mt-2 max-w-md text-sm text-[#b8f7e4]/70">{message}</p>
+        <h1 className="font-display text-2xl font-semibold text-[#e0e1dd]">{title}</h1>
+        <p className="mt-2 max-w-md text-sm text-[#e0e1dd]/70">{message}</p>
       </div>
     </LandingShell>
   );
@@ -76,7 +76,7 @@ export default function PublicMenuLandingPage() {
   if (loading) {
     return (
       <LandingShell className="items-center justify-center">
-        <div className="h-20 w-20 animate-pulse rounded-full bg-[#b8f7e4]/10" />
+        <div className="h-20 w-20 animate-pulse rounded-full bg-[#e0e1dd]/10" />
       </LandingShell>
     );
   }
@@ -124,10 +124,10 @@ export default function PublicMenuLandingPage() {
               preset="logoHero"
               width={144}
               height={144}
-              className="h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 rounded-full object-cover ring-4 ring-[#b8f7e4]/80"
+              className="h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 rounded-full object-cover ring-4 ring-[#e0e1dd]/80"
             />
           ) : (
-            <div className="flex h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 items-center justify-center rounded-full bg-[#b8f7e4]/15 font-display text-[clamp(1.25rem,6vmin,2.5rem)] font-semibold ring-4 ring-[#b8f7e4]/40">
+            <div className="flex h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 items-center justify-center rounded-full bg-[#e0e1dd]/15 font-display text-[clamp(1.25rem,6vmin,2.5rem)] font-semibold ring-4 ring-[#e0e1dd]/40">
               {cafe.name.slice(0, 1)}
             </div>
           )}
@@ -137,7 +137,7 @@ export default function PublicMenuLandingPage() {
           </h1>
 
           {cafe.description ? (
-            <p className="mt-2 hidden max-w-md shrink-0 line-clamp-2 text-sm leading-relaxed text-[#b8f7e4]/80 min-[520px]:block max-h-[500px]:hidden sm:text-base">
+            <p className="mt-2 hidden max-w-md shrink-0 line-clamp-2 text-sm leading-relaxed text-[#e0e1dd]/80 min-[520px]:block max-h-[500px]:hidden sm:text-base">
               {cafe.description}
             </p>
           ) : null}
@@ -149,7 +149,7 @@ export default function PublicMenuLandingPage() {
                   href={mapsHref(cafe)}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex w-full items-center gap-2 rounded-full bg-[#b8f7e4]/15 px-3.5 py-2 text-start text-sm text-[#b8f7e4]/90 ring-1 ring-[#b8f7e4]/20 backdrop-blur-md hover:bg-[#b8f7e4]/25 sm:w-auto sm:max-w-full sm:px-4"
+                  className="inline-flex w-full items-center gap-2 rounded-full bg-[#e0e1dd]/15 px-3.5 py-2 text-start text-sm text-[#e0e1dd]/90 ring-1 ring-[#e0e1dd]/20 backdrop-blur-md hover:bg-[#e0e1dd]/25 sm:w-auto sm:max-w-full sm:px-4"
                 >
                   <MaterialIcon name="location_on" className="shrink-0 text-[18px]" />
                   <span className="min-w-0 truncate">
@@ -160,7 +160,7 @@ export default function PublicMenuLandingPage() {
               {cafe.phone ? (
                 <a
                   href={telHref(cafe.phone)}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#b8f7e4]/10 px-4 py-1.5 text-sm text-[#b8f7e4]/85 ring-1 ring-[#b8f7e4]/15 backdrop-blur-md hover:bg-[#b8f7e4]/20"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#e0e1dd]/10 px-4 py-1.5 text-sm text-[#e0e1dd]/85 ring-1 ring-[#e0e1dd]/15 backdrop-blur-md hover:bg-[#e0e1dd]/20"
                 >
                   <MaterialIcon name="call" className="text-[18px]" />
                   {cafe.phone}
@@ -171,7 +171,7 @@ export default function PublicMenuLandingPage() {
 
           <Link
             to={`/menu/${slug}/categories`}
-            className="mt-[clamp(0.75rem,3vmin,2rem)] inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#b8f7e4] px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-[#25272c] transition-transform hover:bg-[#b8f7e4]/90 active:scale-[0.98] sm:w-auto sm:min-w-56"
+            className="mt-[clamp(0.75rem,3vmin,2rem)] inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#e0e1dd] px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-[#0d1b2a] transition-transform hover:bg-[#e0e1dd]/90 active:scale-[0.98] sm:w-auto sm:min-w-56"
           >
             {t('menu.viewMenu')}
             <MaterialIcon name="arrow_forward" className="text-[20px]" />

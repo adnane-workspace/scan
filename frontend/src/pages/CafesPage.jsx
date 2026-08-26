@@ -3,7 +3,9 @@ import { Link, Navigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { updatePlatformCafe } from '../services/platform.service.js';
+import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
+import { getHomePath } from '../utils/paths.js';
 
 const fieldClass =
   'w-full rounded-lg bg-surface-container-highest px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary';
@@ -57,7 +59,7 @@ export default function CafesPage() {
   }, [platformCafes, query, status, from, to]);
 
   if (user?.role !== 'superadmin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   async function handleToggle(cafe) {
@@ -68,7 +70,7 @@ export default function CafesPage() {
       await updatePlatformCafe(cafe._id, { isActive: !cafe.isActive });
       await refreshCafes?.();
     } catch (err) {
-      setActionError(err.response?.data?.message || t('platform.updateError'));
+      setActionError(getApiError(err, t, 'platform.updateError'));
     } finally {
       setPendingId('');
     }
@@ -84,7 +86,7 @@ export default function CafesPage() {
           </p>
         </div>
         <Link
-          to="/dashboard/cafes/new"
+          to="/platform/cafes/new"
           className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary shadow-md"
         >
           {t('platform.createCafe')}
@@ -161,7 +163,7 @@ export default function CafesPage() {
               filteredCafes.map((cafe) => (
                 <tr key={cafe._id} className="border-t border-outline-variant/20 hover:bg-surface-container-high/50">
                   <td className="px-4 py-3">
-                    <Link to={`/dashboard/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
+                    <Link to={`/platform/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
                       {cafe.name}
                     </Link>
                     <p className="text-on-surface-variant">{cafe.slug}</p>

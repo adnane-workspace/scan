@@ -1,9 +1,10 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useLocale } from '../../hooks/useLocale.js';
+import { getHomePath } from '../../utils/paths.js';
 
-export default function ProtectedRoute({ children }) {
-  const { isAuthenticated, isReady } = useAuth();
+export default function ProtectedRoute({ children, roles }) {
+  const { isAuthenticated, isReady, user } = useAuth();
   const { t } = useLocale();
 
   if (!isReady) {
@@ -16,6 +17,10 @@ export default function ProtectedRoute({ children }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (roles?.length && !roles.includes(user?.role)) {
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   return children ?? <Outlet />;

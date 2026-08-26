@@ -7,9 +7,11 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { getApiError } from '../utils/apiError.js';
+import { getHomePath } from '../utils/paths.js';
 
 export default function LoginPage() {
-  const { isAuthenticated, isReady, login } = useAuth();
+  const { isAuthenticated, isReady, login, user } = useAuth();
   const { t } = useLocale();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,7 +30,7 @@ export default function LoginPage() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePath(user)} replace />;
   }
 
   async function handleSubmit(event) {
@@ -37,10 +39,10 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
-      navigate('/dashboard', { replace: true });
+      const nextUser = await login(email, password);
+      navigate(getHomePath(nextUser), { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || t('auth.loginError'));
+      setError(getApiError(err, t, 'auth.loginError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -61,7 +63,9 @@ export default function LoginPage() {
         <div className="relative z-10 w-full max-w-[420px]">
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
             <div className="mb-5 lg:hidden">
-              <BrandLogo />
+              <Link to="/" aria-label={t('landing.navHome')}>
+                <BrandLogo />
+              </Link>
             </div>
             <h2 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface sm:text-4xl">
               {t('auth.loginTitle')}

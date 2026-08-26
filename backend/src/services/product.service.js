@@ -6,7 +6,7 @@ import { assertLeafCategory } from './category.service.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
-    throw new ApiError(403, 'No cafe associated with this account');
+    throw new ApiError(403, 'No cafe associated with this account', null, 'NO_CAFE');
   }
 
   return user.cafeId;
@@ -42,7 +42,7 @@ async function findOwnedProduct(cafeId, productId) {
   });
 
   if (!product) {
-    throw new ApiError(404, 'Product not found');
+    throw new ApiError(404, 'Product not found', null, 'PRODUCT_NOT_FOUND');
   }
 
   return product;

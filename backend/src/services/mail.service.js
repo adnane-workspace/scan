@@ -27,12 +27,12 @@ function buildResetEmail(code, locale) {
   const copy = COPY[locale] || COPY.fr;
   const text = `${copy.intro}\n\n${code}\n\n${copy.valid}`;
   const html = `
-    <div style="font-family:Georgia,serif;background:#25272c;padding:32px;color:#b8f7e4">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#b8f7e4;margin:0 0 16px">QTable</p>
+    <div style="font-family:Georgia,serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">QTable</p>
       <h1 style="font-size:28px;margin:0 0 12px">${copy.title}</h1>
-      <p style="margin:0 0 24px;color:#b8f7e4b8;line-height:1.5">${copy.intro}</p>
+      <p style="margin:0 0 24px;color:#e0e1ddb8;line-height:1.5">${copy.intro}</p>
       <p style="font-size:36px;letter-spacing:.28em;font-weight:700;margin:0 0 24px">${code}</p>
-      <p style="margin:0;color:#b8f7e48f;font-size:14px;line-height:1.5">${copy.valid}</p>
+      <p style="margin:0;color:#e0e1dd8f;font-size:14px;line-height:1.5">${copy.valid}</p>
     </div>
   `;
 
@@ -44,7 +44,7 @@ function dashboardOrigin() {
 }
 
 function buildQrChangeEmail({ cafeName, slug, requesterName, requesterEmail, reason }) {
-  const reviewUrl = `${dashboardOrigin()}/dashboard/qr-requests`;
+  const reviewUrl = `${dashboardOrigin()}/platform/qr-requests`;
   const subject = `Demande de changement de QR — ${cafeName}`;
   const text = [
     `${requesterName} (${requesterEmail}) demande un changement de QR pour ${cafeName} (/${slug}).`,
@@ -54,25 +54,25 @@ function buildQrChangeEmail({ cafeName, slug, requesterName, requesterEmail, rea
     `Traiter la demande : ${reviewUrl}`,
   ].join('\n');
   const html = `
-    <div style="font-family:Georgia,serif;background:#25272c;padding:32px;color:#b8f7e4">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#b8f7e4;margin:0 0 16px">QTable</p>
+    <div style="font-family:Georgia,serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">QTable</p>
       <h1 style="font-size:28px;margin:0 0 12px">Changement de QR</h1>
-      <p style="margin:0 0 16px;color:#b8f7e4b8;line-height:1.5">
-        <strong style="color:#b8f7e4">${escapeHtml(requesterName)}</strong>
+      <p style="margin:0 0 16px;color:#e0e1ddb8;line-height:1.5">
+        <strong style="color:#e0e1dd">${escapeHtml(requesterName)}</strong>
         (${escapeHtml(requesterEmail)}) demande un nouveau QR pour
-        <strong style="color:#b8f7e4">${escapeHtml(cafeName)}</strong>
+        <strong style="color:#e0e1dd">${escapeHtml(cafeName)}</strong>
         (/${escapeHtml(slug)}).
       </p>
-      <p style="margin:0 0 24px;color:#b8f7e4b8;line-height:1.5">
-        <span style="display:block;letter-spacing:.12em;text-transform:uppercase;font-size:11px;color:#b8f7e4;margin-bottom:8px">Raison</span>
+      <p style="margin:0 0 24px;color:#e0e1ddb8;line-height:1.5">
+        <span style="display:block;letter-spacing:.12em;text-transform:uppercase;font-size:11px;color:#e0e1dd;margin-bottom:8px">Raison</span>
         ${escapeHtml(reason)}
       </p>
       <p style="margin:0 0 24px">
-        <a href="${reviewUrl}" style="display:inline-block;background:#b8f7e4;color:#25272c;text-decoration:none;padding:12px 20px;border-radius:12px;font-weight:700">
+        <a href="${reviewUrl}" style="display:inline-block;background:#e0e1dd;color:#0d1b2a;text-decoration:none;padding:12px 20px;border-radius:12px;font-weight:700">
           Voir la demande
         </a>
       </p>
-      <p style="margin:0;color:#b8f7e48f;font-size:14px;line-height:1.5">${reviewUrl}</p>
+      <p style="margin:0;color:#e0e1dd8f;font-size:14px;line-height:1.5">${reviewUrl}</p>
     </div>
   `;
 
@@ -99,7 +99,7 @@ async function dispatchEmail(payload) {
   }
 
   if (env.NODE_ENV === 'production') {
-    throw new ApiError(503, 'Email is not configured');
+    throw new ApiError(503, 'Email is not configured', null, 'EMAIL_NOT_CONFIGURED');
   }
 
   console.info(`[mail] to=${payload.to} subject=${payload.subject}\n${payload.text}`);
@@ -124,7 +124,7 @@ async function sendWithResend({ to, subject, html, text }) {
 
   if (!response.ok) {
     const details = await response.text();
-    throw new ApiError(502, `Unable to send email (${response.status})`, details);
+    throw new ApiError(502, `Unable to send email (${response.status})`, details, 'EMAIL_SEND_FAILED');
   }
 }
 
@@ -155,7 +155,7 @@ async function sendWithSmtp({ to, subject, html, text }) {
   } catch (error) {
     const detail = error?.response || error?.message || 'SMTP error';
     console.error('SMTP send failed:', detail);
-    throw new ApiError(502, 'Impossible d’envoyer l’email. Vérifie SMTP_USER, le mot de passe d’application Gmail, et MAIL_FROM.');
+    throw new ApiError(502, 'Unable to send email. Check SMTP_USER, the Gmail app password, and MAIL_FROM.', null, 'EMAIL_SEND_FAILED');
   }
 }
 

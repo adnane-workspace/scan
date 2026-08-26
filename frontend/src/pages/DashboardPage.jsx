@@ -12,6 +12,7 @@ import { generateCafeQr, requestQrChange } from '../services/cafe.service.js';
 import { getStorageReport } from '../services/platform.service.js';
 import { updateProduct } from '../services/product.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
+import { getApiError } from '../utils/apiError.js';
 import { firstName, formatBytes, formatDate } from '../utils/format.js';
 
 export default function DashboardPage() {
@@ -71,7 +72,7 @@ export default function DashboardPage() {
       await generateCafeQr();
       await refreshStats();
     } catch (err) {
-      setQrIssueError(err.response?.data?.message || t('qr.issueError'));
+      setQrIssueError(getApiError(err, t, 'qr.issueError'));
     } finally {
       setQrIssuing(false);
     }
@@ -87,7 +88,7 @@ export default function DashboardPage() {
       setIsQrRequestOpen(false);
       return true;
     } catch (err) {
-      setQrRequestError(err.response?.data?.message || t('qr.requestError'));
+      setQrRequestError(getApiError(err, t, 'qr.requestError'));
       return false;
     } finally {
       setQrRequesting(false);
@@ -107,7 +108,7 @@ export default function DashboardPage() {
       await updateProduct(product._id, { available: !product.available });
       await refreshStats();
     } catch (err) {
-      setActionError(err.response?.data?.message || t('dashboard.availabilityError'));
+      setActionError(getApiError(err, t, 'dashboard.availabilityError'));
     }
   }
 
@@ -136,7 +137,7 @@ export default function DashboardPage() {
         </div>
         {isSuperAdmin ? (
           <Link
-            to="/dashboard/cafes/new"
+            to="/platform/cafes/new"
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors duration-200 hover:bg-primary-hover active:scale-[0.98]"
           >
             <MaterialIcon name="add" className="text-[20px]" />
@@ -200,7 +201,7 @@ export default function DashboardPage() {
               icon="photo_library"
               loading={loading && !storage}
             />
-            <Link to="/dashboard/storage" className="block">
+            <Link to="/platform/storage" className="block">
               <StatCard
                 label={t('storage.storageUsed')}
                 value={storage ? formatBytes(storage.totals.bytes, locale) : '—'}
@@ -228,9 +229,9 @@ export default function DashboardPage() {
         <>
           <div className="grid gap-5 md:grid-cols-3">
             {[
-              { to: '/dashboard/cafes', icon: 'storefront', label: t('nav.cafes'), hint: t('dashboard.quickCafes') },
-              { to: '/dashboard/qr-requests', icon: 'qr_code_2', label: t('nav.qrRequests'), hint: t('dashboard.quickQr') },
-              { to: '/dashboard/logs', icon: 'history', label: t('nav.logs'), hint: t('dashboard.quickLogs') },
+              { to: '/platform/cafes', icon: 'storefront', label: t('nav.cafes'), hint: t('dashboard.quickCafes') },
+              { to: '/platform/qr-requests', icon: 'qr_code_2', label: t('nav.qrRequests'), hint: t('dashboard.quickQr') },
+              { to: '/platform/logs', icon: 'history', label: t('nav.logs'), hint: t('dashboard.quickLogs') },
             ].map((item) => (
               <Link
                 key={item.to}
@@ -252,7 +253,7 @@ export default function DashboardPage() {
           <div className="overflow-hidden rounded-[18px] border border-outline-variant bg-surface-container-lowest shadow-[0_1px_2px_rgba(31,37,35,0.04)]">
             <div className="flex items-center justify-between border-b border-outline-variant px-5 py-4">
               <h2 className="font-display text-xl font-semibold text-on-surface">{t('dashboard.recentCafes')}</h2>
-              <Link to="/dashboard/cafes" className="text-sm font-medium text-primary hover:text-primary-hover">
+              <Link to="/platform/cafes" className="text-sm font-medium text-primary hover:text-primary-hover">
                 {t('dashboard.viewAllCafes')}
               </Link>
             </div>
@@ -284,7 +285,7 @@ export default function DashboardPage() {
                     platformCafes.slice(0, 6).map((cafe) => (
                       <tr key={cafe._id} className="border-t border-outline-variant/15 hover:bg-surface-container-high/60">
                         <td className="px-5 py-3">
-                          <Link to={`/dashboard/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
+                          <Link to={`/platform/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
                             {cafe.name}
                           </Link>
                           <p className="text-on-surface-variant">{cafe.slug}</p>
