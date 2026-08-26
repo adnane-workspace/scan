@@ -1,7 +1,17 @@
 import api from './api.js';
 
 export async function registerRequest(payload) {
-  const { data } = await api.post('/auth/register', payload);
+  const { data } = await api.post('/auth/register', payload, { timeout: 20000 });
+  return data.data;
+}
+
+export async function verifyEmailRequest(payload) {
+  const { data } = await api.post('/auth/verify-email', payload, { timeout: 20000 });
+  return data.data;
+}
+
+export async function resendVerificationRequest(payload) {
+  const { data } = await api.post('/auth/resend-verification', payload, { timeout: 20000 });
   return data.data;
 }
 

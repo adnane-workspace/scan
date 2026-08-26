@@ -78,6 +78,7 @@ export async function createPlatformCafe({ ownerName, email, password, cafeName,
         passwordHash,
         role: 'admin',
         cafeId: createdCafe.id,
+        emailVerifiedAt: new Date(),
       },
     });
 

@@ -6,7 +6,9 @@ import {
   logout,
   register,
   requestPasswordReset,
+  resendEmailVerification,
   resetPasswordWithCode,
+  verifyEmail,
   verifyPasswordResetCode,
 } from '../services/auth.service.js';
 
@@ -15,7 +17,7 @@ export const registerAdmin = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'Account created',
+    message: 'Verification code sent',
     data: result,
   });
 });
@@ -78,5 +80,25 @@ export const resetPassword = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Password updated',
+  });
+});
+
+export const verifyEmailCode = asyncHandler(async (req, res) => {
+  const result = await verifyEmail(req.validated.body);
+
+  res.status(200).json({
+    success: true,
+    message: 'Email verified',
+    data: result,
+  });
+});
+
+export const resendVerification = asyncHandler(async (req, res) => {
+  const result = await resendEmailVerification(req.validated.body);
+
+  res.status(200).json({
+    success: true,
+    message: 'If this email exists, a verification code has been sent',
+    data: result,
   });
 });

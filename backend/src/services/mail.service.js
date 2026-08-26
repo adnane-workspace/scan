@@ -23,8 +23,29 @@ const COPY = {
   },
 };
 
-function buildResetEmail(code, locale) {
-  const copy = COPY[locale] || COPY.fr;
+const VERIFY_COPY = {
+  fr: {
+    subject: 'Confirmez votre email QTable',
+    title: 'Confirmer l’email',
+    intro: 'Utilisez ce code pour activer votre espace QTable. Un email = un compte.',
+    valid: 'Ce code expire dans 10 minutes. Si vous n’êtes pas à l’origine de cette inscription, ignorez cet email.',
+  },
+  en: {
+    subject: 'Confirm your QTable email',
+    title: 'Confirm your email',
+    intro: 'Use this code to activate your QTable space. One email = one account.',
+    valid: 'This code expires in 10 minutes. If you did not create this account, you can ignore this email.',
+  },
+  ar: {
+    subject: 'أكّد بريدك على QTable',
+    title: 'تأكيد البريد',
+    intro: 'استخدم هذا الرمز لتفعيل فضاء QTable. بريد واحد = حساب واحد.',
+    valid: 'ينتهي هذا الرمز خلال 10 دقائق. إذا لم تنشئ هذا الحساب، تجاهل هذا البريد.',
+  },
+};
+
+function buildCodeEmail(code, locale, copyMap) {
+  const copy = copyMap[locale] || copyMap.fr;
   const text = `${copy.intro}\n\n${code}\n\n${copy.valid}`;
   const html = `
     <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
@@ -37,6 +58,10 @@ function buildResetEmail(code, locale) {
   `;
 
   return { subject: copy.subject, text, html };
+}
+
+function buildResetEmail(code, locale) {
+  return buildCodeEmail(code, locale, COPY);
 }
 
 function dashboardOrigin() {
@@ -163,6 +188,13 @@ export async function sendPasswordResetCode({ to, code, locale = 'fr' }) {
   return dispatchEmail({
     to,
     ...buildResetEmail(code, locale),
+  });
+}
+
+export async function sendEmailVerificationCode({ to, code, locale = 'fr' }) {
+  return dispatchEmail({
+    to,
+    ...buildCodeEmail(code, locale, VERIFY_COPY),
   });
 }
 

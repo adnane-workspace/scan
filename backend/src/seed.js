@@ -231,6 +231,7 @@ async function seed() {
       passwordHash,
       role: 'admin',
       cafeId: cafe.id,
+      emailVerifiedAt: new Date(),
     },
     create: {
       name: 'Admin',
@@ -238,6 +239,7 @@ async function seed() {
       passwordHash,
       role: 'admin',
       cafeId: cafe.id,
+      emailVerifiedAt: new Date(),
     },
   });
 
@@ -248,12 +250,14 @@ async function seed() {
       passwordHash,
       role: 'superadmin',
       cafeId: null,
+      emailVerifiedAt: new Date(),
     },
     create: {
       name: 'Super Admin',
       email: 'superadmin@example.com',
       passwordHash,
       role: 'superadmin',
+      emailVerifiedAt: new Date(),
     },
   });
 

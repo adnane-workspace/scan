@@ -6,7 +6,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { slugify } from '../utils/slug.js';
 import { generateToken } from '../utils/token.js';
 import { recordActivity } from './activity.service.js';
-import { sendPasswordResetCode } from './mail.service.js';
+import { sendEmailVerificationCode, sendPasswordResetCode } from './mail.service.js';
 
 function toPublicUser(user) {
   return {
@@ -57,6 +57,16 @@ export async function login({ email, password }) {
   }
 
   if (user.role === 'admin') {
+    if (!user.emailVerifiedAt) {
+      await recordActivity({
+        action: 'auth_login_failed',
+        actorId: user.id,
+        cafeId: user.cafeId,
+        metadata: { email: user.email, reason: 'email_unverified' },
+      });
+      throw new ApiError(403, 'Confirm your email to sign in', null, 'EMAIL_NOT_VERIFIED');
+    }
+
     if (!user.cafeId) {
       await recordActivity({
         action: 'auth_login_failed',
@@ -110,7 +120,7 @@ export function getCurrentUser(user) {
   });
 }
 
-export async function register({ name, email, password, cafeName, slug }) {
+export async function register({ name, email, password, cafeName, slug, locale = 'fr' }) {
   const normalizedEmail = email.toLowerCase();
   const cafeSlug = slugify(slug || cafeName);
 
@@ -118,14 +128,29 @@ export async function register({ name, email, password, cafeName, slug }) {
     throw new ApiError(400, 'A valid cafe slug is required', null, 'INVALID_SLUG');
   }
 
-  const [existingEmail, existingSlug] = await Promise.all([
-    prisma.user.findUnique({ where: { email: normalizedEmail }, select: { id: true } }),
-    prisma.cafe.findUnique({ where: { slug: cafeSlug }, select: { id: true } }),
-  ]);
+  const existingUser = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: { id: true, emailVerifiedAt: true },
+  });
 
-  if (existingEmail) {
+  if (existingUser?.emailVerifiedAt) {
     throw new ApiError(409, 'Email already in use', null, 'EMAIL_IN_USE');
   }
+
+  if (existingUser && !existingUser.emailVerifiedAt) {
+    const result = await issueEmailVerification({
+      email: normalizedEmail,
+      userId: existingUser.id,
+      locale,
+    });
+
+    return { email: normalizedEmail, retryAfter: result.retryAfter };
+  }
+
+  const existingSlug = await prisma.cafe.findUnique({
+    where: { slug: cafeSlug },
+    select: { id: true },
+  });
 
   if (existingSlug) {
     throw new ApiError(409, 'Cafe slug already in use', null, 'SLUG_IN_USE');
@@ -167,16 +192,13 @@ export async function register({ name, email, password, cafeName, slug }) {
     },
   });
 
-  const token = generateToken({
-    sub: user.id,
-    role: user.role,
-    cafeId: user.cafeId,
+  const result = await issueEmailVerification({
+    email: normalizedEmail,
+    userId: user.id,
+    locale,
   });
 
-  return {
-    token,
-    user: toPublicUser(user),
-  };
+  return { email: normalizedEmail, retryAfter: result.retryAfter };
 }
 
 export async function changePassword(userId, { currentPassword, newPassword }) {
@@ -220,23 +242,26 @@ const RESET_TTL_MS = 10 * 60 * 1000;
 const RESET_RESEND_MS = 60 * 1000;
 const RESET_MAX_PER_HOUR = 5;
 const RESET_MAX_ATTEMPTS = 5;
+const PURPOSE_RESET = 'password_reset';
+const PURPOSE_VERIFY = 'email_verify';
 
-function hashResetCode(email, code) {
-  return createHash('sha256').update(`${email}:${code}:${env.JWT_SECRET}`).digest('hex');
+function hashResetCode(email, code, purpose = PURPOSE_RESET) {
+  return createHash('sha256').update(`${purpose}:${email}:${code}:${env.JWT_SECRET}`).digest('hex');
 }
 
-function codesMatch(expectedHash, email, code) {
-  const actual = hashResetCode(email, code);
+function codesMatch(expectedHash, email, code, purpose = PURPOSE_RESET) {
+  const actual = hashResetCode(email, code, purpose);
   const expectedBuffer = Buffer.from(expectedHash, 'utf8');
   const actualBuffer = Buffer.from(actual, 'utf8');
 
   return expectedBuffer.length === actualBuffer.length && timingSafeEqual(expectedBuffer, actualBuffer);
 }
 
-async function findActiveReset(email) {
+async function findActiveReset(email, purpose = PURPOSE_RESET) {
   return prisma.passwordReset.findFirst({
     where: {
       email,
+      purpose,
       consumedAt: null,
       expiresAt: { gt: new Date() },
     },
@@ -244,13 +269,12 @@ async function findActiveReset(email) {
   });
 }
 
-export async function requestPasswordReset({ email, locale = 'fr' }) {
-  const normalizedEmail = email.toLowerCase();
+async function issueEmailVerification({ email, userId, locale = 'fr' }) {
   const now = new Date();
   const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
   const recent = await prisma.passwordReset.findMany({
-    where: { email: normalizedEmail, createdAt: { gte: hourAgo } },
+    where: { email, purpose: PURPOSE_VERIFY, createdAt: { gte: hourAgo } },
     orderBy: { createdAt: 'desc' },
     take: RESET_MAX_PER_HOUR,
   });
@@ -267,7 +291,137 @@ export async function requestPasswordReset({ email, locale = 'fr' }) {
   }
 
   await prisma.passwordReset.updateMany({
-    where: { email: normalizedEmail, consumedAt: null },
+    where: { email, purpose: PURPOSE_VERIFY, consumedAt: null },
+    data: { consumedAt: now },
+  });
+
+  const code = String(randomInt(100000, 1000000));
+
+  await prisma.passwordReset.create({
+    data: {
+      email,
+      userId: userId || null,
+      purpose: PURPOSE_VERIFY,
+      codeHash: hashResetCode(email, code, PURPOSE_VERIFY),
+      expiresAt: new Date(now.getTime() + RESET_TTL_MS),
+    },
+  });
+
+  const channel = await sendEmailVerificationCode({ to: email, code, locale });
+  if (channel !== 'log') {
+    console.info(`[email-verify] email sent via ${channel} to ${email}`);
+  }
+
+  return { retryAfter: RESET_RESEND_MS / 1000 };
+}
+
+export async function resendEmailVerification({ email, locale = 'fr' }) {
+  const normalizedEmail = email.toLowerCase();
+  const user = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: { id: true, emailVerifiedAt: true },
+  });
+
+  if (!user || user.emailVerifiedAt) {
+    return { retryAfter: RESET_RESEND_MS / 1000 };
+  }
+
+  return issueEmailVerification({
+    email: normalizedEmail,
+    userId: user.id,
+    locale,
+  });
+}
+
+export async function verifyEmail({ email, code }) {
+  const normalizedEmail = email.toLowerCase();
+  const reset = await findActiveReset(normalizedEmail, PURPOSE_VERIFY);
+
+  if (!reset || !codesMatch(reset.codeHash, normalizedEmail, code, PURPOSE_VERIFY)) {
+    if (reset) {
+      const attempts = reset.attempts + 1;
+      await prisma.passwordReset.update({
+        where: { id: reset.id },
+        data: {
+          attempts,
+          ...(attempts >= RESET_MAX_ATTEMPTS ? { consumedAt: new Date() } : {}),
+        },
+      });
+    }
+
+    throw new ApiError(400, 'Invalid or expired code', null, 'RESET_CODE_INVALID');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+  });
+
+  if (!user) {
+    await prisma.passwordReset.update({
+      where: { id: reset.id },
+      data: { consumedAt: new Date() },
+    });
+    throw new ApiError(400, 'Invalid or expired code', null, 'RESET_CODE_INVALID');
+  }
+
+  if (user.emailVerifiedAt) {
+    await prisma.passwordReset.update({
+      where: { id: reset.id },
+      data: { consumedAt: new Date() },
+    });
+  } else {
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerifiedAt: new Date() },
+      }),
+      prisma.passwordReset.update({
+        where: { id: reset.id },
+        data: { consumedAt: new Date() },
+      }),
+      prisma.passwordReset.updateMany({
+        where: { email: normalizedEmail, purpose: PURPOSE_VERIFY, consumedAt: null, id: { not: reset.id } },
+        data: { consumedAt: new Date() },
+      }),
+    ]);
+  }
+
+  const token = generateToken({
+    sub: user.id,
+    role: user.role,
+    cafeId: user.cafeId,
+  });
+
+  return {
+    token,
+    user: toPublicUser({ ...user, emailVerifiedAt: user.emailVerifiedAt || new Date() }),
+  };
+}
+
+export async function requestPasswordReset({ email, locale = 'fr' }) {
+  const normalizedEmail = email.toLowerCase();
+  const now = new Date();
+  const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+  const recent = await prisma.passwordReset.findMany({
+    where: { email: normalizedEmail, purpose: PURPOSE_RESET, createdAt: { gte: hourAgo } },
+    orderBy: { createdAt: 'desc' },
+    take: RESET_MAX_PER_HOUR,
+  });
+
+  const latest = recent[0];
+
+  if (latest && now.getTime() - latest.createdAt.getTime() < RESET_RESEND_MS) {
+    const retryAfter = Math.ceil((RESET_RESEND_MS - (now.getTime() - latest.createdAt.getTime())) / 1000);
+    return { retryAfter };
+  }
+
+  if (recent.length >= RESET_MAX_PER_HOUR) {
+    return { retryAfter: 3600 };
+  }
+
+  await prisma.passwordReset.updateMany({
+    where: { email: normalizedEmail, purpose: PURPOSE_RESET, consumedAt: null },
     data: { consumedAt: now },
   });
 
@@ -282,7 +436,8 @@ export async function requestPasswordReset({ email, locale = 'fr' }) {
     data: {
       email: normalizedEmail,
       userId: user?.id || null,
-      codeHash: hashResetCode(normalizedEmail, code),
+      purpose: PURPOSE_RESET,
+      codeHash: hashResetCode(normalizedEmail, code, PURPOSE_RESET),
       expiresAt: new Date(now.getTime() + RESET_TTL_MS),
     },
   });
@@ -362,7 +517,7 @@ export async function resetPasswordWithCode({ email, code, newPassword }) {
       data: { consumedAt: new Date() },
     }),
     prisma.passwordReset.updateMany({
-      where: { email: normalizedEmail, consumedAt: null, id: { not: reset.id } },
+      where: { email: normalizedEmail, purpose: PURPOSE_RESET, consumedAt: null, id: { not: reset.id } },
       data: { consumedAt: new Date() },
     }),
   ]);

@@ -7,12 +7,13 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { resendVerificationRequest } from '../services/auth.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { getHomePath } from '../utils/paths.js';
 
 export default function LoginPage() {
   const { isAuthenticated, isReady, login, user } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -42,6 +43,17 @@ export default function LoginPage() {
       const nextUser = await login(email, password);
       navigate(getHomePath(nextUser), { replace: true });
     } catch (err) {
+      if (err?.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        try {
+          await resendVerificationRequest({ email, locale });
+        } catch {
+          // The verify screen still lets the user request a new code.
+        }
+
+        navigate('/register', { replace: true, state: { pendingEmail: email } });
+        return;
+      }
+
       setError(getApiError(err, t, 'auth.loginError'));
     } finally {
       setIsSubmitting(false);

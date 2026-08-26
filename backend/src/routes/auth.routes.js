@@ -5,8 +5,10 @@ import {
   loginAdmin,
   logoutAdmin,
   registerAdmin,
+  resendVerification,
   resetPassword,
   updatePassword,
+  verifyEmailCode,
   verifyResetCode,
 } from '../controllers/auth.controller.js';
 import { authenticate, requireStaff } from '../middleware/authMiddleware.js';
@@ -17,6 +19,7 @@ import {
   forgotPasswordSchema,
   loginSchema,
   registerSchema,
+  resendVerificationSchema,
   resetPasswordSchema,
   verifyResetCodeSchema,
 } from '../validators/auth.validator.js';
@@ -28,6 +31,13 @@ const loginLimit = rateLimit({
   max: 10,
   message: 'Too many login attempts. Try again later.',
   code: 'TOO_MANY_LOGIN_ATTEMPTS',
+});
+
+const registerLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many registration attempts. Try again later.',
+  code: 'TOO_MANY_REGISTER_ATTEMPTS',
 });
 
 const resetRequestLimit = rateLimit({
@@ -51,7 +61,9 @@ const resetCompleteLimit = rateLimit({
   code: 'TOO_MANY_RESET_ATTEMPTS',
 });
 
-authRouter.post('/register', validate(registerSchema), registerAdmin);
+authRouter.post('/register', registerLimit, validate(registerSchema), registerAdmin);
+authRouter.post('/verify-email', resetVerifyLimit, validate(verifyResetCodeSchema), verifyEmailCode);
+authRouter.post('/resend-verification', resetRequestLimit, validate(resendVerificationSchema), resendVerification);
 authRouter.post('/login', loginLimit, validate(loginSchema), loginAdmin);
 authRouter.post('/forgot-password', resetRequestLimit, validate(forgotPasswordSchema), forgotPassword);
 authRouter.post('/verify-reset-code', resetVerifyLimit, validate(verifyResetCodeSchema), verifyResetCode);

@@ -13,6 +13,7 @@ export const registerSchema = z.object({
     email: z.string().trim().toLowerCase().email(),
     password: z.string().min(8).max(120),
     cafeName: z.string().trim().min(2).max(120),
+    locale: z.enum(['fr', 'en', 'ar']).optional(),
     slug: z.preprocess(
       (value) => (value === '' || value === undefined || value === null ? undefined : value),
       z
@@ -39,6 +40,8 @@ export const forgotPasswordSchema = z.object({
     locale: z.enum(['fr', 'en', 'ar']).optional(),
   }),
 });
+
+export const resendVerificationSchema = forgotPasswordSchema;
 
 export const verifyResetCodeSchema = z.object({
   body: z.object({

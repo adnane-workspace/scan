@@ -32,6 +32,7 @@ export const authenticate = asyncHandler(async (req, _res, next) => {
       email: true,
       role: true,
       cafeId: true,
+      emailVerifiedAt: true,
       createdAt: true,
       updatedAt: true,
       cafe: {
@@ -42,6 +43,10 @@ export const authenticate = asyncHandler(async (req, _res, next) => {
 
   if (!user) {
     throw new ApiError(401, 'Authentication required', null, 'AUTH_REQUIRED');
+  }
+
+  if (!user.emailVerifiedAt && user.role !== 'superadmin') {
+    throw new ApiError(403, 'Confirm your email to sign in', null, 'EMAIL_NOT_VERIFIED');
   }
 
   const { cafe, ...safeUser } = user;

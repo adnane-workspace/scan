@@ -62,6 +62,10 @@ function failReason(reason, t) {
     return t('logs.reasonNoCafe');
   }
 
+  if (reason === 'email_unverified') {
+    return t('logs.reasonUnverified');
+  }
+
   return t('logs.reasonInvalid');
 }
 

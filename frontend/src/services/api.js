@@ -33,6 +33,8 @@ api.interceptors.response.use(
     const isPublicAuth =
       error.config?.url?.includes('/auth/login') ||
       error.config?.url?.includes('/auth/register') ||
+      error.config?.url?.includes('/auth/verify-email') ||
+      error.config?.url?.includes('/auth/resend-verification') ||
       error.config?.url?.includes('/auth/forgot-password') ||
       error.config?.url?.includes('/auth/verify-reset-code') ||
       error.config?.url?.includes('/auth/reset-password');

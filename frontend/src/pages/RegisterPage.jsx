@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import AuthBrandPanel from '../components/auth/AuthBrandPanel.jsx';
 import AuthField from '../components/auth/AuthField.jsx';
 import BrandLogo from '../components/ui/BrandLogo.jsx';
@@ -7,23 +7,41 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { registerRequest, resendVerificationRequest } from '../services/auth.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { getHomePath } from '../utils/paths.js';
 
 export default function RegisterPage() {
-  const { isAuthenticated, isReady, register, user } = useAuth();
-  const { t } = useLocale();
+  const { isAuthenticated, isReady, verifyEmail, user } = useAuth();
+  const { t, locale } = useLocale();
   const navigate = useNavigate();
+  const location = useLocation();
+  const pendingEmail = typeof location.state?.pendingEmail === 'string' ? location.state.pendingEmail : '';
+  const [step, setStep] = useState(pendingEmail ? 'code' : 'form');
   const [form, setForm] = useState({
     name: '',
-    email: '',
+    email: pendingEmail,
     password: '',
     cafeName: '',
     slug: '',
   });
+  const [code, setCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [retryAfter, setRetryAfter] = useState(pendingEmail ? 60 : 0);
+
+  useEffect(() => {
+    if (retryAfter <= 0) {
+      return undefined;
+    }
+
+    const timer = setInterval(() => {
+      setRetryAfter((value) => Math.max(0, value - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [retryAfter]);
 
   if (!isReady) {
     return (
@@ -48,16 +66,47 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const nextUser = await register({
+      const result = await registerRequest({
         name: form.name,
         email: form.email,
         password: form.password,
         cafeName: form.cafeName,
         slug: form.slug.trim() || undefined,
+        locale,
       });
-      navigate(getHomePath(nextUser), { replace: true });
+      setRetryAfter(Number(result.retryAfter) || 60);
+      setStep('code');
     } catch (err) {
       setError(getApiError(err, t, 'auth.registerError'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleVerify(event) {
+    event.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const nextUser = await verifyEmail(form.email, code);
+      navigate(getHomePath(nextUser), { replace: true });
+    } catch (err) {
+      setError(getApiError(err, t, 'auth.verifyError'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleResend() {
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const result = await resendVerificationRequest({ email: form.email, locale });
+      setRetryAfter(Number(result.retryAfter) || 60);
+    } catch (err) {
+      setError(getApiError(err, t, 'auth.resetSendError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -83,101 +132,151 @@ export default function RegisterPage() {
               </Link>
             </div>
             <h2 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface sm:text-4xl">
-              {t('auth.registerTitle')}
+              {step === 'code' ? t('auth.verifyTitle') : t('auth.registerTitle')}
             </h2>
-            <p className="mt-2 text-on-surface-variant">{t('auth.registerSubtitle')}</p>
+            <p className="mt-2 text-on-surface-variant">
+              {step === 'code' ? t('auth.verifySubtitle', { email: form.email }) : t('auth.registerSubtitle')}
+            </p>
           </div>
 
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <AuthField
-              id="name"
-              label={t('auth.yourName')}
-              icon="person"
-              value={form.name}
-              onChange={handleChange}
-              autoComplete="name"
-              invalid={Boolean(error)}
-              errorId="register-error"
-            />
+          {step === 'code' ? (
+            <form className="flex flex-col gap-4" onSubmit={handleVerify}>
+              <AuthField
+                id="code"
+                label={t('auth.resetCode')}
+                icon="pin"
+                value={code}
+                onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                autoComplete="one-time-code"
+                inputMode="numeric"
+                pattern="\d{6}"
+                maxLength={6}
+                autoFocus
+                invalid={Boolean(error)}
+                errorId="register-error"
+              />
 
-            <AuthField
-              id="email"
-              label={t('auth.email')}
-              type="email"
-              icon="mail"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="contact@restaurant.com"
-              autoComplete="email"
-              invalid={Boolean(error)}
-              errorId="register-error"
-            />
+              {error ? (
+                <p
+                  id="register-error"
+                  role="alert"
+                  className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error"
+                >
+                  {error}
+                </p>
+              ) : null}
 
-            <AuthField
-              id="password"
-              label={t('auth.password')}
-              type={showPassword ? 'text' : 'password'}
-              icon="lock"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              autoComplete="new-password"
-              minLength={8}
-              invalid={Boolean(error)}
-              errorId="register-error"
-            >
+              <button
+                type="submit"
+                disabled={isSubmitting || code.length !== 6}
+                className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-all hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] disabled:opacity-60"
+              >
+                {isSubmitting ? t('auth.resetVerifying') : t('auth.verifySubmit')}
+                <MaterialIcon name="arrow_forward" className="text-[20px]" />
+              </button>
+
               <button
                 type="button"
-                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-                className="me-2 rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                onClick={() => setShowPassword((visible) => !visible)}
+                disabled={isSubmitting || retryAfter > 0}
+                onClick={handleResend}
+                className="text-sm font-medium text-primary hover:underline disabled:text-on-surface-variant disabled:no-underline"
               >
-                <MaterialIcon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[20px]" />
+                {retryAfter > 0 ? t('auth.resetResendWait', { seconds: retryAfter }) : t('auth.verifyResend')}
               </button>
-            </AuthField>
+            </form>
+          ) : (
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+              <AuthField
+                id="name"
+                label={t('auth.yourName')}
+                icon="person"
+                value={form.name}
+                onChange={handleChange}
+                autoComplete="name"
+                invalid={Boolean(error)}
+                errorId="register-error"
+              />
 
-            <AuthField
-              id="cafeName"
-              label={t('auth.cafeName')}
-              icon="storefront"
-              value={form.cafeName}
-              onChange={handleChange}
-              autoComplete="organization"
-              invalid={Boolean(error)}
-              errorId="register-error"
-            />
+              <AuthField
+                id="email"
+                label={t('auth.email')}
+                type="email"
+                icon="mail"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="contact@restaurant.com"
+                autoComplete="email"
+                invalid={Boolean(error)}
+                errorId="register-error"
+              />
 
-            <AuthField
-              id="slug"
-              label={t('auth.slugOptional')}
-              icon="link"
-              value={form.slug}
-              onChange={handleChange}
-              placeholder={t('auth.slugPlaceholder')}
-              required={false}
-              invalid={Boolean(error)}
-              errorId="register-error"
-            />
-
-            {error ? (
-              <p
-                id="register-error"
-                role="alert"
-                className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error"
+              <AuthField
+                id="password"
+                label={t('auth.password')}
+                type={showPassword ? 'text' : 'password'}
+                icon="lock"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                minLength={8}
+                invalid={Boolean(error)}
+                errorId="register-error"
               >
-                {error}
-              </p>
-            ) : null}
+                <button
+                  type="button"
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                  className="me-2 rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                >
+                  <MaterialIcon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[20px]" />
+                </button>
+              </AuthField>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-all hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] disabled:opacity-60"
-            >
-              {isSubmitting ? t('auth.creating') : t('auth.createSpace')}
-              <MaterialIcon name="arrow_forward" className="text-[20px]" />
-            </button>
-          </form>
+              <AuthField
+                id="cafeName"
+                label={t('auth.cafeName')}
+                icon="storefront"
+                value={form.cafeName}
+                onChange={handleChange}
+                autoComplete="organization"
+                invalid={Boolean(error)}
+                errorId="register-error"
+              />
+
+              <AuthField
+                id="slug"
+                label={t('auth.slugOptional')}
+                icon="link"
+                value={form.slug}
+                onChange={handleChange}
+                placeholder={t('auth.slugPlaceholder')}
+                required={false}
+                invalid={Boolean(error)}
+                errorId="register-error"
+              />
+
+              {error ? (
+                <p
+                  id="register-error"
+                  role="alert"
+                  className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error"
+                >
+                  {error}
+                </p>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-all hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] disabled:opacity-60"
+              >
+                {isSubmitting ? t('auth.creating') : t('auth.createSpace')}
+                <MaterialIcon name="arrow_forward" className="text-[20px]" />
+              </button>
+            </form>
+          )}
 
           <p className="mt-8 text-center text-sm text-on-surface-variant lg:text-start">
             {t('auth.hasAccount')}{' '}

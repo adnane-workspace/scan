@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { fetchCurrentUser, loginRequest, logoutRequest, registerRequest } from '../services/auth.service.js';
+import { fetchCurrentUser, loginRequest, logoutRequest, verifyEmailRequest } from '../services/auth.service.js';
 import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '../utils/constants.js';
 import { AuthContext } from './auth-context.js';
 
@@ -48,8 +48,8 @@ export function AuthProvider({ children }) {
     return nextUser;
   }, []);
 
-  const register = useCallback(async (payload) => {
-    const { token: nextToken, user: nextUser } = await registerRequest(payload);
+  const verifyEmail = useCallback(async (email, code) => {
+    const { token: nextToken, user: nextUser } = await verifyEmailRequest({ email, code });
     persistSession(nextToken, nextUser);
     setToken(nextToken);
     setUser(nextUser);
@@ -107,10 +107,10 @@ export function AuthProvider({ children }) {
       isReady,
       isAuthenticated: Boolean(token),
       login,
-      register,
+      verifyEmail,
       logout,
     }),
-    [token, user, isReady, login, register, logout],
+    [token, user, isReady, login, verifyEmail, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
