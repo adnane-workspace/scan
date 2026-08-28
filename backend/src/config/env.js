@@ -37,7 +37,7 @@ const envSchema = z.object({
     (value) => String(value || '').replace(/\s+/g, ''),
     z.string().optional().default(''),
   ),
-  MAIL_FROM: z.string().trim().optional().default('Menora <noreply@qtable.app>'),
+  MAIL_FROM: z.string().trim().optional().default('Scanosh <noreply@qtable.app>'),
 });
 
 const parsed = envSchema.safeParse(process.env);

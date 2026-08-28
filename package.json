@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "author": "Adnan Elmenouar",
-  "description": "Menora — digital QR menus for cafes and restaurants",
+  "description": "Scanosh — digital QR menus for cafes and restaurants",
   "type": "module",
   "workspaces": [
     "frontend",

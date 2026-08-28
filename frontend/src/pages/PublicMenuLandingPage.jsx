@@ -3,7 +3,9 @@ import { Link, useParams } from 'react-router-dom';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
-import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
+import DocumentHead from '../components/seo/DocumentHead.jsx';
+import { countPublicProducts, setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
+import { restaurantJsonLd } from '../utils/seoJsonLd.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
 
@@ -56,11 +58,15 @@ export default function PublicMenuLandingPage() {
   const { t } = useLocale();
   const { menu, loading, errorStatus } = usePublicMenu(slug);
 
+  const productCount = countPublicProducts(menu?.categories);
+  const indexable = Boolean(menu?.cafe && productCount > 0);
+
   useEffect(() => {
     if (menu?.cafe) {
       setPageMeta({
         title: menu.cafe.name,
         description: menu.cafe.description || t('menu.welcome', { name: menu.cafe.name }),
+        robots: indexable ? 'index,follow' : 'noindex,follow',
       });
       return;
     }
@@ -69,9 +75,10 @@ export default function PublicMenuLandingPage() {
       setPageMeta({
         title: t('menu.missingTitle'),
         description: t('menu.missing'),
+        robots: 'noindex,follow',
       });
     }
-  }, [menu, errorStatus, t]);
+  }, [menu, errorStatus, indexable, t]);
 
   if (loading) {
     return (
@@ -97,6 +104,13 @@ export default function PublicMenuLandingPage() {
 
   return (
     <LandingShell>
+      <DocumentHead
+        title={`${cafe.name}`}
+        description={cafe.description || t('menu.welcome', { name: cafe.name })}
+        path={`/menu/${slug}`}
+        robots={indexable ? 'index,follow' : 'noindex,follow'}
+        jsonLd={indexable ? restaurantJsonLd(cafe, slug) : undefined}
+      />
       {backdrop ? (
         <CloudinaryImage
           src={backdrop}

@@ -4,42 +4,42 @@ import { ApiError } from '../utils/ApiError.js';
 
 const COPY = {
   fr: {
-    subject: 'Votre code de vérification Menora',
+    subject: 'Votre code de vérification Scanosh',
     title: 'Code de vérification',
-    intro: 'Utilisez ce code pour réinitialiser le mot de passe de votre espace Menora.',
+    intro: 'Utilisez ce code pour réinitialiser le mot de passe de votre espace Scanosh.',
     valid: 'Ce code expire dans 10 minutes. Si vous n’êtes pas à l’origine de cette demande, ignorez cet email.',
   },
   en: {
-    subject: 'Your Menora verification code',
+    subject: 'Your Scanosh verification code',
     title: 'Verification code',
-    intro: 'Use this code to reset the password for your Menora space.',
+    intro: 'Use this code to reset the password for your Scanosh space.',
     valid: 'This code expires in 10 minutes. If you did not request it, you can ignore this email.',
   },
   ar: {
-    subject: 'رمز التحقق من Menora',
+    subject: 'رمز التحقق من Scanosh',
     title: 'رمز التحقق',
-    intro: 'استخدم هذا الرمز لإعادة تعيين كلمة مرور فضاء Menora.',
+    intro: 'استخدم هذا الرمز لإعادة تعيين كلمة مرور فضاء Scanosh.',
     valid: 'ينتهي هذا الرمز خلال 10 دقائق. إذا لم تطلبه، يمكنك تجاهل هذا البريد.',
   },
 };
 
 const VERIFY_COPY = {
   fr: {
-    subject: 'Confirmez votre email Menora',
+    subject: 'Confirmez votre email Scanosh',
     title: 'Confirmer l’email',
-    intro: 'Utilisez ce code pour activer votre espace Menora. Un email = un compte.',
+    intro: 'Utilisez ce code pour activer votre espace Scanosh. Un email = un compte.',
     valid: 'Ce code expire dans 10 minutes. Si vous n’êtes pas à l’origine de cette inscription, ignorez cet email.',
   },
   en: {
-    subject: 'Confirm your Menora email',
+    subject: 'Confirm your Scanosh email',
     title: 'Confirm your email',
-    intro: 'Use this code to activate your Menora space. One email = one account.',
+    intro: 'Use this code to activate your Scanosh space. One email = one account.',
     valid: 'This code expires in 10 minutes. If you did not create this account, you can ignore this email.',
   },
   ar: {
-    subject: 'أكّد بريدك على Menora',
+    subject: 'أكّد بريدك على Scanosh',
     title: 'تأكيد البريد',
-    intro: 'استخدم هذا الرمز لتفعيل فضاء Menora. بريد واحد = حساب واحد.',
+    intro: 'استخدم هذا الرمز لتفعيل فضاء Scanosh. بريد واحد = حساب واحد.',
     valid: 'ينتهي هذا الرمز خلال 10 دقائق. إذا لم تنشئ هذا الحساب، تجاهل هذا البريد.',
   },
 };
@@ -49,7 +49,7 @@ function buildCodeEmail(code, locale, copyMap) {
   const text = `${copy.intro}\n\n${code}\n\n${copy.valid}`;
   const html = `
     <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">Menora</p>
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">Scanosh</p>
       <h1 style="font-size:28px;margin:0 0 12px">${copy.title}</h1>
       <p style="margin:0 0 24px;color:#e0e1ddb8;line-height:1.5">${copy.intro}</p>
       <p style="font-size:36px;letter-spacing:.28em;font-weight:700;margin:0 0 24px">${code}</p>
@@ -80,7 +80,7 @@ function buildQrChangeEmail({ cafeName, slug, requesterName, requesterEmail, rea
   ].join('\n');
   const html = `
     <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">Menora</p>
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">Scanosh</p>
       <h1 style="font-size:28px;margin:0 0 12px">Changement de QR</h1>
       <p style="margin:0 0 16px;color:#e0e1ddb8;line-height:1.5">
         <strong style="color:#e0e1dd">${escapeHtml(requesterName)}</strong>

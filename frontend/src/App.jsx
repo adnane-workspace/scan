@@ -5,6 +5,7 @@ import PublicLayout from './layouts/PublicLayout.jsx';
 import DashboardLegacyRedirect from './components/common/DashboardLegacyRedirect.jsx';
 import LandingSeoRedirect from './components/common/LandingSeoRedirect.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
+import { getSeoDocumentPaths } from './content/seo/index.js';
 import { useLocale } from './hooks/useLocale.js';
 
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout.jsx'));
@@ -25,6 +26,12 @@ const QrRequestsPage = lazy(() => import('./pages/QrRequestsPage.jsx'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'));
 const SiteLandingPage = lazy(() => import('./pages/SiteLandingPage.jsx'));
+const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage.jsx'));
+const PricingPage = lazy(() => import('./pages/PricingPage.jsx'));
+const ContactPage = lazy(() => import('./pages/ContactPage.jsx'));
+const SeoDocumentPage = lazy(() => import('./pages/SeoDocumentPage.jsx'));
+
+const SEO_DOCUMENT_PATHS = getSeoDocumentPaths();
 
 function RouteFallback() {
   const { t } = useLocale();
@@ -41,13 +48,17 @@ export default function App() {
     <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<SiteLandingPage />} />
-        <Route path="/fonctionnalites" element={<SiteLandingPage />} />
-        <Route path="/produit" element={<SiteLandingPage />} />
         <Route path="/accueil" element={<LandingSeoRedirect />} />
         <Route path="/home" element={<LandingSeoRedirect />} />
         <Route path="/features" element={<LandingSeoRedirect />} />
         <Route path="/product" element={<LandingSeoRedirect />} />
-        <Route path="/menu-digital" element={<LandingSeoRedirect />} />
+        <Route path="/produit" element={<LandingSeoRedirect />} />
+        <Route path="/blog" element={<BlogIndexPage />} />
+        <Route path="/tarifs" element={<PricingPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        {SEO_DOCUMENT_PATHS.map((path) => (
+          <Route key={path} path={path} element={<SeoDocumentPage />} />
+        ))}
 
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />

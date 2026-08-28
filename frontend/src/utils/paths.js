@@ -2,14 +2,17 @@ export const APP_HOME = '/app';
 export const PLATFORM_HOME = '/platform';
 export const LANDING_HOME = '/';
 export const LANDING_FEATURES = '/fonctionnalites';
-export const LANDING_PRODUCT = '/produit';
+export const LANDING_PRODUCT = '/menu-digital';
+export const LANDING_PRICING = '/tarifs';
+export const LANDING_BLOG = '/blog';
+export const LANDING_CONTACT = '/contact';
 
 const LANDING_SEO_REDIRECTS = {
   '/accueil': LANDING_HOME,
   '/home': LANDING_HOME,
   '/features': LANDING_FEATURES,
   '/product': LANDING_PRODUCT,
-  '/menu-digital': LANDING_PRODUCT,
+  '/produit': LANDING_PRODUCT,
 };
 
 export function getHomePath(user) {
@@ -28,7 +31,7 @@ export function landingSectionId(pathname) {
     return 'fonctionnalites';
   }
 
-  if (path === LANDING_PRODUCT) {
+  if (path === LANDING_PRODUCT || path === '/produit') {
     return 'produit';
   }
 

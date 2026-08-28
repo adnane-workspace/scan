@@ -46,6 +46,7 @@ export default function PublicMenuPage() {
       setPageMeta({
         title: t('menu.pageTitle', { name: menu.cafe.name }),
         description: menu.cafe.description || t('menu.pageDescription', { name: menu.cafe.name }),
+        robots: 'noindex,follow',
       });
       return;
     }

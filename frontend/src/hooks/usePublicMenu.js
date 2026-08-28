@@ -33,7 +33,14 @@ export function clearPublicMenuCache(slug) {
   menuCache.clear();
 }
 
-export function setPageMeta({ title, description }) {
+export function countPublicProducts(categories = []) {
+  return categories.reduce(
+    (total, category) => total + (category.products?.length || 0) + countPublicProducts(category.children || []),
+    0,
+  );
+}
+
+export function setPageMeta({ title, description, robots = 'index,follow' }) {
   document.title = title ? `${title} · ${APP_NAME}` : APP_NAME;
 
   let meta = document.querySelector('meta[name="description"]');
@@ -45,6 +52,16 @@ export function setPageMeta({ title, description }) {
   }
 
   meta.content = description;
+
+  let robotsMeta = document.querySelector('meta[name="robots"]');
+
+  if (!robotsMeta) {
+    robotsMeta = document.createElement('meta');
+    robotsMeta.name = 'robots';
+    document.head.appendChild(robotsMeta);
+  }
+
+  robotsMeta.content = robots;
 }
 
 export function usePublicMenu(slug) {

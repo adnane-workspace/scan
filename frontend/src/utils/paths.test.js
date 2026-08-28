@@ -11,15 +11,16 @@ test('mapLandingSeoRedirect sends aliases to canonical landing URLs', () => {
   assert.equal(mapLandingSeoRedirect('/home'), '/');
   assert.equal(mapLandingSeoRedirect('/accueil'), '/');
   assert.equal(mapLandingSeoRedirect('/features'), '/fonctionnalites');
-  assert.equal(mapLandingSeoRedirect('/product'), '/produit');
-  assert.equal(mapLandingSeoRedirect('/menu-digital'), '/produit');
+  assert.equal(mapLandingSeoRedirect('/product'), '/menu-digital');
+  assert.equal(mapLandingSeoRedirect('/produit'), '/menu-digital');
+  assert.equal(mapLandingSeoRedirect('/menu-digital'), null);
   assert.equal(mapLandingSeoRedirect('/fonctionnalites'), null);
 });
 
 test('landingSectionId maps public landing paths to page sections', () => {
   assert.equal(landingSectionId('/'), 'accueil');
   assert.equal(landingSectionId('/fonctionnalites'), 'fonctionnalites');
-  assert.equal(landingSectionId('/produit'), 'produit');
+  assert.equal(landingSectionId('/menu-digital'), 'produit');
 });
 
 test('getHomePath sends cafe admins to /app and superadmins to /platform', () => {
