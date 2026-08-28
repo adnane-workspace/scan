@@ -5,6 +5,7 @@ stitch-assets/
 tmp-stitch*
 next.md*
 TECHNICAL.md*
+.docs/
 # Environment and secrets
 .env
 .env.local
