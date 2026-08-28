@@ -329,7 +329,6 @@ export default function SettingsPage() {
     }
   }
 
-  const menuPath = form.slug ? `/menu/${form.slug}` : '';
   const publicUrl = getPublicMenuUrl(form.slug);
   const located = hasCoordinates(form);
 
@@ -342,9 +341,9 @@ export default function SettingsPage() {
           </h1>
           <p className="mt-1 text-sm text-on-surface-variant">{t('settings.subtitle')}</p>
         </div>
-        {menuPath ? (
+        {publicUrl ? (
           <a
-            href={publicUrl || menuPath}
+            href={publicUrl}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container"

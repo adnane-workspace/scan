@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
+import { getMenuPaths } from '../../utils/hosts.js';
 import LanguageSwitcher from '../ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 
 export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
   const { t } = useLocale();
+  const paths = getMenuPaths(slug);
   return (
     <header className="sticky top-0 z-40 border-b border-outline-variant/20 bg-background/90 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:h-[4.25rem] sm:px-6 lg:px-8">
@@ -19,7 +21,7 @@ export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
         </Link>
 
         <Link
-          to={`/menu/${slug}`}
+          to={paths.home}
           className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 hover:bg-surface-container-high"
         >
           {cafe?.logo ? (

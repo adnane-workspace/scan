@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
-import { slugify } from '../utils/slug.js';
+import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { generateToken } from '../utils/token.js';
 import { recordActivity } from './activity.service.js';
 import { sendEmailVerificationCode, sendPasswordResetCode } from './mail.service.js';
@@ -123,10 +123,7 @@ export function getCurrentUser(user) {
 export async function register({ name, email, password, cafeName, slug, locale = 'fr' }) {
   const normalizedEmail = email.toLowerCase();
   const cafeSlug = slugify(slug || cafeName);
-
-  if (!cafeSlug) {
-    throw new ApiError(400, 'A valid cafe slug is required', null, 'INVALID_SLUG');
-  }
+  assertUsableSlug(cafeSlug);
 
   const existingUser = await prisma.user.findUnique({
     where: { email: normalizedEmail },

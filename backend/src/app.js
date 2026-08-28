@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { env, clientOrigins, normalizeOrigin } from './config/env.js';
+import { isAllowedBrowserOrigin } from './utils/origins.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { router } from './routes/index.js';
 
@@ -22,7 +23,13 @@ app.use(
     origin(origin, callback) {
       const requestOrigin = normalizeOrigin(origin);
 
-      if (!requestOrigin || clientOrigins.includes(requestOrigin)) {
+      if (
+        isAllowedBrowserOrigin(requestOrigin, {
+          clientOrigins,
+          rootDomain: env.ROOT_DOMAIN,
+          nodeEnv: env.NODE_ENV,
+        })
+      ) {
         return callback(null, true);
       }
 

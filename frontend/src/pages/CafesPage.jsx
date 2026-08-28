@@ -5,6 +5,7 @@ import { useLocale } from '../hooks/useLocale.js';
 import { updatePlatformCafe } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
+import { getPublicMenuUrl } from '../utils/constants.js';
 import { getHomePath } from '../utils/paths.js';
 
 const fieldClass =
@@ -191,14 +192,14 @@ export default function CafesPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
-                      <Link
-                        to={`/menu/${cafe.slug}`}
+                      <a
+                        href={getPublicMenuUrl(cafe.slug)}
                         target="_blank"
                         rel="noreferrer"
                         className="rounded-lg px-3 py-1.5 text-sm font-semibold text-primary hover:underline"
                       >
                         {t('platform.menu')}
-                      </Link>
+                      </a>
                       <button
                         type="button"
                         disabled={pendingId === cafe._id}

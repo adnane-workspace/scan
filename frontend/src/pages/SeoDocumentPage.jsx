@@ -1,10 +1,12 @@
 import { Link, Navigate, useLocation } from 'react-router-dom';
+import AppLink from '../components/common/AppLink.jsx';
 import DocumentHead from '../components/seo/DocumentHead.jsx';
 import SeoBreadcrumbs from '../components/seo/SeoBreadcrumbs.jsx';
 import SeoCta from '../components/seo/SeoCta.jsx';
 import MarketingLayout from '../layouts/MarketingLayout.jsx';
 import { resolveSeoPage } from '../content/seo/index.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { isAppPath } from '../utils/hosts.js';
 import { breadcrumbJsonLd, faqJsonLd, organizationJsonLd, softwareJsonLd } from '../utils/seoJsonLd.js';
 
 function splitParagraphs(text) {
@@ -100,9 +102,15 @@ export default function SeoDocumentPage() {
             <ul className="mt-4 flex flex-col gap-2">
               {page.related.map((item) => (
                 <li key={item.path}>
-                  <Link to={item.path} className="font-medium text-primary hover:underline">
-                    {item.title}
-                  </Link>
+                  {isAppPath(item.path) ? (
+                    <AppLink to={item.path} className="font-medium text-primary hover:underline">
+                      {item.title}
+                    </AppLink>
+                  ) : (
+                    <Link to={item.path} className="font-medium text-primary hover:underline">
+                      {item.title}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

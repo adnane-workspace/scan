@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
-import { slugify } from '../utils/slug.js';
+import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 import { deleteCloudinaryImage } from './storage.service.js';
@@ -43,10 +43,7 @@ const ownerSelect = {
 export async function createPlatformCafe({ ownerName, email, password, cafeName, slug }, actor) {
   const normalizedEmail = email.toLowerCase();
   const cafeSlug = slugify(slug || cafeName);
-
-  if (!cafeSlug) {
-    throw new ApiError(400, 'A valid cafe slug is required', null, 'INVALID_SLUG');
-  }
+  assertUsableSlug(cafeSlug);
 
   const [existingEmail, existingSlug] = await Promise.all([
     prisma.user.findUnique({ where: { email: normalizedEmail }, select: { id: true } }),

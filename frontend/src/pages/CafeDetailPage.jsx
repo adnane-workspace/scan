@@ -8,6 +8,7 @@ import { deletePlatformCafe, getPlatformCafe, resetPlatformCafePassword, reviewQ
 import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
+import { getPublicMenuUrl } from '../utils/constants.js';
 import { getHomePath } from '../utils/paths.js';
 
 function Field({ label, value }) {
@@ -265,14 +266,14 @@ export default function CafeDetailPage() {
           {cafe.description ? <p className="text-on-surface-variant">{cafe.description}</p> : null}
 
           <div className="flex flex-wrap gap-3">
-            <Link
-              to={`/menu/${cafe.slug}`}
+            <a
+              href={getPublicMenuUrl(cafe.slug)}
               target="_blank"
               rel="noreferrer"
               className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary"
             >
               {t('platform.viewMenu')}
-            </Link>
+            </a>
             <button
               type="button"
               disabled={pending}

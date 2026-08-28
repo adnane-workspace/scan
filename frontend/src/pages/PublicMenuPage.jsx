@@ -4,9 +4,11 @@ import CategoryGridCard from '../components/menu/CategoryGridCard.jsx';
 import PublicMenuHeader from '../components/menu/PublicMenuHeader.jsx';
 import PublicProductCard from '../components/menu/PublicProductCard.jsx';
 import PublicProductSheet from '../components/menu/PublicProductSheet.jsx';
+import { useMenuSlug } from '../context/MenuSlugContext.jsx';
 import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { findPublicCategory, findPublicParent } from '../utils/categoryTree.js';
+import { getMenuPaths } from '../utils/hosts.js';
 
 const categoryGridClass =
   'grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
@@ -35,11 +37,13 @@ function MenuSkeleton() {
 }
 
 export default function PublicMenuPage() {
-  const { slug, categoryId } = useParams();
+  const slug = useMenuSlug();
+  const { categoryId } = useParams();
   const { t } = useLocale();
   const [searchParams, setSearchParams] = useSearchParams();
   const { menu, loading, errorStatus } = usePublicMenu(slug);
   const selectedProductId = searchParams.get('product');
+  const paths = getMenuPaths(slug);
 
   useEffect(() => {
     if (menu?.cafe) {
@@ -86,8 +90,8 @@ export default function PublicMenuPage() {
   }, [setSearchParams]);
 
   const cafe = menu?.cafe;
-  const landingPath = `/menu/${slug}`;
-  const categoriesPath = `/menu/${slug}/categories`;
+  const landingPath = paths.home;
+  const categoriesPath = paths.categories;
   const hasChildren = Boolean(selectedCategory?.children?.length);
 
   if (loading) {
@@ -131,7 +135,7 @@ export default function PublicMenuPage() {
   }
 
   if (selectedCategory && hasChildren) {
-    const backTo = selectedParent ? `/menu/${slug}/${selectedParent.id}` : categoriesPath;
+    const backTo = selectedParent ? paths.category(selectedParent.id) : categoriesPath;
     const backLabel = selectedParent ? selectedParent.name : t('menu.categories');
 
     return (
@@ -152,7 +156,7 @@ export default function PublicMenuPage() {
   }
 
   if (selectedCategory) {
-    const backTo = selectedParent ? `/menu/${slug}/${selectedParent.id}` : categoriesPath;
+    const backTo = selectedParent ? paths.category(selectedParent.id) : categoriesPath;
     const backLabel = selectedParent ? selectedParent.name : t('menu.categories');
 
     return (

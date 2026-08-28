@@ -297,7 +297,7 @@ async function seed() {
   console.log(`Admin: ${admin.email}`);
   console.log('Superadmin: superadmin@example.com');
   console.log(`Cafe: ${cafe.name} (${cafe.slug})`);
-  console.log(`Public menu URL: /menu/${cafe.slug}`);
+  console.log(`Public menu URL: http://localhost:5173/menu/${cafe.slug}`);
 
   await disconnectDatabase();
 }

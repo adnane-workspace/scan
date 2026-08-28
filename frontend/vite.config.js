@@ -31,6 +31,8 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
+    allowedHosts: true,
     port: 5173,
     fs: {
       allow: [workspaceRoot],
@@ -41,5 +43,9 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  preview: {
+    host: true,
+    allowedHosts: true,
   },
 });

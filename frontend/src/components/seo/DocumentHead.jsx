@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { APP_NAME, getSiteOrigin } from '../../utils/constants.js';
+import { APP_NAME, getDocumentOrigin } from '../../utils/constants.js';
 import { useLocale } from '../../hooks/useLocale.js';
 
 function upsertMeta(attr, key, content) {
@@ -39,7 +39,7 @@ export default function DocumentHead({
   type = 'website',
 }) {
   const { locale } = useLocale();
-  const origin = getSiteOrigin();
+  const origin = getDocumentOrigin();
   const canonicalPath = path === '/' ? '/' : path;
   const canonical = origin ? `${origin}${canonicalPath}` : canonicalPath;
   const image = origin ? `${origin}/landing/hero.jpg` : '/landing/hero.jpg';

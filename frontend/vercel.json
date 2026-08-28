@@ -4,7 +4,29 @@
     { "source": "/accueil", "destination": "/", "permanent": true },
     { "source": "/features", "destination": "/fonctionnalites", "permanent": true },
     { "source": "/product", "destination": "/menu-digital", "permanent": true },
-    { "source": "/produit", "destination": "/menu-digital", "permanent": true }
+    { "source": "/produit", "destination": "/menu-digital", "permanent": true },
+
+    { "source": "/menu/:slug", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://:slug.scanosh.com/", "permanent": true },
+    { "source": "/menu/:slug/categories", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://:slug.scanosh.com/categories", "permanent": true },
+    { "source": "/menu/:slug/:categoryId", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://:slug.scanosh.com/:categoryId", "permanent": true },
+    { "source": "/login", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://app.scanosh.com/login", "permanent": false },
+    { "source": "/register", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://app.scanosh.com/register", "permanent": false },
+    { "source": "/forgot-password", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://app.scanosh.com/forgot-password", "permanent": false },
+    { "source": "/app", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://app.scanosh.com/app", "permanent": false },
+    { "source": "/app/:path*", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://app.scanosh.com/app/:path*", "permanent": false },
+    { "source": "/platform", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://app.scanosh.com/platform", "permanent": false },
+    { "source": "/platform/:path*", "has": [{ "type": "host", "value": "www.scanosh.com" }], "destination": "https://app.scanosh.com/platform/:path*", "permanent": false },
+
+    { "source": "/menu/:slug", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://:slug.scanosh.com/", "permanent": true },
+    { "source": "/menu/:slug/categories", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://:slug.scanosh.com/categories", "permanent": true },
+    { "source": "/menu/:slug/:categoryId", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://:slug.scanosh.com/:categoryId", "permanent": true },
+    { "source": "/login", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://app.scanosh.com/login", "permanent": false },
+    { "source": "/register", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://app.scanosh.com/register", "permanent": false },
+    { "source": "/forgot-password", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://app.scanosh.com/forgot-password", "permanent": false },
+    { "source": "/app", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://app.scanosh.com/app", "permanent": false },
+    { "source": "/app/:path*", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://app.scanosh.com/app/:path*", "permanent": false },
+    { "source": "/platform", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://app.scanosh.com/platform", "permanent": false },
+    { "source": "/platform/:path*", "has": [{ "type": "host", "value": "scanosh.com" }], "destination": "https://app.scanosh.com/platform/:path*", "permanent": false }
   ],
   "rewrites": [
     {

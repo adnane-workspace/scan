@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import AppLink from '../components/common/AppLink.jsx';
 import DocumentHead from '../components/seo/DocumentHead.jsx';
 import SeoBreadcrumbs from '../components/seo/SeoBreadcrumbs.jsx';
 import SeoCta from '../components/seo/SeoCta.jsx';
@@ -35,12 +35,12 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <Link
+          <AppLink
             to="/register"
             className="mt-8 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary hover:bg-primary-hover"
           >
             {t('landing.ctaStart')}
-          </Link>
+          </AppLink>
         </div>
 
         {page.sections.slice(1).map((section) => (

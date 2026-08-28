@@ -1,4 +1,4 @@
-import { APP_NAME, getSiteOrigin } from './constants.js';
+import { APP_NAME, getPublicMenuUrl, getSiteOrigin } from './constants.js';
 
 export function organizationJsonLd() {
   const origin = getSiteOrigin();
@@ -66,8 +66,7 @@ export function faqJsonLd(faq) {
 }
 
 export function restaurantJsonLd(cafe, slug) {
-  const origin = getSiteOrigin();
-  const url = origin ? `${origin}/menu/${slug}` : `/menu/${slug}`;
+  const url = getPublicMenuUrl(slug) || `/menu/${slug}`;
 
   return {
     '@context': 'https://schema.org',

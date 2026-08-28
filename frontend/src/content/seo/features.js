@@ -75,8 +75,8 @@ export const featurePages = [
     ),
     h1: loc('QR code du menu', 'Menu QR code', 'رمز QR للقائمة'),
     answer: loc(
-      'Dans Scanosh, le QR encode l’adresse publique du café (`/menu/votre-slug`). Imprimez-le une fois. Les changements de carte se font dans le dashboard, pas sur le visuel.',
-      'In Scanosh the QR encodes the cafe public URL (`/menu/your-slug`). Print it once. Card changes happen in the dashboard, not on the artwork.',
+      'Dans Scanosh, le QR encode l’adresse publique du café (`votre-slug.scanosh.com`). Les anciens liens `/menu/votre-slug` redirigent vers ce sous-domaine. Imprimez-le une fois. Les changements de carte se font dans le dashboard, pas sur le visuel.',
+      'In Scanosh the QR encodes the cafe public URL (`your-slug.scanosh.com`). Legacy `/menu/your-slug` links redirect to that subdomain. Print it once. Card changes happen in the dashboard, not on the artwork.',
       'في Scanosh يرمّز QR عنوان المقهى العام. اطبعه مرة. تغييرات البطاقة تتم في اللوحة لا على الرسم.',
     ),
     sections: [

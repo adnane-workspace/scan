@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
 import { firstPublicCover } from '../../utils/categoryTree.js';
+import { getMenuPaths } from '../../utils/hosts.js';
 import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 
 export default function CategoryGridCard({ category, slug }) {
   const cover = firstPublicCover(category);
 
+  const paths = getMenuPaths(slug);
+
   return (
     <Link
-      to={`/menu/${slug}/${category.id}`}
+      to={paths.category(category.id)}
       className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-neutral-200 sm:aspect-[3/4] sm:rounded-2xl"
     >
       {cover ? (

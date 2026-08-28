@@ -1,6 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
-import { slugify } from '../utils/slug.js';
+import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 import { deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
@@ -98,10 +98,7 @@ export async function updateMyCafe(user, payload) {
 
   if (payload.slug !== undefined) {
     const nextSlug = slugify(payload.slug);
-
-    if (!nextSlug) {
-      throw new ApiError(400, 'A valid cafe slug is required', null, 'INVALID_SLUG');
-    }
+    assertUsableSlug(nextSlug);
 
     if (nextSlug !== current.slug) {
       const slugLocked = Boolean(current.qrGeneratedAt) && !current.qrChangeAllowed;

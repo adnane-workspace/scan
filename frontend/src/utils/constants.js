@@ -1,3 +1,5 @@
+import { buildPublicMenuUrl, currentLocationParts, parseHost } from './hosts.js';
+
 function normalizeApiUrl(url) {
   let value = (url || 'http://localhost:5000/api').trim().replace(/\/$/, '');
 
@@ -60,10 +62,26 @@ export function getSiteOrigin() {
   return '';
 }
 
+export function getDocumentOrigin() {
+  if (typeof window !== 'undefined') {
+    const host = parseHost(window.location.hostname);
+
+    if (host.kind === 'menu' || host.kind === 'app') {
+      return window.location.origin.replace(/\/$/, '');
+    }
+  }
+
+  return getSiteOrigin();
+}
+
 export function getPublicMenuUrl(slug) {
   if (!slug) {
     return '';
   }
 
-  return `${getSiteOrigin()}/menu/${slug}`;
+  const loc = currentLocationParts();
+  return buildPublicMenuUrl(slug, {
+    ...loc,
+    siteOrigin: getSiteOrigin(),
+  });
 }

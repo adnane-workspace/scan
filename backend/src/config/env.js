@@ -38,6 +38,7 @@ const envSchema = z.object({
     z.string().optional().default(''),
   ),
   MAIL_FROM: z.string().trim().optional().default('Scanosh <noreply@qtable.app>'),
+  ROOT_DOMAIN: z.string().trim().optional().default('scanosh.com'),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -62,7 +63,12 @@ const extraDevOrigins = [
   'http://127.0.0.1:5174',
 ];
 
-const productionSiteOrigins = ['https://www.scanosh.com', 'https://scanosh.com'];
+const productionSiteOrigins = [
+  'https://www.scanosh.com',
+  'https://scanosh.com',
+  'https://app.scanosh.com',
+  'https://platform.scanosh.com',
+];
 
 export const clientOrigins = [
   ...new Set(

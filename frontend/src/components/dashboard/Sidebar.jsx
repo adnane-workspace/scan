@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
 import BrandLogo from '../ui/BrandLogo.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
+import { getPublicMenuUrl } from '../../utils/constants.js';
 
 function navClassName(isSuperAdmin) {
   return ({ isActive }) =>
@@ -34,7 +35,7 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
         { to: '/app/products', label: t('nav.products'), icon: 'lunch_dining' },
         { to: '/app/settings', label: t('nav.settings'), icon: 'settings' },
       ];
-  const menuPath = cafe?.slug ? `/menu/${cafe.slug}` : '';
+  const menuUrl = cafe?.slug ? getPublicMenuUrl(cafe.slug) : '';
 
   return (
     <div
@@ -78,10 +79,10 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
       </nav>
 
       <div className="mt-auto px-3 pb-5">
-        {menuPath ? (
+        {menuUrl ? (
           <div className="mb-3 border-t border-outline-variant pt-4">
-            <NavLink
-              to={menuPath}
+            <a
+              href={menuUrl}
               target="_blank"
               rel="noreferrer"
               className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-200 ${
@@ -93,7 +94,7 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
             >
               <MaterialIcon name="open_in_new" className="text-[20px]" />
               {t('nav.viewMenu')}
-            </NavLink>
+            </a>
           </div>
         ) : (
           <div className="mb-3 border-t border-outline-variant pt-4" />

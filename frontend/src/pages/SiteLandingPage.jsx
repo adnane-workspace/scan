@@ -1,4 +1,5 @@
 import { Link, Navigate } from 'react-router-dom';
+import AppLink from '../components/common/AppLink.jsx';
 import LandingSeo from '../components/seo/LandingSeo.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
@@ -50,13 +51,13 @@ export default function SiteLandingPage() {
             </h1>
             <p className="mb-8 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:mb-10 sm:text-lg">{t('landing.heroBody')}</p>
             <div className="flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center sm:gap-4">
-              <Link
+              <AppLink
                 to="/register"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-lg transition-transform hover:-translate-y-0.5 hover:bg-primary-hover sm:px-8 sm:py-4"
               >
                 {t('landing.ctaStart')}
                 <MaterialIcon name="arrow_forward" className="text-[20px]" />
-              </Link>
+              </AppLink>
               <Link
                 to={LANDING_PRODUCT}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface px-6 py-3.5 text-label-lg font-semibold tracking-[0.05em] text-on-surface shadow-sm hover:bg-surface-container sm:px-8 sm:py-4"
@@ -198,13 +199,13 @@ export default function SiteLandingPage() {
               {t('landing.bottomTitle')}
             </h2>
             <p className="mx-auto mb-8 max-w-2xl text-base text-on-surface-variant sm:mb-10 sm:text-lg">{t('landing.bottomBody')}</p>
-            <Link
+            <AppLink
               to="/register"
               className="inline-flex w-full max-w-md items-center justify-center gap-3 rounded-xl bg-primary px-6 py-4 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-xl transition-transform hover:-translate-y-1 hover:bg-primary-hover sm:w-auto sm:max-w-none sm:px-10 sm:py-5"
             >
               {t('landing.bottomCta')}
               <MaterialIcon name="restaurant_menu" />
-            </Link>
+            </AppLink>
           </div>
         </section>
       </main>

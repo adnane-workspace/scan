@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import DocumentHead from '../components/seo/DocumentHead.jsx';
+import { useMenuSlug } from '../context/MenuSlugContext.jsx';
 import { countPublicProducts, setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 import { restaurantJsonLd } from '../utils/seoJsonLd.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { getMenuPaths } from '../utils/hosts.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
 
 function telHref(phone) {
@@ -54,9 +56,10 @@ function LandingStatus({ title, message }) {
 }
 
 export default function PublicMenuLandingPage() {
-  const { slug } = useParams();
+  const slug = useMenuSlug();
   const { t } = useLocale();
   const { menu, loading, errorStatus } = usePublicMenu(slug);
+  const paths = getMenuPaths(slug);
 
   const productCount = countPublicProducts(menu?.categories);
   const indexable = Boolean(menu?.cafe && productCount > 0);
@@ -107,7 +110,7 @@ export default function PublicMenuLandingPage() {
       <DocumentHead
         title={`${cafe.name}`}
         description={cafe.description || t('menu.welcome', { name: cafe.name })}
-        path={`/menu/${slug}`}
+        path={paths.home}
         robots={indexable ? 'index,follow' : 'noindex,follow'}
         jsonLd={indexable ? restaurantJsonLd(cafe, slug) : undefined}
       />
@@ -184,7 +187,7 @@ export default function PublicMenuLandingPage() {
           ) : null}
 
           <Link
-            to={`/menu/${slug}/categories`}
+            to={paths.categories}
             className="mt-[clamp(0.75rem,3vmin,2rem)] inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#e0e1dd] px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-[#0d1b2a] transition-transform hover:bg-[#e0e1dd]/90 active:scale-[0.98] sm:w-auto sm:min-w-56"
           >
             {t('menu.viewMenu')}

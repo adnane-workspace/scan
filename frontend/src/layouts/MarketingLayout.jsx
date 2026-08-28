@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import AppLink from '../components/common/AppLink.jsx';
 import BrandLogo from '../components/ui/BrandLogo.jsx';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
@@ -52,20 +53,20 @@ export default function MarketingLayout({ children }) {
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSwitcher compact className="hidden md:inline-flex" />
-            <Link
+            <AppLink
               to="/register"
               className="hidden h-10 items-center rounded-xl bg-primary px-4 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-colors hover:bg-primary-hover md:inline-flex lg:px-5"
             >
               {t('landing.ctaTrial')}
-            </Link>
-            <Link
+            </AppLink>
+            <AppLink
               to="/login"
               className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-xl bg-primary text-on-primary shadow-md transition-colors hover:bg-primary-hover md:w-auto md:px-4 lg:px-5"
               aria-label={t('auth.loginTitle')}
             >
               <MaterialIcon name="person" className="text-[18px]" />
               <span className="hidden text-label-lg font-semibold tracking-[0.05em] md:inline">{t('landing.ctaLogin')}</span>
-            </Link>
+            </AppLink>
             <button
               type="button"
               className="rounded-xl p-2 text-on-surface xl:hidden"
@@ -91,12 +92,12 @@ export default function MarketingLayout({ children }) {
               <div className="py-2 md:hidden">
                 <LanguageSwitcher compact />
               </div>
-              <Link to="/login" className="py-2.5 font-semibold text-on-surface md:hidden" onClick={() => setMenuOpen(false)}>
+              <AppLink to="/login" className="py-2.5 font-semibold text-on-surface md:hidden" onClick={() => setMenuOpen(false)}>
                 {t('auth.loginTitle')}
-              </Link>
-              <Link to="/register" className="mt-1 rounded-xl bg-primary px-4 py-3 text-center font-semibold text-on-primary md:hidden" onClick={() => setMenuOpen(false)}>
+              </AppLink>
+              <AppLink to="/register" className="mt-1 rounded-xl bg-primary px-4 py-3 text-center font-semibold text-on-primary md:hidden" onClick={() => setMenuOpen(false)}>
                 {t('landing.ctaTrial')}
-              </Link>
+              </AppLink>
             </nav>
           </div>
         ) : null}
@@ -174,15 +175,15 @@ export default function MarketingLayout({ children }) {
                 </li>
                 <li className="flex items-center gap-2">
                   <MaterialIcon name="login" className="text-[18px]" />
-                  <Link to="/login" className="hover:text-primary">
+                  <AppLink to="/login" className="hover:text-primary">
                     {t('auth.loginTitle')}
-                  </Link>
+                  </AppLink>
                 </li>
                 <li className="flex items-center gap-2">
                   <MaterialIcon name="person_add" className="text-[18px]" />
-                  <Link to="/register" className="hover:text-primary">
+                  <AppLink to="/register" className="hover:text-primary">
                     {t('auth.createCafe')}
-                  </Link>
+                  </AppLink>
                 </li>
               </ul>
             </div>
