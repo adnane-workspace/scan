@@ -1,3 +1,12 @@
 {
-  "buildCommand": "npx prisma generate && npx prisma migrate deploy"
+  "buildCommand": "npx prisma generate && npx prisma migrate deploy",
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "Vary", "value": "Origin" }
+      ]
+    }
+  ]
 }

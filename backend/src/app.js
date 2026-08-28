@@ -18,6 +18,11 @@ app.use(
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   }),
 );
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.setHeader('Vary', 'Origin');
+  next();
+});
 app.use(
   cors({
     origin(origin, callback) {
@@ -30,7 +35,7 @@ app.use(
           nodeEnv: env.NODE_ENV,
         })
       ) {
-        return callback(null, true);
+        return callback(null, requestOrigin || true);
       }
 
       return callback(null, false);
