@@ -35,7 +35,7 @@ function migrateStorageKey(from, to) {
 }
 
 export const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL);
-export const APP_NAME = 'QTable';
+export const APP_NAME = 'Menora';
 export const DEVELOPER_NAME = 'Adnan Elmenouar';
 export const DEVELOPER_URL = 'https://elmenouar.linkmakeup.com/';
 export const TOKEN_STORAGE_KEY = 'qtable-token';

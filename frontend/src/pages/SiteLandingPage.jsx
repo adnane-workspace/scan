@@ -57,7 +57,7 @@ export default function SiteLandingPage() {
       <header className="fixed top-0 z-50 w-full border-b border-outline-variant/20 bg-surface/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:px-10">
           <Link to="/" className="flex min-w-0 shrink items-center" aria-label={APP_NAME}>
-            <BrandLogo className="h-8 max-w-[9.5rem] sm:h-10 sm:max-w-[12rem]" />
+            <BrandLogo className="h-8 max-w-[11rem] sm:h-10 sm:max-w-[14rem]" />
           </Link>
 
           <nav className="hidden items-center gap-6 lg:flex xl:gap-8">
@@ -91,16 +91,17 @@ export default function SiteLandingPage() {
             <LanguageSwitcher compact className="hidden md:inline-flex" />
             <Link
               to="/register"
-              className="hidden rounded-xl bg-primary px-4 py-2 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-colors hover:bg-primary-hover md:inline-flex lg:px-5 lg:py-2.5"
+              className="hidden h-10 items-center rounded-xl bg-primary px-4 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-colors hover:bg-primary-hover md:inline-flex lg:px-5"
             >
               {t('landing.ctaTrial')}
             </Link>
             <Link
               to="/login"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary"
+              className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-xl bg-primary text-on-primary shadow-md transition-colors hover:bg-primary-hover md:w-auto md:px-4 lg:px-5"
               aria-label={t('auth.loginTitle')}
             >
               <MaterialIcon name="person" className="text-[18px]" />
+              <span className="hidden text-label-lg font-semibold tracking-[0.05em] md:inline">{t('landing.ctaLogin')}</span>
             </Link>
             <button
               type="button"
@@ -256,7 +257,7 @@ export default function SiteLandingPage() {
                       <div className="h-2.5 w-2.5 rounded-full bg-[#778da9] sm:h-3 sm:w-3" />
                       <div className="h-2.5 w-2.5 rounded-full bg-primary/40 sm:h-3 sm:w-3" />
                     </div>
-                    <div className="rounded-md bg-surface px-3 py-1 text-[11px] font-medium text-on-surface-variant sm:px-4 sm:text-xs">app.qtable</div>
+                    <div className="rounded-md bg-surface px-3 py-1 text-[11px] font-medium text-on-surface-variant sm:px-4 sm:text-xs">app.menora</div>
                   </div>
                   <div className="grid grid-cols-12 gap-3 bg-[#e0e1dd] p-3 sm:gap-6 sm:p-6">
                     <div className="col-span-3 hidden flex-col gap-3 md:flex">

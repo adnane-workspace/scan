@@ -4,42 +4,42 @@ import { ApiError } from '../utils/ApiError.js';
 
 const COPY = {
   fr: {
-    subject: 'Votre code de vérification QTable',
+    subject: 'Votre code de vérification Menora',
     title: 'Code de vérification',
-    intro: 'Utilisez ce code pour réinitialiser le mot de passe de votre espace QTable.',
+    intro: 'Utilisez ce code pour réinitialiser le mot de passe de votre espace Menora.',
     valid: 'Ce code expire dans 10 minutes. Si vous n’êtes pas à l’origine de cette demande, ignorez cet email.',
   },
   en: {
-    subject: 'Your QTable verification code',
+    subject: 'Your Menora verification code',
     title: 'Verification code',
-    intro: 'Use this code to reset the password for your QTable space.',
+    intro: 'Use this code to reset the password for your Menora space.',
     valid: 'This code expires in 10 minutes. If you did not request it, you can ignore this email.',
   },
   ar: {
-    subject: 'رمز التحقق من QTable',
+    subject: 'رمز التحقق من Menora',
     title: 'رمز التحقق',
-    intro: 'استخدم هذا الرمز لإعادة تعيين كلمة مرور فضاء QTable.',
+    intro: 'استخدم هذا الرمز لإعادة تعيين كلمة مرور فضاء Menora.',
     valid: 'ينتهي هذا الرمز خلال 10 دقائق. إذا لم تطلبه، يمكنك تجاهل هذا البريد.',
   },
 };
 
 const VERIFY_COPY = {
   fr: {
-    subject: 'Confirmez votre email QTable',
+    subject: 'Confirmez votre email Menora',
     title: 'Confirmer l’email',
-    intro: 'Utilisez ce code pour activer votre espace QTable. Un email = un compte.',
+    intro: 'Utilisez ce code pour activer votre espace Menora. Un email = un compte.',
     valid: 'Ce code expire dans 10 minutes. Si vous n’êtes pas à l’origine de cette inscription, ignorez cet email.',
   },
   en: {
-    subject: 'Confirm your QTable email',
+    subject: 'Confirm your Menora email',
     title: 'Confirm your email',
-    intro: 'Use this code to activate your QTable space. One email = one account.',
+    intro: 'Use this code to activate your Menora space. One email = one account.',
     valid: 'This code expires in 10 minutes. If you did not create this account, you can ignore this email.',
   },
   ar: {
-    subject: 'أكّد بريدك على QTable',
+    subject: 'أكّد بريدك على Menora',
     title: 'تأكيد البريد',
-    intro: 'استخدم هذا الرمز لتفعيل فضاء QTable. بريد واحد = حساب واحد.',
+    intro: 'استخدم هذا الرمز لتفعيل فضاء Menora. بريد واحد = حساب واحد.',
     valid: 'ينتهي هذا الرمز خلال 10 دقائق. إذا لم تنشئ هذا الحساب، تجاهل هذا البريد.',
   },
 };
@@ -49,7 +49,7 @@ function buildCodeEmail(code, locale, copyMap) {
   const text = `${copy.intro}\n\n${code}\n\n${copy.valid}`;
   const html = `
     <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">QTable</p>
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">Menora</p>
       <h1 style="font-size:28px;margin:0 0 12px">${copy.title}</h1>
       <p style="margin:0 0 24px;color:#e0e1ddb8;line-height:1.5">${copy.intro}</p>
       <p style="font-size:36px;letter-spacing:.28em;font-weight:700;margin:0 0 24px">${code}</p>
@@ -80,7 +80,7 @@ function buildQrChangeEmail({ cafeName, slug, requesterName, requesterEmail, rea
   ].join('\n');
   const html = `
     <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1b2a;padding:32px;color:#e0e1dd">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">QTable</p>
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#e0e1dd;margin:0 0 16px">Menora</p>
       <h1 style="font-size:28px;margin:0 0 12px">Changement de QR</h1>
       <p style="margin:0 0 16px;color:#e0e1ddb8;line-height:1.5">
         <strong style="color:#e0e1dd">${escapeHtml(requesterName)}</strong>
