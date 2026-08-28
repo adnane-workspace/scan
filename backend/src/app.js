@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { env, clientOrigins } from './config/env.js';
+import { env, clientOrigins, normalizeOrigin } from './config/env.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { router } from './routes/index.js';
 
@@ -20,7 +20,9 @@ app.use(
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || clientOrigins.includes(origin)) {
+      const requestOrigin = normalizeOrigin(origin);
+
+      if (!requestOrigin || clientOrigins.includes(requestOrigin)) {
         return callback(null, true);
       }
 

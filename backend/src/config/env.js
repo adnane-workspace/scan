@@ -49,6 +49,12 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
+export function normalizeOrigin(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\/+$/, '');
+}
+
 const extraDevOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -56,7 +62,16 @@ const extraDevOrigins = [
   'http://127.0.0.1:5174',
 ];
 
+const productionSiteOrigins = ['https://www.scanosh.com', 'https://scanosh.com'];
+
 export const clientOrigins = [
-  ...env.CLIENT_URL.split(',').map((origin) => origin.trim()).filter(Boolean),
-  ...(env.NODE_ENV === 'development' ? extraDevOrigins : []),
+  ...new Set(
+    [
+      ...env.CLIENT_URL.split(','),
+      ...productionSiteOrigins,
+      ...(env.NODE_ENV === 'development' ? extraDevOrigins : []),
+    ]
+      .map(normalizeOrigin)
+      .filter(Boolean),
+  ),
 ];
