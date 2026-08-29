@@ -50,7 +50,7 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
           </>
         ) : (
           <>
-            <BrandLogo onDark={isDark} className="h-5" />
+            <BrandLogo onDark={isDark} className="h-8 max-w-[11rem]" />
             <div className="mt-5 flex items-center gap-3.5">
               <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-container">
                 {cafe?.logo ? (

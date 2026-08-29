@@ -24,7 +24,7 @@ export async function uploadCafeLogo(file, kind = 'logo') {
   const formData = new FormData();
   formData.append('image', file);
 
-  const query = kind === 'cover' ? '?kind=cover' : '';
+  const query = kind === 'cover' ? '?kind=cover' : kind === 'menuBg' ? '?kind=menuBg' : '';
   const { data } = await api.post(`/me/cafe/upload${query}`, formData);
   return data.data.url;
 }

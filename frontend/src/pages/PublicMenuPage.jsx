@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import PublicMenuFrame from '../components/menu/PublicMenuFrame.jsx';
 import CategoryGridCard from '../components/menu/CategoryGridCard.jsx';
 import PublicMenuHeader from '../components/menu/PublicMenuHeader.jsx';
 import PublicProductCard from '../components/menu/PublicProductCard.jsx';
@@ -94,43 +95,56 @@ export default function PublicMenuPage() {
   const categoriesPath = paths.categories;
   const hasChildren = Boolean(selectedCategory?.children?.length);
 
+  function frame(content) {
+    return <PublicMenuFrame cafe={cafe}>{content}</PublicMenuFrame>;
+  }
+
   if (loading) {
-    return <MenuSkeleton />;
+    return frame(<MenuSkeleton />);
+  }
+
+  if (errorStatus && errorStatus !== 404 && errorStatus !== 403) {
+    return frame(
+      <>
+        <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
+        <MenuStatus title={t('menu.loadErrorTitle')} message={t('menu.loadError')} />
+      </>,
+    );
   }
 
   if (errorStatus === 403) {
-    return (
+    return frame(
       <>
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
         <MenuStatus title={t('menu.unavailableTitle')} message={t('menu.unavailable')} />
-      </>
+      </>,
     );
   }
 
   if (errorStatus) {
-    return (
+    return frame(
       <>
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
         <MenuStatus title={t('menu.missingTitle')} message={t('menu.missing')} />
-      </>
+      </>,
     );
   }
 
   if (!menu?.categories?.length) {
-    return (
+    return frame(
       <>
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
         <MenuStatus title={t('menu.emptyTitle')} message={t('menu.empty')} />
-      </>
+      </>,
     );
   }
 
   if (categoryId && !selectedCategory) {
-    return (
+    return frame(
       <>
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={categoriesPath} backLabel={t('menu.categories')} />
         <MenuStatus title={t('menu.categoryMissingTitle')} message={t('menu.categoryMissing')} />
-      </>
+      </>,
     );
   }
 
@@ -138,7 +152,7 @@ export default function PublicMenuPage() {
     const backTo = selectedParent ? paths.category(selectedParent.id) : categoriesPath;
     const backLabel = selectedParent ? selectedParent.name : t('menu.categories');
 
-    return (
+    return frame(
       <div className="min-h-screen">
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
@@ -151,7 +165,7 @@ export default function PublicMenuPage() {
             ))}
           </div>
         </div>
-      </div>
+      </div>,
     );
   }
 
@@ -159,7 +173,7 @@ export default function PublicMenuPage() {
     const backTo = selectedParent ? paths.category(selectedParent.id) : categoriesPath;
     const backLabel = selectedParent ? selectedParent.name : t('menu.categories');
 
-    return (
+    return frame(
       <div className="min-h-screen">
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
@@ -173,11 +187,11 @@ export default function PublicMenuPage() {
           </div>
         </div>
         <PublicProductSheet product={selectedProduct} onClose={closeProduct} />
-      </div>
+      </div>,
     );
   }
 
-  return (
+  return frame(
     <div className="min-h-screen">
       <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
       <div className={contentClass}>
@@ -190,6 +204,6 @@ export default function PublicMenuPage() {
           ))}
         </div>
       </div>
-    </div>
+    </div>,
   );
 }

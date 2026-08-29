@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
+import { normalizeMenuUi } from '../utils/menuUi.js';
 import { deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 
 function requireCafeId(user) {
@@ -25,6 +26,7 @@ function toCafeResponse(cafe, pendingRequest) {
     latitude: cafe.latitude,
     longitude: cafe.longitude,
     slug: cafe.slug,
+    menuUi: normalizeMenuUi(cafe.menuUi),
     isActive: cafe.isActive,
     createdAt: cafe.createdAt,
     updatedAt: cafe.updatedAt,
@@ -55,6 +57,7 @@ export async function updateMyCafe(user, payload) {
       qrChangeAllowed: true,
       logo: true,
       cover: true,
+      menuUi: true,
     },
   });
 
@@ -94,6 +97,12 @@ export async function updateMyCafe(user, payload) {
 
   if (payload.longitude !== undefined) {
     data.longitude = payload.longitude;
+  }
+
+  if (payload.menuUi !== undefined) {
+    const nextUi = normalizeMenuUi(payload.menuUi);
+    nextUi.backgroundImage = normalizeImageUrl(nextUi.backgroundImage);
+    data.menuUi = nextUi;
   }
 
   if (payload.slug !== undefined) {
@@ -142,6 +151,13 @@ export async function updateMyCafe(user, payload) {
 
   if (payload.cover !== undefined) {
     await deleteReplacedImage(current.cover, cafe.cover);
+  }
+
+  if (payload.menuUi !== undefined) {
+    await deleteReplacedImage(
+      normalizeMenuUi(current.menuUi).backgroundImage,
+      normalizeMenuUi(cafe.menuUi).backgroundImage,
+    );
   }
 
   await recordActivity({

@@ -7,9 +7,11 @@ import DocumentHead from '../components/seo/DocumentHead.jsx';
 import { useMenuSlug } from '../context/MenuSlugContext.jsx';
 import { countPublicProducts, setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 import { restaurantJsonLd } from '../utils/seoJsonLd.js';
+import PublicMenuFrame from '../components/menu/PublicMenuFrame.jsx';
 import { useLocale } from '../hooks/useLocale.js';
 import { getMenuPaths } from '../utils/hosts.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
+import { normalizeMenuUi, resolveMenuBackdrop } from '../utils/menuUi.js';
 
 function telHref(phone) {
   return `tel:${String(phone).replace(/[^\d+]/g, '')}`;
@@ -32,24 +34,22 @@ function useLockPageScroll() {
   }, []);
 }
 
-function LandingShell({ children, className = '' }) {
+function LandingShell({ cafe, children, className = '' }) {
   useLockPageScroll();
 
   return (
-    <div
-      className={`fixed inset-0 z-10 flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none bg-[#0d1b2a] text-[#e0e1dd] ${className}`}
-    >
-      {children}
-    </div>
+    <PublicMenuFrame cafe={cafe} className="fixed inset-0 z-10 flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none">
+      <div className={`relative flex h-full min-h-0 flex-col ${className}`}>{children}</div>
+    </PublicMenuFrame>
   );
 }
 
-function LandingStatus({ title, message }) {
+function LandingStatus({ title, message, cafe }) {
   return (
-    <LandingShell className="items-center justify-center">
+    <LandingShell cafe={cafe} className="items-center justify-center">
       <div className="px-6 text-center">
-        <h1 className="font-display text-2xl font-semibold text-[#e0e1dd]">{title}</h1>
-        <p className="mt-2 max-w-md text-sm text-[#e0e1dd]/70">{message}</p>
+        <h1 className="font-display text-2xl font-semibold text-on-surface">{title}</h1>
+        <p className="mt-2 max-w-md text-sm text-on-surface-variant">{message}</p>
       </div>
     </LandingShell>
   );
@@ -86,7 +86,7 @@ export default function PublicMenuLandingPage() {
   if (loading) {
     return (
       <LandingShell className="items-center justify-center">
-        <div className="h-20 w-20 animate-pulse rounded-full bg-[#e0e1dd]/10" />
+        <div className="h-20 w-20 animate-pulse rounded-full bg-on-surface/10" />
       </LandingShell>
     );
   }
@@ -95,18 +95,24 @@ export default function PublicMenuLandingPage() {
     return <LandingStatus title={t('menu.unavailableTitle')} message={t('menu.unavailable')} />;
   }
 
+  if (errorStatus && errorStatus !== 404) {
+    return <LandingStatus title={t('menu.loadErrorTitle')} message={t('menu.loadError')} />;
+  }
+
   if (errorStatus || !menu?.cafe) {
     return <LandingStatus title={t('menu.missingTitle')} message={t('menu.missing')} />;
   }
 
   const { cafe } = menu;
-  const cover = cafe.cover || '';
-  const backdrop = cover || cafe.logo || '';
-  const backdropIsLogo = !cover && Boolean(cafe.logo);
+  const ui = normalizeMenuUi(cafe.menuUi);
+  const isDark = ui.theme === 'dark';
+  const backdrop = resolveMenuBackdrop(cafe);
   const located = Boolean(cafe.address || hasCoordinates(cafe));
+  const showAddress = ui.showAddress && located;
+  const showPhone = ui.showPhone && Boolean(cafe.phone);
 
   return (
-    <LandingShell>
+    <LandingShell cafe={cafe}>
       <DocumentHead
         title={`${cafe.name}`}
         description={cafe.description || t('menu.welcome', { name: cafe.name })}
@@ -114,23 +120,33 @@ export default function PublicMenuLandingPage() {
         robots={indexable ? 'index,follow' : 'noindex,follow'}
         jsonLd={indexable ? restaurantJsonLd(cafe, slug) : undefined}
       />
-      {backdrop ? (
+      {backdrop.image ? (
         <CloudinaryImage
-          src={backdrop}
+          src={backdrop.image}
           alt=""
           preset="cover"
           fetchPriority="high"
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover ${
-            backdropIsLogo ? 'scale-125 blur-2xl' : ''
+            backdrop.blur ? 'scale-125 blur-2xl' : ''
           }`}
         />
+      ) : backdrop.color ? (
+        <div className="pointer-events-none absolute inset-0" style={{ background: backdrop.color }} />
       ) : null}
-      <div className="pointer-events-none absolute inset-0 bg-black/35" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/25" />
+      <div className={`pointer-events-none absolute inset-0 ${isDark ? 'bg-black/35' : 'bg-background/25'}`} />
+      <div
+        className={`pointer-events-none absolute inset-0 ${
+          isDark
+            ? 'bg-gradient-to-t from-black/90 via-black/40 to-black/25'
+            : 'bg-gradient-to-t from-background via-background/70 to-background/20'
+        }`}
+      />
 
-      <div className="absolute top-0 end-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))] pe-[max(1rem,env(safe-area-inset-right))]">
-        <LanguageSwitcher onDark />
-      </div>
+      {ui.showLanguage ? (
+        <div className="absolute top-0 end-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))] pe-[max(1rem,env(safe-area-inset-right))]">
+          <LanguageSwitcher onDark={isDark} />
+        </div>
+      ) : null}
 
       <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-lg flex-col justify-end px-4 pt-16 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center min-[480px]:px-6 sm:max-w-xl sm:justify-center sm:px-8 sm:py-16">
         <div className="flex min-h-0 w-full shrink flex-col items-center">
@@ -141,10 +157,10 @@ export default function PublicMenuLandingPage() {
               preset="logoHero"
               width={144}
               height={144}
-              className="h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 rounded-full object-cover ring-4 ring-[#e0e1dd]/80"
+              className="h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 rounded-full object-cover ring-4 ring-on-surface/80"
             />
           ) : (
-            <div className="flex h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 items-center justify-center rounded-full bg-[#e0e1dd]/15 font-display text-[clamp(1.25rem,6vmin,2.5rem)] font-semibold ring-4 ring-[#e0e1dd]/40">
+            <div className="flex h-[clamp(3.5rem,18vmin,9rem)] w-[clamp(3.5rem,18vmin,9rem)] shrink-0 items-center justify-center rounded-full bg-on-surface/15 font-display text-[clamp(1.25rem,6vmin,2.5rem)] font-semibold ring-4 ring-on-surface/40">
               {cafe.name.slice(0, 1)}
             </div>
           )}
@@ -154,19 +170,19 @@ export default function PublicMenuLandingPage() {
           </h1>
 
           {cafe.description ? (
-            <p className="mt-2 hidden max-w-md shrink-0 line-clamp-2 text-sm leading-relaxed text-[#e0e1dd]/80 min-[520px]:block max-h-[500px]:hidden sm:text-base">
+            <p className="mt-2 hidden max-w-md shrink-0 line-clamp-2 text-sm leading-relaxed text-on-surface/80 min-[520px]:block max-h-[500px]:hidden sm:text-base">
               {cafe.description}
             </p>
           ) : null}
 
-          {located || cafe.phone ? (
+          {showAddress || showPhone ? (
             <div className="mt-[clamp(0.5rem,2vmin,1.5rem)] flex w-full max-w-md shrink-0 flex-col items-center gap-2">
-              {located ? (
+              {showAddress ? (
                 <a
                   href={mapsHref(cafe)}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex w-full items-center gap-2 rounded-full bg-[#e0e1dd]/15 px-3.5 py-2 text-start text-sm text-[#e0e1dd]/90 ring-1 ring-[#e0e1dd]/20 backdrop-blur-md hover:bg-[#e0e1dd]/25 sm:w-auto sm:max-w-full sm:px-4"
+                  className="inline-flex w-full items-center gap-2 rounded-full bg-on-surface/15 px-3.5 py-2 text-start text-sm text-on-surface/90 ring-1 ring-on-surface/20 backdrop-blur-md hover:bg-on-surface/25 sm:w-auto sm:max-w-full sm:px-4"
                 >
                   <MaterialIcon name="location_on" className="shrink-0 text-[18px]" />
                   <span className="min-w-0 truncate">
@@ -174,10 +190,10 @@ export default function PublicMenuLandingPage() {
                   </span>
                 </a>
               ) : null}
-              {cafe.phone ? (
+              {showPhone ? (
                 <a
                   href={telHref(cafe.phone)}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#e0e1dd]/10 px-4 py-1.5 text-sm text-[#e0e1dd]/85 ring-1 ring-[#e0e1dd]/15 backdrop-blur-md hover:bg-[#e0e1dd]/20"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full bg-on-surface/10 px-4 py-1.5 text-sm text-on-surface/85 ring-1 ring-on-surface/15 backdrop-blur-md hover:bg-on-surface/20"
                 >
                   <MaterialIcon name="call" className="text-[18px]" />
                   {cafe.phone}
@@ -188,7 +204,7 @@ export default function PublicMenuLandingPage() {
 
           <Link
             to={paths.categories}
-            className="mt-[clamp(0.75rem,3vmin,2rem)] inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#e0e1dd] px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-[#0d1b2a] transition-transform hover:bg-[#e0e1dd]/90 active:scale-[0.98] sm:w-auto sm:min-w-56"
+            className="mt-[clamp(0.75rem,3vmin,2rem)] inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-label-lg font-semibold tracking-[0.05em] text-on-primary transition-transform hover:bg-primary-hover active:scale-[0.98] sm:w-auto sm:min-w-56"
           >
             {t('menu.viewMenu')}
             <MaterialIcon name="arrow_forward" className="text-[20px]" />

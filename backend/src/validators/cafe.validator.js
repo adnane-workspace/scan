@@ -20,6 +20,17 @@ export const updateCafeSchema = z.object({
       phone: z.string().trim().max(30).optional(),
       latitude: z.number().min(-90).max(90).nullable().optional(),
       longitude: z.number().min(-180).max(180).nullable().optional(),
+      menuUi: z
+        .object({
+          theme: z.enum(['light', 'dark']).optional(),
+          showPhone: z.boolean().optional(),
+          showAddress: z.boolean().optional(),
+          showLanguage: z.boolean().optional(),
+          bgMode: z.enum(['default', 'color', 'image']).optional(),
+          backgroundColor: z.string().trim().max(16).optional(),
+          backgroundImage: z.string().trim().max(2048).optional(),
+        })
+        .optional(),
     })
     .refine((value) => Object.keys(value).length > 0, {
       message: 'At least one field is required',

@@ -59,6 +59,7 @@ model Cafe {
   latitude    Float?
   longitude   Float?
   slug            String        @unique @db.VarChar(80)
+  menuUi          Json          @default("{}")
   isActive        Boolean       @default(true)
   qrGeneratedAt   DateTime?
   qrChangeAllowed Boolean       @default(false)

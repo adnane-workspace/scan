@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { groupByParent } from '../utils/categoryTree.js';
+import { normalizeMenuUi } from '../utils/menuUi.js';
 
 function toPublicProduct(product) {
   return {
@@ -49,6 +50,7 @@ export async function getPublicMenu(slug) {
       phone: true,
       latitude: true,
       longitude: true,
+      menuUi: true,
       isActive: true,
     },
   });
@@ -104,6 +106,7 @@ export async function getPublicMenu(slug) {
       phone: cafe.phone || '',
       latitude: cafe.latitude,
       longitude: cafe.longitude,
+      menuUi: normalizeMenuUi(cafe.menuUi),
     },
     categories: buildPublicTree(categories, productsByCategory),
   };
