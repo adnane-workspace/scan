@@ -28,24 +28,37 @@ const emptyForm = {
   parentId: '',
 };
 
-function CategoryIdentity({ category, t }) {
+function CategoryIdentity({ category, parentName, t }) {
+  const isChild = category.depth > 0;
+
   return (
-    <div className="flex min-w-0 items-center gap-4">
-      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-container text-primary shadow-sm">
+    <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+      <div
+        className={`relative flex shrink-0 items-center justify-center overflow-hidden bg-surface-container text-primary ${
+          isChild ? 'h-10 w-10 rounded-lg' : 'h-12 w-12 rounded-xl shadow-sm'
+        }`}
+      >
         {category.image ? (
           <CloudinaryImage src={category.image} alt="" preset="thumb" className="h-full w-full object-cover" />
         ) : (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10" />
-            <MaterialIcon name={categoryIcon(category.name)} className="relative z-10 text-[24px]" />
-          </>
+          <MaterialIcon name={categoryIcon(category.name)} className={isChild ? 'text-[20px]' : 'text-[24px]'} />
         )}
       </div>
       <div className="min-w-0">
-        <h3 className="truncate text-lg font-semibold tracking-tight text-on-surface md:text-headline-md">
+        {isChild ? (
+          <p className="mb-0.5 text-[11px] font-semibold tracking-[0.08em] text-primary uppercase">
+            {t('categories.subcategory')}
+            {parentName ? ` · ${t('categories.inside', { name: parentName })}` : ''}
+          </p>
+        ) : (
+          <p className="mb-0.5 text-[11px] font-semibold tracking-[0.08em] text-on-surface-variant uppercase">
+            {t('categories.rootLabel')}
+          </p>
+        )}
+        <h3 className={`truncate font-semibold tracking-tight text-on-surface ${isChild ? 'text-base' : 'text-lg'}`}>
           {category.name}
         </h3>
-        <p className="mt-1 truncate text-label-md font-medium text-on-surface-variant">
+        <p className="mt-0.5 truncate text-sm text-on-surface-variant">
           {category.description || t('categories.noDescription')}
         </p>
       </div>
@@ -124,6 +137,10 @@ export default function CategoriesPage() {
   }, [loadData]);
 
   const rows = useMemo(() => walkPreOrder(categories), [categories]);
+  const categoryById = useMemo(
+    () => new Map(categories.map((category) => [category._id, category])),
+    [categories],
+  );
 
   const parentOptions = useMemo(() => {
     const blocked = editingId ? descendantIdSet(categories, editingId) : new Set();
@@ -389,148 +406,112 @@ export default function CategoriesPage() {
         </p>
       ) : null}
 
-      <div className="relative overflow-hidden rounded-2xl bg-surface shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-surface-bright/50 via-transparent to-surface-bright/50" />
-        <div className="relative z-10">
+      <div className="relative">
           {loading ? (
-            <p className="px-6 py-8 text-sm text-on-surface-variant">{t('categories.loading')}</p>
+            <p className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-sm text-on-surface-variant">
+              {t('categories.loading')}
+            </p>
           ) : categories.length === 0 ? (
-            <p className="px-6 py-8 text-sm text-on-surface-variant">{t('categories.empty')}</p>
+            <p className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-sm text-on-surface-variant">
+              {t('categories.empty')}
+            </p>
           ) : (
-            <>
-              <ul className="space-y-3 p-3 md:hidden">
-                {rows.map((category) => {
-                  const count = category.productCount || 0;
-                  const siblings = siblingCategories(categories, category.parentId);
-                  const siblingIndex = siblings.findIndex((item) => item._id === category._id);
+            <ul className="flex flex-col gap-2">
+              {rows.map((category) => {
+                const count = category.productCount || 0;
+                const childCount = category.childCount || 0;
+                const siblings = siblingCategories(categories, category.parentId);
+                const siblingIndex = siblings.findIndex((item) => item._id === category._id);
+                const isChild = category.depth > 0;
+                const parentName = category.parentId ? categoryById.get(category.parentId)?.name : '';
 
-                  return (
-                    <li
-                      key={category._id}
-                      className="rounded-xl bg-surface-container-lowest p-4 shadow-sm"
-                      style={{ marginLeft: `${category.depth * 16}px` }}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-label-lg font-semibold text-on-surface-variant">
-                            {siblingIndex + 1}
-                          </div>
-                          <CategoryIdentity category={category} t={t} />
-                        </div>
-                        <div className="flex shrink-0 flex-col">
-                          <button
-                            type="button"
-                            aria-label={t('categories.moveUp', { name: category.name })}
-                            disabled={reordering || siblingIndex === 0}
-                            onClick={() => moveCategory(category, -1)}
-                            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
-                          >
-                            <MaterialIcon name="keyboard_arrow_up" />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={t('categories.moveDown', { name: category.name })}
-                            disabled={reordering || siblingIndex === siblings.length - 1}
-                            onClick={() => moveCategory(category, 1)}
-                            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
-                          >
-                            <MaterialIcon name="keyboard_arrow_down" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex items-center justify-between gap-3">
-                        <span className="rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
-                          {count > 1 ? t('categories.itemsPlural', { count }) : t('categories.items', { count })}
+                return (
+                  <li
+                    key={category._id}
+                    draggable={!reordering}
+                    onDragStart={(event) => handleDragStart(event, category)}
+                    onDragOver={handleDragOver}
+                    onDrop={(event) => handleDrop(event, category)}
+                    onDragEnd={handleDragEnd}
+                    style={{ marginInlineStart: `${category.depth * 1.5}rem` }}
+                    className={`group rounded-2xl border transition-colors duration-200 ${
+                      isChild
+                        ? 'border-primary/20 bg-surface-container-low/70'
+                        : 'border-outline-variant bg-surface-container-lowest'
+                    } ${
+                      dragId === category._id ? 'opacity-50 shadow-lg' : 'hover:border-outline'
+                    }`}
+                  >
+                    <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <span className="hidden cursor-grab text-on-surface-variant md:inline-flex active:cursor-grabbing">
+                          <MaterialIcon name="drag_handle" className="text-[20px]" />
                         </span>
-                        <CategoryActions
-                          category={category}
-                          canAddChild={canAddChild(category)}
-                          onEdit={startEdit}
-                          onDelete={handleDelete}
-                          onAddChild={(item) => openCreateForm(item._id)}
-                          t={t}
-                        />
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              <div className="hidden overflow-x-auto md:block">
-                <table className="w-full border-collapse text-left">
-                  <thead>
-                    <tr className="bg-surface-container-lowest/50 text-label-md font-medium tracking-wider text-on-surface-variant uppercase">
-                      <th className="w-16 rounded-tl-2xl px-6 py-4 text-center">
-                        <MaterialIcon name="drag_indicator" className="text-[18px] text-outline" />
-                      </th>
-                      <th className="px-6 py-4">{t('categories.order')}</th>
-                      <th className="px-6 py-4">{t('categories.category')}</th>
-                      <th className="px-6 py-4 text-right">{t('platform.products')}</th>
-                      <th className="rounded-tr-2xl px-6 py-4 text-right">{t('categories.actions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((category) => {
-                      const count = category.productCount || 0;
-                      const siblings = siblingCategories(categories, category.parentId);
-                      const siblingIndex = siblings.findIndex((item) => item._id === category._id);
-
-                      return (
-                        <tr
-                          key={category._id}
-                          draggable={!reordering}
-                          onDragStart={(event) => handleDragStart(event, category)}
-                          onDragOver={handleDragOver}
-                          onDrop={(event) => handleDrop(event, category)}
-                          onDragEnd={handleDragEnd}
-                          className={`group cursor-grab border-b-0 transition-colors duration-200 hover:bg-surface-container-lowest/80 active:cursor-grabbing ${
-                            dragId === category._id
-                              ? 'relative z-50 scale-[1.01] bg-surface-container-highest opacity-50 shadow-lg'
-                              : ''
+                        {isChild ? (
+                          <MaterialIcon name="subdirectory_arrow_right" className="hidden shrink-0 text-primary sm:inline-flex" />
+                        ) : null}
+                        <span
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+                            isChild
+                              ? 'bg-primary/12 text-primary'
+                              : 'bg-surface-container-high text-on-surface'
                           }`}
                         >
-                          <td className="px-6 py-5 text-center align-middle">
-                            <MaterialIcon
-                              name="drag_handle"
-                              className="text-[20px] text-outline-variant transition-colors group-hover:text-primary/70"
-                            />
-                          </td>
-                          <td className="w-24 px-6 py-5 align-middle">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant">
-                              {siblingIndex + 1}
-                            </div>
-                          </td>
-                          <td className="px-6 py-5 align-middle">
-                            <div style={{ paddingLeft: `${category.depth * 24}px` }}>
-                              <CategoryIdentity category={category} t={t} />
-                            </div>
-                          </td>
-                          <td className="px-6 py-5 text-right align-middle">
-                            <div className="inline-flex items-center rounded-full bg-tertiary-container/10 px-3 py-1 text-label-md font-medium text-tertiary-container">
-                              {count > 1 ? t('categories.itemsPlural', { count }) : t('categories.items', { count })}
-                            </div>
-                          </td>
-                          <td className="px-6 py-5 text-right align-middle">
-                            <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity duration-200 lg:opacity-0 lg:group-hover:opacity-100">
-                              <CategoryActions
-                                category={category}
-                                canAddChild={canAddChild(category)}
-                                onEdit={startEdit}
-                                onDelete={handleDelete}
-                                onAddChild={(item) => openCreateForm(item._id)}
-                                t={t}
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
+                          {siblingIndex + 1}
+                        </span>
+                        <CategoryIdentity category={category} parentName={parentName} t={t} />
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end sm:gap-3">
+                        <div className="flex flex-wrap gap-2">
+                          {childCount > 0 ? (
+                            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                              {childCount === 1
+                                ? t('categories.childrenOne')
+                                : t('categories.children', { count: childCount })}
+                            </span>
+                          ) : null}
+                          <span className="rounded-full bg-surface-container px-3 py-1 text-xs font-semibold text-on-surface">
+                            {count > 1 ? t('categories.itemsPlural', { count }) : t('categories.items', { count })}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="flex md:hidden">
+                            <button
+                              type="button"
+                              aria-label={t('categories.moveUp', { name: category.name })}
+                              disabled={reordering || siblingIndex === 0}
+                              onClick={() => moveCategory(category, -1)}
+                              className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
+                            >
+                              <MaterialIcon name="keyboard_arrow_up" />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={t('categories.moveDown', { name: category.name })}
+                              disabled={reordering || siblingIndex === siblings.length - 1}
+                              onClick={() => moveCategory(category, 1)}
+                              className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant disabled:opacity-30"
+                            >
+                              <MaterialIcon name="keyboard_arrow_down" />
+                            </button>
+                          </div>
+                          <CategoryActions
+                            category={category}
+                            canAddChild={canAddChild(category)}
+                            onEdit={startEdit}
+                            onDelete={handleDelete}
+                            onAddChild={(item) => openCreateForm(item._id)}
+                            t={t}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
-        </div>
       </div>
 
       <CategoryFormModal

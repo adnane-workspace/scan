@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import { LOCALES } from '../i18n/messages.js';
+import { useTheme } from '../hooks/useTheme.js';
 import { changePasswordRequest } from '../services/auth.service.js';
 import { getMyCafe, updateMyCafe, uploadCafeLogo } from '../services/cafe.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
@@ -45,6 +46,7 @@ const TABS = [
   { id: 'general', icon: 'tune', labelKey: 'settings.tabGeneral', hintKey: 'settings.tabGeneralHint', roles: ['admin'] },
   { id: 'security', icon: 'shield', labelKey: 'settings.tabSecurity', hintKey: 'settings.tabSecurityHint', roles: ['admin', 'superadmin'] },
   { id: 'language', icon: 'translate', labelKey: 'settings.tabLanguage', hintKey: 'settings.tabLanguageHint', roles: ['admin', 'superadmin'] },
+  { id: 'appearance', icon: 'contrast', labelKey: 'settings.tabAppearance', hintKey: 'settings.tabAppearanceHint', roles: ['admin', 'superadmin'] },
 ];
 
 function SettingsField({ id, label, icon, hint, children }) {
@@ -157,6 +159,7 @@ function SettingsSkeleton() {
 export default function SettingsPage() {
   const { user } = useAuth();
   const { t, locale, setLocale } = useLocale();
+  const { theme, setTheme } = useTheme();
   const { refreshStats } = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
   const [form, setForm] = useState(emptyForm);
@@ -683,6 +686,38 @@ export default function SettingsPage() {
                       <p className="text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">{item.id}</p>
                       <p className="mt-1 font-display text-xl font-semibold text-on-surface">{item.native}</p>
                       <p className="mt-1 text-sm text-on-surface-variant">{item.name}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </SectionCard>
+          ) : null}
+
+          {tab === 'appearance' ? (
+            <SectionCard icon="contrast" title={t('settings.appearanceTitle')} subtitle={t('settings.appearanceHint')}>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  { id: 'light', icon: 'light_mode', title: t('settings.themeLight'), hint: t('settings.themeLightHint') },
+                  { id: 'dark', icon: 'dark_mode', title: t('settings.themeDark'), hint: t('settings.themeDarkHint') },
+                ].map((item) => {
+                  const active = theme === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setTheme(item.id)}
+                      className={`rounded-2xl border px-5 py-4 text-start transition-colors ${
+                        active
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                          : 'border-outline-variant bg-surface-container-low hover:bg-surface-container-high'
+                      }`}
+                    >
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container text-primary">
+                        <MaterialIcon name={item.icon} />
+                      </span>
+                      <p className="mt-3 font-display text-xl font-semibold text-on-surface">{item.title}</p>
+                      <p className="mt-1 text-sm text-on-surface-variant">{item.hint}</p>
                     </button>
                   );
                 })}

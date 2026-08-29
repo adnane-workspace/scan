@@ -43,6 +43,7 @@ export const DEVELOPER_URL = 'https://elmenouar.linkmakeup.com/';
 export const TOKEN_STORAGE_KEY = 'qtable-token';
 export const USER_STORAGE_KEY = 'qtable-user';
 export const LOCALE_STORAGE_KEY = 'qtable-locale';
+export const THEME_STORAGE_KEY = 'qtable-theme';
 
 migrateStorageKey('digital-menu-token', TOKEN_STORAGE_KEY);
 migrateStorageKey('digital-menu-user', USER_STORAGE_KEY);

@@ -75,6 +75,7 @@
   background: var(--color-background);
 }
 
+html.theme-dark,
 .theme-superadmin {
   color-scheme: dark;
   --color-background: #0d1b2a;
@@ -115,6 +116,7 @@
   color: var(--color-on-surface);
 }
 
+html.theme-dark input[type='date']::-webkit-calendar-picker-indicator,
 .theme-superadmin input[type='date']::-webkit-calendar-picker-indicator {
   filter: invert(0.85);
 }

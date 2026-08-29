@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import ProtectedRoute from '../components/common/ProtectedRoute.jsx';
 import Sidebar from '../components/dashboard/Sidebar.jsx';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
+import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
@@ -148,7 +149,7 @@ export default function DashboardLayout() {
 
   return (
     <ProtectedRoute>
-      <div className={`min-h-screen bg-background text-on-surface ${isSuperAdmin ? 'theme-superadmin' : ''}`}>
+      <div className="min-h-screen bg-background text-on-surface">
         {isSidebarOpen ? (
           <button
             type="button"
@@ -174,11 +175,7 @@ export default function DashboardLayout() {
 
         <div className="lg:ps-72">
           <header
-            className={`fixed top-0 inset-x-0 z-40 flex h-[calc(4.25rem+env(safe-area-inset-top))] items-center justify-between gap-3 border-b px-4 pt-[env(safe-area-inset-top)] sm:px-6 lg:start-72 lg:inset-e-0 lg:px-8 ${
-              isSuperAdmin
-                ? 'border-white/10 bg-background/90 backdrop-blur-md'
-                : 'border-outline-variant bg-background/90 backdrop-blur-md'
-            }`}
+            className="fixed top-0 inset-x-0 z-40 flex h-[calc(4.25rem+env(safe-area-inset-top))] items-center justify-between gap-3 border-b border-outline-variant bg-background/90 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-6 lg:start-72 lg:inset-e-0 lg:px-8"
           >
             <div className="flex min-w-0 items-center gap-3">
               <button
@@ -192,6 +189,7 @@ export default function DashboardLayout() {
             </div>
 
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <ThemeToggle compact />
               <LanguageSwitcher compact />
               <div className="hidden text-end sm:block">
                 <div className="text-sm font-semibold text-on-surface">

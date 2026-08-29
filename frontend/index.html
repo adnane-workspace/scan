@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="fr">
   <head>
+    <script>
+      try {
+        if (localStorage.getItem('qtable-theme') === 'dark') {
+          document.documentElement.classList.add('theme-dark');
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      } catch (error) {}
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/1.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
