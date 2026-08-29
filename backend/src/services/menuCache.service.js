@@ -1,7 +1,14 @@
 const TTL_MS = 5 * 60 * 1000;
 const menus = new Map();
 
+function cacheEnabled() {
+  return process.env.NODE_ENV !== 'production' && !process.env.VERCEL;
+}
+
 export function readPublicMenuCache(slug) {
+  if (!cacheEnabled()) {
+    return null;
+  }
   const entry = menus.get(slug);
 
   if (!entry) {
@@ -17,6 +24,10 @@ export function readPublicMenuCache(slug) {
 }
 
 export function writePublicMenuCache(slug, cafeId, data) {
+  if (!cacheEnabled()) {
+    return;
+  }
+
   menus.set(slug, {
     cafeId,
     data,

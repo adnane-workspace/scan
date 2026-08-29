@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getPublicMenu } from '../services/menu.service.js';
 import { APP_NAME } from '../utils/constants.js';
 
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 20 * 1000;
 const menuCache = new Map();
 
 function readCache(slug) {
@@ -78,11 +78,10 @@ export function usePublicMenu(slug) {
       setMenu(existing);
       setLoading(false);
       setErrorStatus(null);
-      return undefined;
+    } else {
+      setLoading(true);
+      setErrorStatus(null);
     }
-
-    setLoading(true);
-    setErrorStatus(null);
 
     getPublicMenu(slug)
       .then((data) => {
