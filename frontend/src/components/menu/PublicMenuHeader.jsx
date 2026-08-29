@@ -10,41 +10,46 @@ export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
   const { t } = useLocale();
   const paths = getMenuPaths(slug);
   const ui = normalizeMenuUi(cafe?.menuUi);
+
   return (
-    <header className="sticky top-0 z-40 border-b border-outline-variant/20 bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:h-[4.25rem] sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-outline-variant/15 bg-background/92 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+      <div className="mx-auto grid h-14 max-w-7xl grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:h-[4.25rem] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:px-6 lg:px-8">
         <Link
           to={backTo}
-          className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-xl px-2 text-on-surface hover:bg-surface-container-high"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full text-on-surface hover:bg-surface-container sm:w-auto sm:gap-1 sm:rounded-xl sm:px-2"
+          aria-label={backLabel}
         >
           <MaterialIcon name="arrow_back" className="text-[22px]" />
-          <span className="hidden pr-1 text-sm font-semibold sm:inline">{backLabel}</span>
-          <span className="sr-only sm:hidden">{backLabel}</span>
+          <span className="hidden text-sm font-semibold sm:inline">{backLabel}</span>
         </Link>
 
-        <Link
-          to={paths.home}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 hover:bg-surface-container-high"
-        >
-          {cafe?.logo ? (
-            <CloudinaryImage
-              src={cafe.logo}
-              alt=""
-              preset="logo"
-              width={40}
-              height={40}
-              className="h-10 w-10 shrink-0 rounded-lg object-cover"
-            />
-          ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-container-high font-display text-lg font-semibold text-primary">
-              {(cafe?.name || '?').slice(0, 1)}
-            </div>
-          )}
-          <span className="truncate font-display text-lg font-semibold tracking-tight text-on-surface sm:text-xl">
-            {cafe?.name || t('platform.menu')}
+        <Link to={paths.home} className="flex min-w-0 justify-center" aria-label={cafe?.name || t('platform.menu')}>
+          <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-surface-container px-2 py-1 shadow-sm ring-1 ring-outline-variant/25 sm:gap-2.5 sm:px-3 sm:py-1.5">
+            {cafe?.logo ? (
+              <CloudinaryImage
+                src={cafe.logo}
+                alt=""
+                preset="logo"
+                width={40}
+                height={40}
+                className="h-7 w-7 shrink-0 rounded-md object-cover sm:h-8 sm:w-8"
+              />
+            ) : (
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-surface-container-high font-display text-sm font-semibold text-primary sm:h-8 sm:w-8">
+                {(cafe?.name || '?').slice(0, 1)}
+              </span>
+            )}
+            <span className="min-w-0 truncate font-display text-sm font-semibold tracking-tight text-on-surface sm:text-base">
+              {cafe?.name || t('platform.menu')}
+            </span>
           </span>
         </Link>
-        {ui.showLanguage ? <LanguageSwitcher compact /> : null}
+
+        {ui.showLanguage ? (
+          <LanguageSwitcher compact className="justify-self-end" />
+        ) : (
+          <span className="w-10" />
+        )}
       </div>
     </header>
   );
