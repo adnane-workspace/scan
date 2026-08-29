@@ -7,9 +7,7 @@ import { listQrChangeRequests, reviewQrChangeRequest } from '../services/platfor
 import { getApiError } from '../utils/apiError.js';
 import { formatDateTime } from '../utils/format.js';
 import { getHomePath } from '../utils/paths.js';
-
-const fieldClass =
-  'w-full rounded-lg bg-surface-container-highest px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary';
+import Field from '../components/ui/Field.jsx';
 
 export default function QrRequestsPage() {
   const { user } = useAuth();
@@ -108,25 +106,20 @@ export default function QrRequestsPage() {
       </div>
 
       <div className="grid gap-3 rounded-2xl bg-surface-container-lowest p-4 shadow-sm ring-1 ring-outline-variant/20 sm:grid-cols-2">
-        <label className="text-sm font-medium text-on-surface">
-          {t('qr.requestsFilter')}
-          <select value={status} onChange={(event) => setStatus(event.target.value)} className={`mt-1 ${fieldClass}`}>
-            <option value="pending">{t('qr.statusPending')}</option>
-            <option value="approved">{t('qr.statusApproved')}</option>
-            <option value="rejected">{t('qr.statusRejected')}</option>
-            <option value="all">{t('qr.statusAll')}</option>
-          </select>
-        </label>
-        <label className="text-sm font-medium text-on-surface">
-          {t('qr.reviewNote')}
-          <input
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            className={`mt-1 ${fieldClass}`}
-            placeholder={t('qr.reviewNotePlaceholder')}
-            maxLength={400}
-          />
-        </label>
+        <Field as="select" size="compact" label={t('qr.requestsFilter')} value={status} onChange={(event) => setStatus(event.target.value)}>
+          <option value="pending">{t('qr.statusPending')}</option>
+          <option value="approved">{t('qr.statusApproved')}</option>
+          <option value="rejected">{t('qr.statusRejected')}</option>
+          <option value="all">{t('qr.statusAll')}</option>
+        </Field>
+        <Field
+          size="compact"
+          label={t('qr.reviewNote')}
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          placeholder={t('qr.reviewNotePlaceholder')}
+          maxLength={400}
+        />
       </div>
 
       {error ? (

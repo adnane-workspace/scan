@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useOutletContext, useParams } from 'react-router-dom';
+import Field from '../components/ui/Field.jsx';
 import PasswordField from '../components/ui/PasswordField.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { useAuth } from '../hooks/useAuth.js';
@@ -11,7 +12,7 @@ import { hasCoordinates, mapsHref } from '../utils/location.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
 import { getHomePath } from '../utils/paths.js';
 
-function Field({ label, value }) {
+function DetailStat({ label, value }) {
   return (
     <div>
       <p className="text-label-md font-medium uppercase tracking-wider text-on-surface-variant">{label}</p>
@@ -242,10 +243,10 @@ export default function CafeDetailPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('platform.owner')} value={cafe.ownerName} />
-            <Field label={t('platform.email')} value={cafe.ownerEmail} />
-            <Field label={t('platform.phone')} value={cafe.phone} />
-            <Field
+            <DetailStat label={t('platform.owner')} value={cafe.ownerName} />
+            <DetailStat label={t('platform.email')} value={cafe.ownerEmail} />
+            <DetailStat label={t('platform.phone')} value={cafe.phone} />
+            <DetailStat
               label={t('platform.address')}
               value={
                 cafe.address || hasCoordinates(cafe) ? (
@@ -257,10 +258,10 @@ export default function CafeDetailPage() {
                 )
               }
             />
-            <Field label={t('platform.categories')} value={String(cafe.categoryCount)} />
-            <Field label={t('platform.products')} value={String(cafe.productCount)} />
-            <Field label={t('platform.created')} value={formatDate(cafe.createdAt, locale)} />
-            <Field label={t('platform.updated')} value={formatDate(cafe.updatedAt, locale)} />
+            <DetailStat label={t('platform.categories')} value={String(cafe.categoryCount)} />
+            <DetailStat label={t('platform.products')} value={String(cafe.productCount)} />
+            <DetailStat label={t('platform.created')} value={formatDate(cafe.createdAt, locale)} />
+            <DetailStat label={t('platform.updated')} value={formatDate(cafe.updatedAt, locale)} />
           </div>
 
           {cafe.description ? <p className="text-on-surface-variant">{cafe.description}</p> : null}
@@ -296,10 +297,11 @@ export default function CafeDetailPage() {
             ) : null}
             {cafe.qr?.pendingRequest ? (
               <div className="grid gap-3">
-                <input
+                <Field
+                  size="compact"
+                  label={t('qr.reviewNote')}
                   value={reviewNote}
                   onChange={(event) => setReviewNote(event.target.value)}
-                  className="w-full rounded-xl bg-surface-container-high px-3 py-2.5 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary"
                   placeholder={t('qr.reviewNotePlaceholder')}
                   maxLength={400}
                 />
@@ -404,15 +406,13 @@ export default function CafeDetailPage() {
           <div className="space-y-3 border-t border-error/20 pt-5">
             <h2 className="text-lg font-semibold text-error">{t('platform.deleteTitle')}</h2>
             <p className="text-sm text-on-surface-variant">{t('platform.deleteHint')}</p>
-            <label className="block text-sm font-medium text-on-surface">
-              {t('platform.deleteConfirm', { name: cafe.name })}
-              <input
-                value={deleteName}
-                onChange={(event) => setDeleteName(event.target.value)}
-                className="mt-1 w-full rounded-xl bg-surface-container-high px-3 py-2.5 text-sm text-on-surface outline-none focus:ring-2 focus:ring-error"
-                autoComplete="off"
-              />
-            </label>
+            <Field
+              invalid
+              label={t('platform.deleteConfirm', { name: cafe.name })}
+              value={deleteName}
+              onChange={(event) => setDeleteName(event.target.value)}
+              autoComplete="off"
+            />
             <button
               type="button"
               disabled={deleting || deleteName.trim() !== cafe.name}

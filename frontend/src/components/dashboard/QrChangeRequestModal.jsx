@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocale } from '../../hooks/useLocale.js';
+import Field from '../ui/Field.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 
 export default function QrChangeRequestModal({ open, onClose, onSubmit, submitting, error }) {
@@ -43,19 +44,17 @@ export default function QrChangeRequestModal({ open, onClose, onSubmit, submitti
         ) : null}
 
         <form onSubmit={handleSubmit} className="grid gap-4">
-          <label className="text-sm font-medium text-on-surface">
-            {t('qr.requestReason')}
-            <textarea
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              rows={4}
-              minLength={8}
-              maxLength={400}
-              required
-              className="mt-1 w-full rounded-xl bg-surface-container-high px-3 py-3 text-on-surface outline-none focus:ring-2 focus:ring-primary"
-              placeholder={t('qr.requestPlaceholder')}
-            />
-          </label>
+          <Field
+            as="textarea"
+            label={t('qr.requestReason')}
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            rows={4}
+            minLength={8}
+            maxLength={400}
+            required
+            placeholder={t('qr.requestPlaceholder')}
+          />
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="submit"

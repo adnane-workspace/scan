@@ -5,9 +5,7 @@ import { useLocale } from '../hooks/useLocale.js';
 import { createPlatformCafe } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { getHomePath } from '../utils/paths.js';
-
-const fieldClass =
-  'mt-1 w-full rounded-lg bg-surface-container-highest px-3 py-2 text-on-surface outline-none focus:ring-2 focus:ring-primary';
+import Field from '../components/ui/Field.jsx';
 
 const emptyForm = {
   ownerName: '',
@@ -75,49 +73,37 @@ export default function CreateCafePage() {
       ) : null}
 
       <form onSubmit={handleSubmit} className="grid gap-4 rounded-2xl bg-surface-container-lowest p-6 shadow-sm ring-1 ring-outline-variant/20">
-        <label className="block text-sm font-medium text-on-surface">
-          {t('platform.cafeName')}
-          <input name="cafeName" value={form.cafeName} onChange={handleChange} className={fieldClass} required />
-        </label>
-        <label className="block text-sm font-medium text-on-surface">
-          {t('platform.slugOptional')}
-          <input
-            name="slug"
-            value={form.slug}
-            onChange={handleChange}
-            className={fieldClass}
-            placeholder={t('auth.slugPlaceholder')}
-          />
-        </label>
-        <label className="block text-sm font-medium text-on-surface">
-          {t('platform.ownerName')}
-          <input name="ownerName" value={form.ownerName} onChange={handleChange} className={fieldClass} required />
-        </label>
-        <label className="block text-sm font-medium text-on-surface">
-          {t('platform.ownerEmail')}
-          <input
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            className={fieldClass}
-            autoComplete="off"
-            required
-          />
-        </label>
-        <label className="block text-sm font-medium text-on-surface">
-          {t('platform.password')}
-          <input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            className={fieldClass}
-            minLength={8}
-            autoComplete="new-password"
-            required
-          />
-        </label>
+        <Field name="cafeName" label={t('platform.cafeName')} icon="storefront" value={form.cafeName} onChange={handleChange} required />
+        <Field
+          name="slug"
+          label={t('platform.slugOptional')}
+          icon="link"
+          value={form.slug}
+          onChange={handleChange}
+          placeholder={t('auth.slugPlaceholder')}
+        />
+        <Field name="ownerName" label={t('platform.ownerName')} icon="badge" value={form.ownerName} onChange={handleChange} required />
+        <Field
+          name="email"
+          type="email"
+          label={t('platform.ownerEmail')}
+          icon="mail"
+          value={form.email}
+          onChange={handleChange}
+          autoComplete="off"
+          required
+        />
+        <Field
+          name="password"
+          type="password"
+          label={t('platform.password')}
+          icon="lock"
+          value={form.password}
+          onChange={handleChange}
+          minLength={8}
+          autoComplete="new-password"
+          required
+        />
         <button
           type="submit"
           disabled={saving}

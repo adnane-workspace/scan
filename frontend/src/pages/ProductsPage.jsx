@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminProductCard from '../components/dashboard/AdminProductCard.jsx';
 import ProductFormModal from '../components/dashboard/ProductFormModal.jsx';
+import Field from '../components/ui/Field.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useLocale } from '../hooks/useLocale.js';
 import { listCategories } from '../services/category.service.js';
@@ -24,9 +25,6 @@ const emptyForm = {
   available: true,
   order: 0,
 };
-
-const selectClass =
-  'w-full appearance-none cursor-pointer rounded-lg bg-surface-container-highest py-2 pr-10 pl-4 text-label-lg font-semibold tracking-[0.05em] text-on-surface-variant outline-none transition-shadow focus:ring-2 focus:ring-primary sm:w-auto';
 
 export default function ProductsPage() {
   const { t } = useLocale();
@@ -289,54 +287,41 @@ export default function ProductsPage() {
         </p>
       ) : null}
 
-      <div className="mb-stack-lg flex flex-col items-center gap-gutter rounded-xl bg-surface-container-low p-stack-md shadow-sm sm:flex-row">
-        <div className="relative w-full sm:w-96">
-          <MaterialIcon
-            name="search"
-            className="absolute top-1/2 left-2 -translate-y-1/2 text-on-surface-variant"
-          />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="w-full rounded-lg bg-surface-container-highest py-2 pr-4 pl-10 text-on-surface outline-none transition-shadow focus:ring-2 focus:ring-primary"
-            placeholder={t('products.search')}
-            type="text"
-          />
-        </div>
+      <div className="mb-stack-lg flex flex-col items-stretch gap-gutter rounded-xl bg-surface-container-low p-stack-md shadow-sm sm:flex-row sm:items-end">
+        <Field
+          size="compact"
+          icon="search"
+          className="w-full sm:w-96"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder={t('products.search')}
+        />
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <div className="relative w-full sm:w-auto">
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className={selectClass}
-            >
-              <option value="all">{t('products.allCategories')}</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {categoryPathLabel(categories, category._id)}
-                </option>
-              ))}
-            </select>
-            <MaterialIcon
-              name="expand_more"
-              className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-on-surface-variant"
-            />
-          </div>
-          <div className="relative w-full sm:w-auto">
-            <select
-              value={availabilityFilter}
-              onChange={(event) => setAvailabilityFilter(event.target.value)}
-              className={selectClass}
-            >
-              <option value="all">{t('products.availabilityAll')}</option>
-              <option value="available">{t('products.inStock')}</option>
-              <option value="unavailable">{t('products.outOfStock')}</option>
-            </select>
-            <MaterialIcon
-              name="expand_more"
-              className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-on-surface-variant"
-            />
-          </div>
+          <Field
+            as="select"
+            size="compact"
+            className="w-full sm:min-w-48"
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+          >
+            <option value="all">{t('products.allCategories')}</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {categoryPathLabel(categories, category._id)}
+              </option>
+            ))}
+          </Field>
+          <Field
+            as="select"
+            size="compact"
+            className="w-full sm:min-w-44"
+            value={availabilityFilter}
+            onChange={(event) => setAvailabilityFilter(event.target.value)}
+          >
+            <option value="all">{t('products.availabilityAll')}</option>
+            <option value="available">{t('products.inStock')}</option>
+            <option value="unavailable">{t('products.outOfStock')}</option>
+          </Field>
         </div>
       </div>
 

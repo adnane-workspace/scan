@@ -7,9 +7,7 @@ import { listActivityLogs } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { formatDateTime, formatRelativeTime } from '../utils/format.js';
 import { getHomePath } from '../utils/paths.js';
-
-const fieldClass =
-  'w-full rounded-lg bg-surface-container-highest px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary';
+import Field from '../components/ui/Field.jsx';
 
 const ACTION_GROUPS = [
   {
@@ -269,49 +267,36 @@ export default function ActivityLogsPage() {
       </div>
 
       <div className="grid gap-3 rounded-2xl bg-surface-container-lowest p-4 shadow-sm ring-1 ring-outline-variant/20 sm:grid-cols-2 lg:grid-cols-5">
-        <label className="text-sm font-medium text-on-surface lg:col-span-1">
-          {t('logs.search')}
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            className={`mt-1 ${fieldClass}`}
-            placeholder={t('logs.searchPlaceholder')}
-          />
-        </label>
-        <label className="text-sm font-medium text-on-surface">
-          {t('logs.action')}
-          <select value={action} onChange={(event) => setAction(event.target.value)} className={`mt-1 ${fieldClass}`}>
-            <option value="all">{t('logs.actionAll')}</option>
-            {ACTION_GROUPS.map((group) => (
-              <optgroup key={group.id} label={t(`logs.${group.id}`)}>
-                {group.actions.map((item) => (
-                  <option key={item} value={item}>
-                    {t(`logs.${item}`)}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm font-medium text-on-surface">
-          {t('logs.cafe')}
-          <select value={cafeId} onChange={(event) => setCafeId(event.target.value)} className={`mt-1 ${fieldClass}`}>
-            <option value="all">{t('logs.cafeAll')}</option>
-            {platformCafes.map((cafe) => (
-              <option key={cafe._id} value={cafe._id}>
-                {cafe.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm font-medium text-on-surface">
-          {t('logs.from')}
-          <input type="date" value={from} onChange={(event) => setFrom(event.target.value)} className={`mt-1 ${fieldClass}`} />
-        </label>
-        <label className="text-sm font-medium text-on-surface">
-          {t('logs.to')}
-          <input type="date" value={to} onChange={(event) => setTo(event.target.value)} className={`mt-1 ${fieldClass}`} />
-        </label>
+        <Field
+          size="compact"
+          icon="search"
+          label={t('logs.search')}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t('logs.searchPlaceholder')}
+        />
+        <Field as="select" size="compact" label={t('logs.action')} value={action} onChange={(event) => setAction(event.target.value)}>
+          <option value="all">{t('logs.actionAll')}</option>
+          {ACTION_GROUPS.map((group) => (
+            <optgroup key={group.id} label={t(`logs.${group.id}`)}>
+              {group.actions.map((item) => (
+                <option key={item} value={item}>
+                  {t(`logs.${item}`)}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </Field>
+        <Field as="select" size="compact" label={t('logs.cafe')} value={cafeId} onChange={(event) => setCafeId(event.target.value)}>
+          <option value="all">{t('logs.cafeAll')}</option>
+          {platformCafes.map((cafe) => (
+            <option key={cafe._id} value={cafe._id}>
+              {cafe.name}
+            </option>
+          ))}
+        </Field>
+        <Field size="compact" type="date" label={t('logs.from')} value={from} onChange={(event) => setFrom(event.target.value)} />
+        <Field size="compact" type="date" label={t('logs.to')} value={to} onChange={(event) => setTo(event.target.value)} />
       </div>
 
       {error ? (

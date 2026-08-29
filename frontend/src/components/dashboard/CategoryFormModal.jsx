@@ -1,9 +1,7 @@
 import { useLocale } from '../../hooks/useLocale.js';
+import Field from '../ui/Field.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import CloudinaryImage from '../ui/CloudinaryImage.jsx';
-
-const fieldClass =
-  'mt-1 w-full rounded-lg bg-surface-container-highest px-3 py-2 text-on-surface outline-none transition-shadow focus:ring-2 focus:ring-primary';
 
 export default function CategoryFormModal({
   open,
@@ -55,43 +53,25 @@ export default function CategoryFormModal({
         ) : null}
 
         <form onSubmit={onSubmit} className="grid gap-4">
-          <label className="block text-sm font-medium text-on-surface">
-            {t('categoryForm.name')}
-            <input
-              name="name"
-              value={form.name}
-              onChange={onChange}
-              className={fieldClass}
-              placeholder="Cafés"
-              required
-            />
-          </label>
-          <label className="block text-sm font-medium text-on-surface">
-            {t('categoryForm.parent')}
-            <select name="parentId" value={form.parentId || ''} onChange={onChange} className={fieldClass}>
-              <option value="">{t('categoryForm.parentRoot')}</option>
-              {parentOptions.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {`${'— '.repeat(category.depth)}${category.name}`}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm font-medium text-on-surface">
-            {t('categoryForm.order')}
-            <input name="order" type="number" value={form.order} onChange={onChange} className={fieldClass} />
-          </label>
-          <label className="block text-sm font-medium text-on-surface">
-            {t('categoryForm.description')}
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={onChange}
-              rows={3}
-              className={fieldClass}
-              placeholder="Servi de 7h à 11h"
-            />
-          </label>
+          <Field name="name" label={t('categoryForm.name')} icon="label" value={form.name} onChange={onChange} placeholder="Cafés" required />
+          <Field as="select" name="parentId" label={t('categoryForm.parent')} icon="account_tree" value={form.parentId || ''} onChange={onChange}>
+            <option value="">{t('categoryForm.parentRoot')}</option>
+            {parentOptions.map((category) => (
+              <option key={category._id} value={category._id} depth={category.depth}>
+                {category.name}
+              </option>
+            ))}
+          </Field>
+          <Field name="order" type="number" label={t('categoryForm.order')} icon="sort" value={form.order} onChange={onChange} />
+          <Field
+            as="textarea"
+            name="description"
+            label={t('categoryForm.description')}
+            value={form.description}
+            onChange={onChange}
+            rows={3}
+            placeholder="Servi de 7h à 11h"
+          />
           <div>
             <p className="text-sm font-medium text-on-surface">{t('categoryForm.image')}</p>
             <div className="mt-2 flex flex-wrap items-center gap-4">

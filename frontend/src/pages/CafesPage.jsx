@@ -7,9 +7,7 @@ import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
 import { getHomePath } from '../utils/paths.js';
-
-const fieldClass =
-  'w-full rounded-lg bg-surface-container-highest px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary';
+import Field from '../components/ui/Field.jsx';
 
 function matchesDateRange(createdAt, from, to) {
   const time = new Date(createdAt).setHours(0, 0, 0, 0);
@@ -95,31 +93,21 @@ export default function CafesPage() {
       </div>
 
       <div className="grid gap-3 rounded-2xl bg-surface-container-lowest p-4 shadow-sm ring-1 ring-outline-variant/20 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="text-sm font-medium text-on-surface">
-          {t('platform.searchLabel')}
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            className={`mt-1 ${fieldClass}`}
-            placeholder={t('platform.searchPlaceholder')}
-          />
-        </label>
-        <label className="text-sm font-medium text-on-surface">
-          {t('platform.status')}
-          <select value={status} onChange={(event) => setStatus(event.target.value)} className={`mt-1 ${fieldClass}`}>
-            <option value="all">{t('platform.statusAll')}</option>
-            <option value="active">{t('platform.statusActive')}</option>
-            <option value="inactive">{t('platform.statusInactive')}</option>
-          </select>
-        </label>
-        <label className="text-sm font-medium text-on-surface">
-          {t('platform.registeredFrom')}
-          <input type="date" value={from} onChange={(event) => setFrom(event.target.value)} className={`mt-1 ${fieldClass}`} />
-        </label>
-        <label className="text-sm font-medium text-on-surface">
-          {t('platform.registeredTo')}
-          <input type="date" value={to} onChange={(event) => setTo(event.target.value)} className={`mt-1 ${fieldClass}`} />
-        </label>
+        <Field
+          size="compact"
+          icon="search"
+          label={t('platform.searchLabel')}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t('platform.searchPlaceholder')}
+        />
+        <Field as="select" size="compact" icon="filter_list" label={t('platform.status')} value={status} onChange={(event) => setStatus(event.target.value)}>
+          <option value="all">{t('platform.statusAll')}</option>
+          <option value="active">{t('platform.statusActive')}</option>
+          <option value="inactive">{t('platform.statusInactive')}</option>
+        </Field>
+        <Field size="compact" type="date" label={t('platform.registeredFrom')} value={from} onChange={(event) => setFrom(event.target.value)} />
+        <Field size="compact" type="date" label={t('platform.registeredTo')} value={to} onChange={(event) => setTo(event.target.value)} />
       </div>
 
       {error || actionError ? (

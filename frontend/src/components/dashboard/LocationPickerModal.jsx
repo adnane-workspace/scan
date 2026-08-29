@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocale } from '../../hooks/useLocale.js';
+import Field from '../ui/Field.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import { geolocationErrorKey, reverseGeocode, searchAddress } from '../../utils/location.js';
 
@@ -237,18 +238,14 @@ export default function LocationPickerModal({ open, latitude, longitude, onClose
         </div>
 
         <form onSubmit={handleSearch} className="mb-3 flex shrink-0 gap-2">
-          <div className="relative min-w-0 flex-1">
-            <MaterialIcon
-              name="search"
-              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-on-surface-variant"
-            />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t('location.searchPlaceholder')}
-              className="w-full rounded-xl bg-surface-container-low py-3 pr-4 pl-11 text-on-surface outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
-            />
-          </div>
+          <Field
+            icon="search"
+            size="compact"
+            className="min-w-0 flex-1"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t('location.searchPlaceholder')}
+          />
           <button
             type="submit"
             disabled={searching}

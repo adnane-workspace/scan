@@ -1,10 +1,8 @@
 import { useLocale } from '../../hooks/useLocale.js';
+import Field from '../ui/Field.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import AvailabilityToggle from './AvailabilityToggle.jsx';
-
-const fieldClass =
-  'mt-1 w-full rounded-lg bg-surface-container-highest px-3 py-2 text-on-surface outline-none transition-shadow focus:ring-2 focus:ring-primary';
 
 export default function ProductFormModal({
   open,
@@ -61,57 +59,46 @@ export default function ProductFormModal({
         ) : null}
 
         <form onSubmit={onSubmit} className="grid gap-4 md:grid-cols-2">
-          <label className="block text-sm font-medium text-on-surface">
-            {t('productForm.name')}
-            <input
-              name="name"
-              value={form.name}
-              onChange={onChange}
-              className={fieldClass}
-              placeholder="Espresso"
-              required
-            />
-          </label>
-          <label className="block text-sm font-medium text-on-surface">
-            {t('productForm.price')}
-            <input
-              name="price"
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.price}
-              onChange={onChange}
-              className={fieldClass}
-              placeholder="18"
-              required
-            />
-          </label>
-          <label className="block text-sm font-medium text-on-surface">
-            {t('productForm.category')}
-            <select name="categoryId" value={form.categoryId} onChange={onChange} className={fieldClass} required>
-              <option value="">{t('productForm.selectCategory')}</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.pathLabel || category.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm font-medium text-on-surface">
-            {t('productForm.order')}
-            <input name="order" type="number" value={form.order} onChange={onChange} className={fieldClass} />
-          </label>
-          <label className="block text-sm font-medium text-on-surface md:col-span-2">
-            {t('productForm.description')}
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={onChange}
-              rows={3}
-              className={fieldClass}
-              placeholder={t('productForm.descriptionPlaceholder')}
-            />
-          </label>
+          <Field
+            name="name"
+            label={t('productForm.name')}
+            icon="lunch_dining"
+            value={form.name}
+            onChange={onChange}
+            placeholder="Espresso"
+            required
+          />
+          <Field
+            name="price"
+            type="number"
+            min="0"
+            step="0.01"
+            label={t('productForm.price')}
+            icon="payments"
+            value={form.price}
+            onChange={onChange}
+            placeholder="18"
+            required
+          />
+          <Field as="select" name="categoryId" label={t('productForm.category')} icon="grid_view" value={form.categoryId} onChange={onChange} required>
+            <option value="">{t('productForm.selectCategory')}</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {category.pathLabel || category.name}
+              </option>
+            ))}
+          </Field>
+          <Field name="order" type="number" label={t('productForm.order')} icon="sort" value={form.order} onChange={onChange} />
+          <Field
+            as="textarea"
+            name="description"
+            label={t('productForm.description')}
+            value={form.description}
+            onChange={onChange}
+            rows={3}
+            placeholder={t('productForm.descriptionPlaceholder')}
+            className="md:col-span-2"
+          />
           <div className="md:col-span-2">
             <p className="text-sm font-medium text-on-surface">{t('productForm.photo')}</p>
             <div className="mt-2 flex flex-wrap items-center gap-4">
