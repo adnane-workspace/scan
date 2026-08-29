@@ -2,6 +2,7 @@ import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
+import { invalidatePublicMenu } from './menuCache.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 import { normalizeMenuUi } from '../utils/menuUi.js';
 import { deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
@@ -159,6 +160,8 @@ export async function updateMyCafe(user, payload) {
       normalizeMenuUi(cafe.menuUi).backgroundImage,
     );
   }
+
+  invalidatePublicMenu(cafeId, [current.slug, cafe.slug]);
 
   await recordActivity({
     action: 'cafe_updated',

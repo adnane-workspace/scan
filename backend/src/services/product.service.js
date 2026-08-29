@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { recordActivity } from './activity.service.js';
+import { invalidatePublicMenu } from './menuCache.service.js';
 import { deleteCloudinaryImage, deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 import { assertLeafCategory } from './category.service.js';
 
@@ -66,6 +67,7 @@ export async function createProduct(user, payload) {
     include: { category: { select: { name: true } } },
   });
 
+  invalidatePublicMenu(cafeId);
   return toProductResponse(product);
 }
 
@@ -119,6 +121,7 @@ export async function updateProduct(user, productId, payload) {
     await deleteReplacedImage(current.image, product.image);
   }
 
+  invalidatePublicMenu(cafeId);
   return toProductResponse(product);
 }
 
@@ -128,6 +131,7 @@ export async function deleteProduct(user, productId) {
 
   await prisma.product.delete({ where: { id: productId } });
   await deleteCloudinaryImage(product.image);
+  invalidatePublicMenu(cafeId);
 
   await recordActivity({
     action: 'product_deleted',

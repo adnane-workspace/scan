@@ -2,6 +2,7 @@ import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { groupByParent } from '../utils/categoryTree.js';
 import { normalizeMenuUi } from '../utils/menuUi.js';
+import { readPublicMenuCache, writePublicMenuCache } from './menuCache.service.js';
 
 function toPublicProduct(product) {
   return {
@@ -38,6 +39,18 @@ function buildPublicTree(categories, productsByCategory) {
 }
 
 export async function getPublicMenu(slug) {
+  const cached = readPublicMenuCache(slug);
+
+  if (cached) {
+    return cached.data;
+  }
+
+  const menu = await loadPublicMenu(slug);
+  writePublicMenuCache(slug, menu.cafeId, menu.data);
+  return menu.data;
+}
+
+async function loadPublicMenu(slug) {
   const cafe = await prisma.cafe.findUnique({
     where: { slug },
     select: {
@@ -97,17 +110,20 @@ export async function getPublicMenu(slug) {
   }
 
   return {
-    cafe: {
-      name: cafe.name,
-      description: cafe.description || '',
-      logo: cafe.logo || '',
-      cover: cafe.cover || categories.find((category) => category.image)?.image || '',
-      address: cafe.address || '',
-      phone: cafe.phone || '',
-      latitude: cafe.latitude,
-      longitude: cafe.longitude,
-      menuUi: normalizeMenuUi(cafe.menuUi),
+    cafeId: cafe.id,
+    data: {
+      cafe: {
+        name: cafe.name,
+        description: cafe.description || '',
+        logo: cafe.logo || '',
+        cover: cafe.cover || categories.find((category) => category.image)?.image || '',
+        address: cafe.address || '',
+        phone: cafe.phone || '',
+        latitude: cafe.latitude,
+        longitude: cafe.longitude,
+        menuUi: normalizeMenuUi(cafe.menuUi),
+      },
+      categories: buildPublicTree(categories, productsByCategory),
     },
-    categories: buildPublicTree(categories, productsByCategory),
   };
 }

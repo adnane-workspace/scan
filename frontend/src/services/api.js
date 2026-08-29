@@ -11,8 +11,9 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+  const isPublicMenu = config.method === 'get' && String(config.url || '').includes('/menu/');
 
-  if (token) {
+  if (token && !isPublicMenu) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 

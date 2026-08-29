@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { recordActivity } from './activity.service.js';
+import { invalidatePublicMenu } from './menuCache.service.js';
 import { deleteCloudinaryImage, deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 import {
   MAX_CATEGORY_DEPTH,
@@ -141,6 +142,7 @@ export async function createCategory(user, payload) {
     },
   });
 
+  invalidatePublicMenu(cafeId);
   return toCategoryResponse(category);
 }
 
@@ -207,6 +209,7 @@ export async function updateCategory(user, categoryId, payload) {
     await deleteReplacedImage(current.image, category.image);
   }
 
+  invalidatePublicMenu(cafeId);
   return toCategoryResponse(category);
 }
 
@@ -227,6 +230,7 @@ export async function deleteCategory(user, categoryId) {
 
   await prisma.category.delete({ where: { id: categoryId } });
   await Promise.all(urls.map((url) => deleteCloudinaryImage(url)));
+  invalidatePublicMenu(cafeId);
 
   await recordActivity({
     action: 'category_deleted',

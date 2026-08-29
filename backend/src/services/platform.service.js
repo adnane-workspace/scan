@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
+import { invalidatePublicMenu } from './menuCache.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 import { deleteCloudinaryImage } from './storage.service.js';
 
@@ -178,6 +179,8 @@ export async function updatePlatformCafe(cafeId, payload, actor) {
     prisma.category.count({ where: { cafeId } }),
   ]);
 
+  invalidatePublicMenu(cafeId, [cafe.slug]);
+
   await recordActivity({
     action: payload.isActive ? 'cafe_activated' : 'cafe_deactivated',
     actorId: actor?.id,
@@ -289,6 +292,8 @@ export async function deletePlatformCafe(cafeId, actor) {
   const imageUrls = [
     ...new Set([cafe.logo, cafe.cover, ...categories.map((item) => item.image), ...products.map((item) => item.image)].filter(Boolean)),
   ];
+
+  invalidatePublicMenu(cafeId, [cafe.slug]);
 
   await prisma.$transaction(async (tx) => {
     await tx.product.deleteMany({ where: { cafeId } });
