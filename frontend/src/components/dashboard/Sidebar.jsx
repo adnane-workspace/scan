@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom';
+import MarketingLink from '../common/MarketingLink.jsx';
 import { useLocale } from '../../hooks/useLocale.js';
+import { APP_NAME } from '../../utils/constants.js';
 import { useTheme } from '../../hooks/useTheme.js';
 import BrandLogo from '../ui/BrandLogo.jsx';
 import CloudinaryImage from '../ui/CloudinaryImage.jsx';
@@ -43,14 +45,18 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
       <div className="px-5 pt-5 pb-4">
         {isSuperAdmin ? (
           <>
-            <BrandLogo onDark={isDark} className="h-10" />
+            <MarketingLink to="/" aria-label={APP_NAME} className="inline-flex">
+              <BrandLogo onDark={isDark} className="h-10" />
+            </MarketingLink>
             <span className="mt-2.5 block text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
               {t('header.platform')}
             </span>
           </>
         ) : (
           <>
-            <BrandLogo onDark={isDark} className="h-8 max-w-[11rem]" />
+            <MarketingLink to="/" aria-label={APP_NAME} className="inline-flex">
+              <BrandLogo onDark={isDark} className="h-8 max-w-[11rem]" />
+            </MarketingLink>
             <div className="mt-5 flex items-center gap-3.5">
               <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-container">
                 {cafe?.logo ? (

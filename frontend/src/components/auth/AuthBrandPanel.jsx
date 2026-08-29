@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import MarketingLink from '../common/MarketingLink.jsx';
 import BrandLogo from '../ui/BrandLogo.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import { useLocale } from '../../hooks/useLocale.js';
@@ -13,9 +13,9 @@ export default function AuthBrandPanel() {
       <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:radial-gradient(#e0e1dd_1px,transparent_1px)] [background-size:22px_22px]" />
 
       <div className="relative z-10">
-        <Link to="/" aria-label={t('landing.navHome')}>
+        <MarketingLink to="/" aria-label={t('landing.navHome')}>
           <BrandLogo onDark className="h-20" />
-        </Link>
+        </MarketingLink>
       </div>
 
       <div className="relative z-10 max-w-md">

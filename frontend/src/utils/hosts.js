@@ -190,6 +190,24 @@ export function isAppPath(path) {
   return APP_PATH_RE.test(String(path || '').split('?')[0]);
 }
 
+export function getMarketingHref(path = '/', loc = currentLocationParts()) {
+  const [pathname, query = ''] = String(path || '/').split('?');
+  const normalised = pathname.startsWith('/') ? pathname : `/${pathname}`;
+  const search = query ? `?${query}` : '';
+
+  if (normalised.startsWith('http')) {
+    return path;
+  }
+
+  const host = parseHost(loc.hostname, { rootDomain: loc.rootDomain });
+
+  if (host.kind === 'unified' || host.kind === 'marketing') {
+    return `${normalised}${search}`;
+  }
+
+  return `${getMarketingOrigin(loc)}${normalised}${search}`;
+}
+
 export function getAppHref(path = '/', loc = currentLocationParts()) {
   const [pathname, query = ''] = String(path || '/').split('?');
   const normalised = pathname.startsWith('/') ? pathname : `/${pathname}`;

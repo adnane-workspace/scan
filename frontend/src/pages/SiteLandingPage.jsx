@@ -1,11 +1,10 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import AppLink from '../components/common/AppLink.jsx';
 import LandingSeo from '../components/seo/LandingSeo.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
-import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import MarketingLayout from '../layouts/MarketingLayout.jsx';
-import { LANDING_PRODUCT, getHomePath } from '../utils/paths.js';
+import { LANDING_PRODUCT } from '../utils/paths.js';
 
 const FEATURES = [
   { icon: 'flash_on', titleKey: 'landing.featureFastTitle', bodyKey: 'landing.featureFastBody' },
@@ -14,20 +13,7 @@ const FEATURES = [
 ];
 
 export default function SiteLandingPage() {
-  const { isAuthenticated, isReady, user } = useAuth();
   const { t } = useLocale();
-
-  if (!isReady) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-on-surface-variant">{t('common.loading')}</p>
-      </div>
-    );
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to={getHomePath(user)} replace />;
-  }
 
   return (
     <MarketingLayout>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import AppLink from '../components/common/AppLink.jsx';
+import MarketingLink from '../components/common/MarketingLink.jsx';
 import BrandLogo from '../components/ui/BrandLogo.jsx';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
@@ -39,9 +40,20 @@ export default function MarketingLayout({ children }) {
     <div className="min-h-screen overflow-x-hidden bg-background text-on-surface">
       <header className="fixed top-0 z-50 w-full border-b border-outline-variant/20 bg-surface/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:px-10">
-          <Link to="/" className="flex min-w-0 shrink items-center" aria-label={APP_NAME}>
+          <MarketingLink
+            to="/"
+            className="relative z-20 flex min-w-0 shrink items-center"
+            aria-label={APP_NAME}
+            onClick={() => {
+              if (path === '/') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+
+              setMenuOpen(false);
+            }}
+          >
             <BrandLogo className="h-8 max-w-[11rem] sm:h-10 sm:max-w-[14rem]" />
-          </Link>
+          </MarketingLink>
 
           <nav className="hidden items-center gap-5 xl:flex xl:gap-7">
             {links.map((link) => (
@@ -110,7 +122,9 @@ export default function MarketingLayout({ children }) {
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
             <div className="sm:col-span-2 md:col-span-1">
               <div className="mb-6">
-                <BrandLogo className="h-8" />
+                <MarketingLink to="/" aria-label={APP_NAME} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                  <BrandLogo className="h-8" />
+                </MarketingLink>
               </div>
               <p className="max-w-sm text-on-surface-variant">{t('landing.footerBlurb')}</p>
             </div>

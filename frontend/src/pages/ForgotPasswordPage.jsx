@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import MarketingLink from '../components/common/MarketingLink.jsx';
 import AuthBrandPanel from '../components/auth/AuthBrandPanel.jsx';
 import AuthField from '../components/auth/AuthField.jsx';
 import BrandLogo from '../components/ui/BrandLogo.jsx';
@@ -29,9 +30,9 @@ function AuthChrome({ title, subtitle, children, footer }) {
         <div className="relative z-10 w-full max-w-[420px]">
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
             <div className="mb-5 lg:hidden">
-              <Link to="/" aria-label={t('landing.navHome')}>
+              <MarketingLink to="/" aria-label={t('landing.navHome')}>
                 <BrandLogo />
-              </Link>
+              </MarketingLink>
             </div>
             <h2 className="font-display text-headline-lg font-semibold tracking-tight text-on-surface sm:text-4xl">
               {title}

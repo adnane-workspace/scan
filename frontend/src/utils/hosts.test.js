@@ -4,6 +4,7 @@ import { isReservedSubdomain } from './reservedSubdomains.js';
 import {
   buildPublicMenuUrl,
   getAppHref,
+  getMarketingHref,
   getMenuPaths,
   parseHost,
   tenantPathFromMenuUrl,
@@ -98,6 +99,15 @@ test('getMenuPaths drop the /menu prefix on tenant hosts', () => {
   assert.equal(unified.home, '/menu/cafe-central');
   assert.equal(unified.categories, '/menu/cafe-central/categories');
   assert.equal(unified.category('abc'), '/menu/cafe-central/abc');
+});
+
+test('getMarketingHref points app visitors at the marketing origin', () => {
+  assert.equal(getMarketingHref('/', { hostname: 'localhost', rootDomain: root }), '/');
+  assert.equal(getMarketingHref('/', { hostname: 'www.scanosh.com', protocol: 'https:', rootDomain: root }), '/');
+  assert.equal(
+    getMarketingHref('/', { hostname: 'app.scanosh.com', protocol: 'https:', rootDomain: root }),
+    'https://www.scanosh.com/',
+  );
 });
 
 test('getAppHref points marketing visitors at the app origin', () => {
