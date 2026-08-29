@@ -2,7 +2,47 @@ import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import { normalizeHexColor, themeBackground } from '../../utils/menuUi.js';
 
-const PRESET_COLORS = ['#0d1b2a', '#1b263b', '#415a77', '#e0e1dd', '#f4efe6', '#2a1a14', '#1c2e24', '#3a1d28'];
+const DARK_PRESETS = ['#0d1b2a', '#1b263b', '#415a77', '#2a1a14', '#1c2e24', '#3a1d28', '#1a1a1a', '#3d2b1f'];
+const LIGHT_PRESETS = ['#e0e1dd', '#f4efe6', '#f7f3ee', '#ece8e1', '#dce3ea', '#f3ece4'];
+
+function isLightHex(hex) {
+  const value = normalizeHexColor(hex);
+
+  if (!value) {
+    return false;
+  }
+
+  const red = Number.parseInt(value.slice(1, 3), 16);
+  const green = Number.parseInt(value.slice(3, 5), 16);
+  const blue = Number.parseInt(value.slice(5, 7), 16);
+
+  return (red * 299 + green * 587 + blue * 114) / 1000 > 148;
+}
+
+function ColorSwatch({ hex, selected, onSelect }) {
+  const light = isLightHex(hex);
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(hex)}
+      title={hex}
+      aria-pressed={selected}
+      className={`relative h-11 w-11 overflow-hidden rounded-2xl shadow-sm transition-transform hover:scale-105 ${
+        selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-container-low' : 'ring-1 ring-black/10'
+      }`}
+      style={{ background: hex }}
+    >
+      {selected ? (
+        <span
+          className={`absolute inset-0 flex items-center justify-center ${light ? 'text-[#0d1b2a]' : 'text-white'}`}
+        >
+          <MaterialIcon name="check" className="text-[20px]" filled />
+        </span>
+      ) : null}
+    </button>
+  );
+}
 
 function previewFill(menuUi) {
   if (menuUi.bgMode === 'color' && menuUi.backgroundColor) {
@@ -136,45 +176,65 @@ export default function MenuBackgroundEditor({
           </div>
 
           {menuUi.bgMode === 'color' ? (
-            <div className="mt-4">
-              <p className="mb-2 text-sm font-semibold text-on-surface">{t('settings.menuBgPresets')}</p>
-              <div className="flex flex-wrap items-center gap-2">
-                {PRESET_COLORS.map((hex) => {
-                  const selected = activeHex === hex;
+            <div className="mt-4 space-y-4 rounded-2xl border border-outline-variant bg-surface p-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className="h-16 w-16 shrink-0 rounded-2xl shadow-inner ring-1 ring-black/10"
+                  style={{ background: activeHex }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold tracking-[0.12em] text-on-surface-variant uppercase">
+                    {t('settings.menuBgSelected')}
+                  </p>
+                  <p className="mt-0.5 font-mono text-lg font-semibold tracking-tight text-on-surface">{activeHex}</p>
+                  <p className="mt-1 text-xs text-on-surface-variant">
+                    {isLightHex(activeHex) ? t('settings.menuBgContrastLight') : t('settings.menuBgContrastDark')}
+                  </p>
+                </div>
+              </div>
 
-                  return (
-                    <button
-                      key={hex}
-                      type="button"
-                      onClick={() => onColorChange(hex)}
-                      title={hex}
-                      className={`h-9 w-9 rounded-full border-2 transition-transform ${
-                        selected ? 'scale-110 border-primary' : 'border-white/20 hover:scale-105'
-                      }`}
-                      style={{ background: hex }}
+              <div>
+                <p className="mb-2 text-xs font-semibold text-on-surface-variant">{t('settings.menuBgDarkTones')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {DARK_PRESETS.map((hex) => (
+                    <ColorSwatch key={hex} hex={hex} selected={activeHex === hex} onSelect={onColorChange} />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-semibold text-on-surface-variant">{t('settings.menuBgLightTones')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {LIGHT_PRESETS.map((hex) => (
+                    <ColorSwatch key={hex} hex={hex} selected={activeHex === hex} onSelect={onColorChange} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3 border-t border-outline-variant pt-3">
+                <label className="flex cursor-pointer flex-col gap-1.5">
+                  <span className="text-xs font-semibold text-on-surface-variant">{t('settings.menuBgPick')}</span>
+                  <span className="relative flex h-11 w-16 overflow-hidden rounded-xl ring-1 ring-outline-variant">
+                    <span className="absolute inset-0" style={{ background: activeHex }} />
+                    <input
+                      type="color"
+                      value={activeHex}
+                      onChange={(event) => onColorChange(event.target.value)}
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                     />
-                  );
-                })}
-                <label className="relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-outline-variant bg-surface">
-                  <MaterialIcon name="add" className="text-[18px] text-on-surface-variant" />
+                  </span>
+                </label>
+                <label className="flex min-w-[8rem] flex-1 flex-col gap-1.5">
+                  <span className="text-xs font-semibold text-on-surface-variant">{t('settings.menuBgCustom')}</span>
                   <input
-                    type="color"
-                    value={activeHex}
+                    type="text"
+                    value={colorDraft}
                     onChange={(event) => onColorChange(event.target.value)}
-                    className="absolute inset-0 cursor-pointer opacity-0"
+                    maxLength={7}
+                    spellCheck={false}
+                    className="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 font-mono text-sm text-on-surface"
                   />
                 </label>
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <span className="text-xs text-on-surface-variant">{t('settings.menuBgCustom')}</span>
-                <input
-                  type="text"
-                  value={colorDraft}
-                  onChange={(event) => onColorChange(event.target.value)}
-                  maxLength={7}
-                  spellCheck={false}
-                  className="w-28 rounded-lg border border-outline-variant bg-surface px-2.5 py-1.5 font-mono text-sm text-on-surface"
-                />
               </div>
             </div>
           ) : null}
