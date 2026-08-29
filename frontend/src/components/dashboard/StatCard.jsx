@@ -1,8 +1,9 @@
+import { Link } from 'react-router-dom';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 
-export default function StatCard({ label, value, icon, loading, hint }) {
-  return (
-    <article className="group rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-[0_1px_2px_rgba(31,37,35,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_rgba(31,37,35,0.06)]">
+export default function StatCard({ label, value, icon, loading, hint, to }) {
+  const card = (
+    <article className="group h-full rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-[0_1px_2px_rgba(31,37,35,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_rgba(31,37,35,0.06)]">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold tracking-[0.14em] text-on-surface-variant uppercase">
           {label}
@@ -20,5 +21,15 @@ export default function StatCard({ label, value, icon, loading, hint }) {
 
       {hint && !loading ? <p className="mt-2 text-sm text-on-surface-variant">{hint}</p> : null}
     </article>
+  );
+
+  if (!to) {
+    return card;
+  }
+
+  return (
+    <Link to={to} className="block h-full">
+      {card}
+    </Link>
   );
 }

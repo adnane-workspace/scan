@@ -7,13 +7,11 @@ const CATEGORY_BADGES = [
 
 const INTL_LOCALE = {
   fr: 'fr-FR',
-  en: 'en-US',
   ar: 'ar-MA',
 };
 
 const BYTE_UNITS = {
   fr: ['o', 'Ko', 'Mo', 'Go', 'To'],
-  en: ['B', 'KB', 'MB', 'GB', 'TB'],
   ar: ['بايت', 'ك.ب', 'م.ب', 'ج.ب', 'ت.ب'],
 };
 
@@ -62,19 +60,11 @@ export function formatRelativeTime(value, locale = 'fr') {
   const date = new Date(value);
   const diffMs = Date.now() - date.getTime();
   const diffMinutes = Math.round(diffMs / 60000);
-  const language = locale === 'en' || locale === 'ar' ? locale : 'fr';
+  const language = locale === 'ar' ? 'ar' : 'fr';
   const formatter = new Intl.RelativeTimeFormat(language, { numeric: 'auto' });
 
   if (Math.abs(diffMinutes) < 1) {
-    if (language === 'en') {
-      return 'just now';
-    }
-
-    if (language === 'ar') {
-      return 'الآن';
-    }
-
-    return 'à l’instant';
+    return language === 'ar' ? 'الآن' : 'à l’instant';
   }
 
   if (Math.abs(diffMinutes) < 60) {

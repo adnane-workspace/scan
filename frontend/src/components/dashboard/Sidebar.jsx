@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
 import BrandLogo from '../ui/BrandLogo.jsx';
+import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import { getPublicMenuUrl } from '../../utils/constants.js';
 
@@ -45,16 +46,35 @@ export default function Sidebar({ cafe, role, onLogout, onNavigate, qrRequestCou
           : 'border-e border-outline-variant bg-sidebar'
       }`}
     >
-      <div className="px-5 pt-6 pb-5">
-        <BrandLogo onDark={isSuperAdmin} />
+      <div className="px-5 pt-5 pb-4">
         {isSuperAdmin ? (
-          <span className="mt-2.5 block text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
-            {t('header.platform')}
-          </span>
+          <>
+            <BrandLogo onDark className="h-10" />
+            <span className="mt-2.5 block text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
+              {t('header.platform')}
+            </span>
+          </>
         ) : (
-          <span className="mt-2.5 block truncate text-sm text-on-surface-variant">
-            {cafe?.name || t('auth.digitalMenu')}
-          </span>
+          <>
+            <BrandLogo className="h-5" />
+            <div className="mt-5 flex items-center gap-3.5">
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-container">
+                {cafe?.logo ? (
+                  <CloudinaryImage
+                    src={cafe.logo}
+                    alt=""
+                    preset="logoHero"
+                    className="h-full w-full object-contain p-1"
+                  />
+                ) : (
+                  <MaterialIcon name="storefront" className="text-[28px] text-on-surface-variant" />
+                )}
+              </div>
+              <p className="min-w-0 truncate font-display text-base font-semibold tracking-tight text-on-surface">
+                {cafe?.name || t('auth.digitalMenu')}
+              </p>
+            </div>
+          </>
         )}
       </div>
 

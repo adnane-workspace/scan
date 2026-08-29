@@ -26,7 +26,7 @@ function toRecentProduct(product) {
 export async function getDashboardStats(user) {
   const cafeId = requireCafeId(user);
 
-  const [availability, recentProducts, categoryDocs, productCounts, cafe] =
+  const [availability, recentProducts, categoryDocs, productCounts, productsWithoutImage, cafe] =
     await Promise.all([
       prisma.product.groupBy({
         by: ['available'],
@@ -37,7 +37,7 @@ export async function getDashboardStats(user) {
         where: { cafeId },
         include: { category: { select: { name: true } } },
         orderBy: { createdAt: 'desc' },
-        take: 5,
+        take: 6,
       }),
       prisma.category.findMany({
         where: { cafeId },
@@ -49,9 +49,23 @@ export async function getDashboardStats(user) {
         where: { cafeId },
         _count: { _all: true },
       }),
+      prisma.product.count({
+        where: { cafeId, image: '' },
+      }),
       prisma.cafe.findUnique({
         where: { id: cafeId },
-        select: { name: true, slug: true, logo: true, qrGeneratedAt: true, qrChangeAllowed: true },
+        select: {
+          name: true,
+          slug: true,
+          logo: true,
+          cover: true,
+          address: true,
+          phone: true,
+          latitude: true,
+          longitude: true,
+          qrGeneratedAt: true,
+          qrChangeAllowed: true,
+        },
       }),
     ]);
 
@@ -68,6 +82,7 @@ export async function getDashboardStats(user) {
     availableProducts,
     unavailableProducts,
     recentProducts: recentProducts.map(toRecentProduct),
+    productsWithoutImage,
     categories: categoryDocs.map((category) => ({
       _id: category.id,
       name: category.name,
@@ -78,6 +93,11 @@ export async function getDashboardStats(user) {
           name: cafe.name,
           slug: cafe.slug,
           logo: cafe.logo || '',
+          cover: cafe.cover || '',
+          address: cafe.address || '',
+          phone: cafe.phone || '',
+          latitude: cafe.latitude,
+          longitude: cafe.longitude,
           qr: toQrStatus(cafe, pendingQr),
         }
       : null,

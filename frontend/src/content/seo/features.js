@@ -42,7 +42,7 @@ export const featurePages = [
           loc('Gestion du menu (ajouter, modifier, masquer)', 'Menu management (add, edit, hide)', 'إدارة القائمة (إضافة، تعديل، إخفاء)'),
           loc('Photos plats, catégories, logo et couverture', 'Photos for dishes, categories, logo and cover', 'صور الأطباق والتصنيفات والشعار والغلاف'),
           loc('Catégories en arbre', 'Category tree', 'شجرة تصنيفات'),
-          loc('Interface gérant en français, anglais et arabe', 'Manager UI in French, English and Arabic', 'واجهة المدير بالفرنسية والإنجليزية والعربية'),
+          loc('Interface gérant en français et en arabe', 'Manager UI in French and Arabic', 'واجهة المدير بالفرنسية والعربية'),
           loc('Activité et indicateurs du dashboard', 'Dashboard activity and indicators', 'نشاط ومؤشرات اللوحة'),
         ],
       },
@@ -205,23 +205,23 @@ export const featurePages = [
     related: ['/menu-multilingue', '/maroc/menu-digital'],
     title: loc('Menu et interface multilingue | Scanosh', 'Multilingual menu and UI | Scanosh', 'قائمة وواجهة متعددة اللغات | Scanosh'),
     description: loc(
-      'L’espace gérant Scanosh est en français, anglais et arabe (RTL). Utile au Maroc et pour une clientèle internationale.',
-      'The Scanosh manager space is French, English and Arabic (RTL). Useful in Morocco and for international guests.',
-      'فضاء مدير Scanosh بالفرنسية والإنجليزية والعربية (RTL). مفيد في المغرب ولضيوف دوليين.',
+      'L’espace gérant Scanosh est en français et en arabe (RTL). Utile au Maroc et pour une clientèle bilingue.',
+      'The Scanosh manager space is French and Arabic (RTL). Useful in Morocco and for bilingual guests.',
+      'فضاء مدير Scanosh بالفرنسية والعربية (RTL). مفيد في المغرب ولضيوف ثنائيي اللغة.',
     ),
     h1: loc('Multilingue', 'Multilingual', 'تعدد اللغات'),
     answer: loc(
-      'L’interface Scanosh (dashboard et pages marketing) passe en français, anglais ou arabe, y compris le sens de lecture RTL. Le contenu des plats (noms, descriptions) est celui que vous saisissez — vous pouvez rédiger dans la langue de vos clients.',
-      'The Scanosh UI (dashboard and marketing) switches between French, English and Arabic, including RTL. Dish names and descriptions are what you type — write in your guests’ language.',
-      'واجهة Scanosh (اللوحة والتسويق) بين الفرنسية والإنجليزية والعربية مع RTL. أسماء الأطباق وأوصافها كما تكتبها — بلغة ضيوفك.',
+      'L’interface Scanosh (dashboard et pages marketing) passe en français ou en arabe, y compris le sens de lecture RTL. Le contenu des plats (noms, descriptions) est celui que vous saisissez — vous pouvez rédiger dans la langue de vos clients.',
+      'The Scanosh UI (dashboard and marketing) switches between French and Arabic, including RTL. Dish names and descriptions are what you type — write in your guests’ language.',
+      'واجهة Scanosh (اللوحة والتسويق) بين الفرنسية والعربية مع RTL. أسماء الأطباق وأوصافها كما تكتبها — بلغة ضيوفك.',
     ),
     sections: [
       {
         h2: loc('Maroc', 'Morocco', 'المغرب'),
         body: loc(
-          'Un gérant peut travailler en darija/français dans les fiches, et laisser un collaborateur en anglais. L’arabe de l’interface aide les équipes plus à l’aise en RTL.',
-          'A manager can write sheets in Darija/French and leave a colleague in English. Arabic UI helps teams more comfortable with RTL.',
-          'يمكن للمدير كتابة البطاقات بالدارجة/الفرنسية ويترك زميلاً بالإنجليزية. العربية في الواجهة تساعد الفرق المرتاحة بـ RTL.',
+          'Un gérant peut travailler en darija ou en français dans les fiches. L’arabe de l’interface aide les équipes plus à l’aise en RTL.',
+          'A manager can write sheets in Darija or French. Arabic UI helps teams more comfortable with RTL.',
+          'يمكن للمدير كتابة البطاقات بالدارجة أو الفرنسية. العربية في الواجهة تساعد الفرق المرتاحة بـ RTL.',
         ),
       },
     ],
@@ -482,15 +482,15 @@ export const dashboardChildPages = [
     related: ['/fonctionnalites/multilingue', '/maroc/menu-digital'],
     title: loc('Menu multilingue | Scanosh', 'Multilingual menu | Scanosh', 'قائمة متعددة اللغات | Scanosh'),
     description: loc(
-      'Interface Scanosh en FR / EN / AR. Rédigez vos plats dans la langue de vos clients, y compris en arabe.',
-      'Scanosh UI in FR / EN / AR. Write dishes in your guests’ language, including Arabic.',
-      'واجهة Scanosh بالفرنسية والإنجليزية والعربية. اكتب الأطباق بلغة ضيوفك بما فيها العربية.',
+      'Interface Scanosh en français et en arabe. Rédigez vos plats dans la langue de vos clients.',
+      'Scanosh UI in French and Arabic. Write dishes in your guests’ language.',
+      'واجهة Scanosh بالفرنسية والعربية. اكتب الأطباق بلغة ضيوفك.',
     ),
     h1: loc('Menu et espace multilingue', 'Multilingual menu and workspace', 'قائمة وفضاء متعدد اللغات'),
     answer: loc(
-      'Vous choisissez la langue de l’interface. Les textes des plats sont libres : français, arabe, anglais, mélange. Utile pour un café touristique ou une équipe bilingue.',
-      'You pick the UI language. Dish copy is freeform: French, Arabic, English, mixed. Useful for a tourist cafe or a bilingual team.',
-      'تختار لغة الواجهة. نصوص الأطباق حرّة: فرنسية، عربية، إنجليزية، مزيج. مفيد لمقهى سياحي أو فريق ثنائي اللغة.',
+      'Vous choisissez la langue de l’interface (français ou arabe). Les textes des plats sont libres : vous les rédigez comme vos clients les lisent.',
+      'You pick the UI language (French or Arabic). Dish copy is freeform: write it as your guests read it.',
+      'تختار لغة الواجهة (فرنسية أو عربية). نصوص الأطباق حرّة: اكتبها كما يقرأها ضيوفك.',
     ),
     sections: [
       {

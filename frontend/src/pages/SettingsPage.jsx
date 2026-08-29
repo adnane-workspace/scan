@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import ImageLightbox from '../components/ui/ImageLightbox.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
@@ -14,6 +14,20 @@ import { getMyCafe, updateMyCafe, uploadCafeLogo } from '../services/cafe.servic
 import { getPublicMenuUrl } from '../utils/constants.js';
 import { getApiError } from '../utils/apiError.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
+
+function cafeSnapshot(data) {
+  return JSON.stringify({
+    name: data.name || '',
+    slug: data.slug || '',
+    description: data.description || '',
+    logo: data.logo || '',
+    cover: data.cover || '',
+    address: data.address || '',
+    phone: data.phone || '',
+    latitude: data.latitude ?? null,
+    longitude: data.longitude ?? null,
+  });
+}
 
 const emptyForm = {
   name: '',
@@ -165,6 +179,7 @@ export default function SettingsPage() {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [languageSaved, setLanguageSaved] = useState(false);
+  const lastSavedRef = useRef(cafeSnapshot(emptyForm));
 
   const isSuperAdmin = user?.role === 'superadmin';
   const tabs = useMemo(
@@ -185,7 +200,7 @@ export default function SettingsPage() {
     getMyCafe()
       .then((cafe) => {
         if (!cancelled) {
-          setForm({
+          const next = {
             name: cafe.name || '',
             slug: cafe.slug || '',
             description: cafe.description || '',
@@ -195,7 +210,9 @@ export default function SettingsPage() {
             phone: cafe.phone || '',
             latitude: cafe.latitude ?? null,
             longitude: cafe.longitude ?? null,
-          });
+          };
+          lastSavedRef.current = cafeSnapshot(next);
+          setForm(next);
           setQr(cafe.qr || null);
         }
       })
@@ -221,7 +238,7 @@ export default function SettingsPage() {
   }
 
   function applyCafe(cafe) {
-    setForm({
+    const next = {
       name: cafe.name || '',
       slug: cafe.slug || '',
       description: cafe.description || '',
@@ -231,7 +248,9 @@ export default function SettingsPage() {
       phone: cafe.phone || '',
       latitude: cafe.latitude ?? null,
       longitude: cafe.longitude ?? null,
-    });
+    };
+    lastSavedRef.current = cafeSnapshot(next);
+    setForm(next);
     setQr(cafe.qr || null);
     clearPublicMenuCache(cafe.slug);
   }
@@ -278,23 +297,36 @@ export default function SettingsPage() {
     };
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setSaving(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const cafe = await updateMyCafe(cafePayload());
-      applyCafe(cafe);
-      setSuccess(t('settings.saved'));
-      await refreshStats?.();
-    } catch (err) {
-      setError(getApiError(err, t, 'settings.saveError'));
-    } finally {
-      setSaving(false);
+  useEffect(() => {
+    if (isSuperAdmin || loading) {
+      return undefined;
     }
-  }
+
+    const snapshot = cafeSnapshot(form);
+
+    if (snapshot === lastSavedRef.current || !form.name.trim() || !form.slug.trim()) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(async () => {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+
+      try {
+        const cafe = await updateMyCafe(cafePayload());
+        applyCafe(cafe);
+        setSuccess(t('settings.saved'));
+        await refreshStats?.();
+      } catch (err) {
+        setError(getApiError(err, t, 'settings.saveError'));
+      } finally {
+        setSaving(false);
+      }
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [form, isSuperAdmin, loading, t, refreshStats]);
 
   function resetPasswordFields() {
     setCurrentPassword('');
@@ -339,7 +371,14 @@ export default function SettingsPage() {
           <h1 className="font-display text-2xl font-semibold tracking-tight text-on-surface sm:text-[1.75rem]">
             {t('settings.title')}
           </h1>
-          <p className="mt-1 text-sm text-on-surface-variant">{t('settings.subtitle')}</p>
+          <p className="mt-1 text-sm text-on-surface-variant">
+            {t('settings.subtitle')}
+            {tab === 'general' && !isSuperAdmin && (saving || success) ? (
+              <span className="ms-2 font-medium text-primary">
+                {saving ? t('settings.saving') : t('settings.saved')}
+              </span>
+            ) : null}
+          </p>
         </div>
         {publicUrl ? (
           <a
@@ -386,16 +425,10 @@ export default function SettingsPage() {
           {error && tab === 'general' ? (
             <p className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error">{error}</p>
           ) : null}
-          {success && tab === 'general' ? (
-            <p className="rounded-xl border border-primary/20 bg-primary-container px-4 py-3 text-sm text-on-primary-container">
-              {success}
-            </p>
-          ) : null}
-
           {tab === 'general' && loading ? <SettingsSkeleton /> : null}
 
           {tab === 'general' && !loading ? (
-            <form onSubmit={handleSubmit} className="grid gap-5">
+            <div className="grid gap-5">
               <SectionCard icon="storefront" title={t('settings.identity')} subtitle={t('settings.identityHint')}>
                 <SettingsField id="name" label={t('settings.cafeName')} icon="badge">
                   <input id="name" name="name" value={form.name} onChange={handleChange} className={inputClass} required />
@@ -539,18 +572,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </SectionCard>
-
-              <div className="sticky bottom-3 z-20 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={saving || uploading}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-on-primary shadow-lg transition-colors hover:bg-primary-hover disabled:opacity-60"
-                >
-                  <MaterialIcon name="save" className="text-[20px]" />
-                  {saving ? t('settings.saving') : t('settings.save')}
-                </button>
-              </div>
-            </form>
+            </div>
           ) : null}
 
           {tab === 'security' ? (
@@ -640,7 +662,7 @@ export default function SettingsPage() {
                   {t('settings.languageSaved')}
                 </p>
               ) : null}
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {LOCALES.map((item) => {
                   const active = locale === item.id;
 

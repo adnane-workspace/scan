@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import PopularProducts from '../components/dashboard/PopularProducts.jsx';
+import CafeDashboardHero from '../components/dashboard/CafeDashboardHero.jsx';
+import MenuHealth from '../components/dashboard/MenuHealth.jsx';
 import QrChangeRequestModal from '../components/dashboard/QrChangeRequestModal.jsx';
 import QrCodeModal from '../components/dashboard/QrCodeModal.jsx';
+import QuickActions from '../components/dashboard/QuickActions.jsx';
 import RecentProducts from '../components/dashboard/RecentProducts.jsx';
 import SetupChecklist, { readSetupFlag, writeSetupFlag } from '../components/dashboard/SetupChecklist.jsx';
 import StatCard from '../components/dashboard/StatCard.jsx';
@@ -127,6 +129,12 @@ export default function DashboardPage() {
 
   const availableRatio =
     stats.totalProducts > 0 ? Math.round((stats.availableProducts / stats.totalProducts) * 100) : 0;
+  const setupComplete =
+    (stats.totalCategories || 0) > 0 &&
+    (stats.totalProducts || 0) > 0 &&
+    Boolean(stats.cafe?.logo) &&
+    Boolean(qr.generated) &&
+    previewSeen;
 
   return (
     <div className="flex w-full flex-col gap-6 lg:gap-8">
@@ -136,23 +144,19 @@ export default function DashboardPage() {
         </p>
       ) : null}
 
-      <section className="flex flex-col gap-6 rounded-[18px] border border-outline-variant bg-surface-container-lowest p-6 shadow-[0_1px_2px_rgba(31,37,35,0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-7">
-        <div className="max-w-2xl">
-          <p className="text-[11px] font-semibold tracking-[0.16em] text-primary uppercase">
-            {isSuperAdmin ? t('dashboard.roleSuper') : t('dashboard.roleAdmin')}
-          </p>
-          <h1 className="mt-2 font-display text-[1.75rem] leading-tight font-semibold tracking-tight text-on-surface sm:text-[2rem]">
-            {t('dashboard.hello', { name: greetingName })}
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
-            {isSuperAdmin
-              ? t('dashboard.subtitleSuper')
-              : stats.totalProducts > 0
-                ? t('dashboard.subtitleAdmin')
-                : t('dashboard.subtitleSetup')}
-          </p>
-        </div>
-        {isSuperAdmin ? (
+      {isSuperAdmin ? (
+        <section className="flex flex-col gap-6 rounded-[18px] border border-outline-variant bg-surface-container-lowest p-6 shadow-[0_1px_2px_rgba(31,37,35,0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-7">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-semibold tracking-[0.16em] text-primary uppercase">
+              {t('dashboard.roleSuper')}
+            </p>
+            <h1 className="mt-2 font-display text-[1.75rem] leading-tight font-semibold tracking-tight text-on-surface sm:text-[2rem]">
+              {t('dashboard.hello', { name: greetingName })}
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant sm:text-base">
+              {t('dashboard.subtitleSuper')}
+            </p>
+          </div>
           <Link
             to="/platform/cafes/new"
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors duration-200 hover:bg-primary-hover active:scale-[0.98]"
@@ -160,52 +164,20 @@ export default function DashboardPage() {
             <MaterialIcon name="add" className="text-[20px]" />
             {t('platform.createCafe')}
           </Link>
-        ) : (
-          <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
-            <button
-              type="button"
-              disabled={!menuUrl}
-              onClick={() => openQr(qr.canGenerate ? 'issue' : 'view')}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors duration-200 hover:bg-primary-hover active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-primary"
-            >
-              <MaterialIcon name="qr_code_scanner" className="text-[20px]" />
-              {qr.canGenerate
-                ? qr.generated
-                  ? t('dashboard.generateNewQr')
-                  : t('dashboard.generateQr')
-                : t('dashboard.viewQr')}
-            </button>
-            {qr.changeAllowed ? (
-              <button
-                type="button"
-                disabled={!menuUrl}
-                onClick={() => openQr('view')}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
-              >
-                {t('dashboard.viewQr')}
-              </button>
-            ) : null}
-            {qr.locked && !qr.pendingRequest ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setQrRequestError('');
-                  setIsQrRequestOpen(true);
-                }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
-              >
-                {t('dashboard.requestQrChange')}
-              </button>
-            ) : null}
-            {qr.pendingRequest ? (
-              <p className="max-w-xs text-end text-xs text-on-surface-variant">{t('dashboard.qrRequestPending')}</p>
-            ) : null}
-            {qr.changeAllowed ? (
-              <p className="max-w-xs text-end text-xs text-on-surface-variant">{t('dashboard.qrChangeAllowed')}</p>
-            ) : null}
-          </div>
-        )}
-      </section>
+        </section>
+      ) : (
+        <CafeDashboardHero
+          cafe={stats.cafe}
+          greetingName={greetingName}
+          menuUrl={menuUrl}
+          qr={qr}
+          onOpenQr={openQr}
+          onRequestQrChange={() => {
+            setQrRequestError('');
+            setIsQrRequestOpen(true);
+          }}
+        />
+      )}
 
       {!isSuperAdmin ? (
         <SetupChecklist
@@ -227,7 +199,7 @@ export default function DashboardPage() {
         />
       ) : null}
 
-      <div className={`grid w-full grid-cols-1 gap-5 sm:grid-cols-2 ${isSuperAdmin ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
+      <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {isSuperAdmin ? (
           <>
             <StatCard label={t('dashboard.cafes')} value={platformCafes.length} icon="storefront" loading={loading} />
@@ -249,14 +221,37 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            <StatCard label={t('dashboard.totalProducts')} value={stats.totalProducts} icon="inventory_2" loading={loading} />
-            <StatCard label={t('dashboard.categories')} value={stats.totalCategories} icon="category" loading={loading} />
+            <StatCard
+              label={t('dashboard.totalProducts')}
+              value={stats.totalProducts}
+              icon="inventory_2"
+              loading={loading}
+              to="/app/products"
+              hint={t('dashboard.statProductsHint')}
+            />
+            <StatCard
+              label={t('dashboard.categories')}
+              value={stats.totalCategories}
+              icon="category"
+              loading={loading}
+              to="/app/categories"
+              hint={t('dashboard.statCategoriesHint')}
+            />
             <StatCard
               label={t('dashboard.availableProducts')}
               value={stats.availableProducts}
               icon="check_circle"
               loading={loading}
-              hint={loading ? undefined : `${availableRatio}%`}
+              to="/app/products"
+              hint={loading ? undefined : t('dashboard.statAvailableHint', { ratio: availableRatio })}
+            />
+            <StatCard
+              label={t('dashboard.hiddenProducts')}
+              value={stats.unavailableProducts || 0}
+              icon="visibility_off"
+              loading={loading}
+              to="/app/products"
+              hint={t('dashboard.statHiddenHint')}
             />
           </>
         )}
@@ -350,16 +345,19 @@ export default function DashboardPage() {
           </div>
         </>
       ) : (
+      <>
+      <QuickActions menuUrl={menuUrl} hasCategory={(stats.totalCategories || 0) > 0} />
       <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-6">
-        <div className="xl:col-span-2">
+        <div className={setupComplete || setupDismissed ? 'xl:col-span-2' : 'xl:col-span-3'}>
           <RecentProducts
             products={stats.recentProducts}
             loading={loading}
             onToggleAvailable={handleToggleAvailable}
           />
         </div>
-        <PopularProducts products={stats.recentProducts} loading={loading} />
+        {setupComplete || setupDismissed ? <MenuHealth stats={stats} qr={qr} loading={loading} /> : null}
       </div>
+      </>
       )}
 
       {isSuperAdmin ? null : (

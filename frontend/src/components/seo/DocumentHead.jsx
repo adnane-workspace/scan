@@ -54,7 +54,7 @@ export default function DocumentHead({
     upsertMeta('property', 'og:type', type);
     upsertMeta('property', 'og:url', canonical);
     upsertMeta('property', 'og:image', image);
-    upsertMeta('property', 'og:locale', locale === 'ar' ? 'ar_AR' : locale === 'en' ? 'en_US' : 'fr_FR');
+    upsertMeta('property', 'og:locale', locale === 'ar' ? 'ar_AR' : 'fr_FR');
     upsertMeta('property', 'og:site_name', APP_NAME);
     upsertMeta('name', 'twitter:card', 'summary_large_image');
     upsertMeta('name', 'twitter:title', pageTitle);

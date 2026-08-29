@@ -16,6 +16,7 @@ const emptyStats = {
   totalCategories: 0,
   availableProducts: 0,
   unavailableProducts: 0,
+  productsWithoutImage: 0,
   recentProducts: [],
   categories: [],
   cafe: null,
@@ -130,7 +131,6 @@ export default function DashboardLayout() {
     navigate('/login', { replace: true });
   }
 
-  const cafeName = isSuperAdmin ? t('header.platform') : stats.cafe?.name || APP_NAME;
   const qrRequestCount = platformCafes.filter((item) => item.pendingQrChange).length;
   const subtitleKey = headerSubtitleKeys[location.pathname];
   const headerSubtitle = subtitleKey
@@ -189,12 +189,6 @@ export default function DashboardLayout() {
               >
                 <MaterialIcon name="menu" />
               </button>
-              <div className="min-w-0">
-                <p className="truncate font-display text-lg font-semibold tracking-tight text-on-surface sm:text-xl">
-                  {cafeName}
-                </p>
-                <p className="text-xs font-medium text-on-surface-variant sm:text-sm">{headerSubtitle}</p>
-              </div>
             </div>
 
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">

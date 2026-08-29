@@ -9,12 +9,6 @@ const COPY = {
     intro: 'Utilisez ce code pour réinitialiser le mot de passe de votre espace Scanosh.',
     valid: 'Ce code expire dans 10 minutes. Si vous n’êtes pas à l’origine de cette demande, ignorez cet email.',
   },
-  en: {
-    subject: 'Your Scanosh verification code',
-    title: 'Verification code',
-    intro: 'Use this code to reset the password for your Scanosh space.',
-    valid: 'This code expires in 10 minutes. If you did not request it, you can ignore this email.',
-  },
   ar: {
     subject: 'رمز التحقق من Scanosh',
     title: 'رمز التحقق',
@@ -30,12 +24,6 @@ const VERIFY_COPY = {
     intro: 'Utilisez ce code pour activer votre espace Scanosh. Un email = un compte.',
     valid: 'Ce code expire dans 10 minutes. Si vous n’êtes pas à l’origine de cette inscription, ignorez cet email.',
   },
-  en: {
-    subject: 'Confirm your Scanosh email',
-    title: 'Confirm your email',
-    intro: 'Use this code to activate your Scanosh space. One email = one account.',
-    valid: 'This code expires in 10 minutes. If you did not create this account, you can ignore this email.',
-  },
   ar: {
     subject: 'أكّد بريدك على Scanosh',
     title: 'تأكيد البريد',
@@ -44,8 +32,12 @@ const VERIFY_COPY = {
   },
 };
 
+function resolveMailLocale(locale) {
+  return locale === 'ar' ? 'ar' : 'fr';
+}
+
 function buildCodeEmail(code, locale, copyMap) {
-  const copy = copyMap[locale] || copyMap.fr;
+  const copy = copyMap[resolveMailLocale(locale)] || copyMap.fr;
   const text = `${copy.intro}\n\n${code}\n\n${copy.valid}`;
   const html = `
     <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1b2a;padding:32px;color:#e0e1dd">

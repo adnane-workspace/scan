@@ -1,5 +1,5 @@
-export function loc(fr, en, ar) {
-  return { fr, en, ar };
+export function loc(fr, _en, ar) {
+  return { fr, ar: ar === undefined ? _en : ar };
 }
 
 export function pick(value, locale) {
@@ -15,7 +15,7 @@ export function pick(value, locale) {
 }
 
 export function localizePage(page, locale) {
-  const lang = locale === 'en' || locale === 'ar' ? locale : 'fr';
+  const lang = locale === 'ar' ? 'ar' : 'fr';
 
   return {
     ...page,

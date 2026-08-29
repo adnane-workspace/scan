@@ -45,7 +45,7 @@ function city({ slug, nameFr, nameEn, nameAr, sceneFr, sceneEn, sceneAr }) {
         items: [
           loc('QR unique à poser sur les tables ou au comptoir', 'A single QR for tables or the counter', 'رمز واحد للطاولات أو المنضدة'),
           loc('Mise à jour des prix et du plat du jour', 'Updates for prices and the dish of the day', 'تحديث الأسعار وطبق اليوم'),
-          loc('Interface gérant en français, anglais et arabe', 'Manager UI in French, English and Arabic', 'واجهة مدير بالفرنسية والإنجليزية والعربية'),
+          loc('Interface gérant en français et en arabe', 'Manager UI in French and Arabic', 'واجهة مدير بالفرنسية والعربية'),
           loc('Menu public partageable (lien + QR)', 'Shareable public menu (link + QR)', 'قائمة عامة قابلة للمشاركة (رابط + QR)'),
         ],
       },
@@ -178,11 +178,11 @@ export const localPages = [
     nameEn: 'Tangier',
     nameAr: 'طنجة',
     sceneFr:
-      'Tanger : cafés du détroit, restaurants internationaux, snacks du centre. La clientèle mixte (locaux, Espagne, ferry). Un menu Scanosh en FR/EN/AR et un QR sur table collent à cette ville de passage.',
+      'Tanger : cafés du détroit, restaurants internationaux, snacks du centre. La clientèle mixte (locaux, Espagne, ferry). Un menu Scanosh en français et en arabe, plus un QR sur table, collent à cette ville de passage.',
     sceneEn:
-      'Tangier: strait cafes, international restaurants, downtown snacks. Mixed guests (locals, Spain, ferry). A Scanosh menu in FR/EN/AR and a table QR fit this transit city.',
+      'Tangier: strait cafes, international restaurants, downtown snacks. Mixed guests (locals, Spain, ferry). A Scanosh menu in French and Arabic plus a table QR fit this transit city.',
     sceneAr:
-      'طنجة: مقاهي المضيق، مطاعم دولية، وجبات وسط المدينة. ضيوف مختلطون (محليون، إسبانيا، عبارة). قائمة Scanosh بالفرنسية والإنجليزية والعربية وQR على الطاولة تناسب مدينة العبور.',
+      'طنجة: مقاهي المضيق، مطاعم دولية، وجبات وسط المدينة. ضيوف مختلطون (محليون، إسبانيا، عبارة). قائمة Scanosh بالفرنسية والعربية وQR على الطاولة تناسب مدينة العبور.',
   }),
   city({
     slug: 'agadir',
@@ -221,7 +221,7 @@ export const extraPages = [
         items: [
           loc('Menu public (lien + QR)', 'Public menu (link + QR)', 'قائمة عامة (رابط + QR)'),
           loc('Dashboard : catégories, plats, photos, prix, disponibilité', 'Dashboard: categories, dishes, photos, prices, availability', 'لوحة: تصنيفات، أطباق، صور، أسعار، توفر'),
-          loc('Interface français, anglais, arabe', 'French, English, Arabic UI', 'واجهة فرنسية، إنجليزية، عربية'),
+          loc('Interface français et arabe', 'French and Arabic UI', 'واجهة فرنسية وعربية'),
           loc('Mises à jour sans réimprimer le QR', 'Updates without reprinting the QR', 'تحديثات دون إعادة طباعة الرمز'),
         ],
       },

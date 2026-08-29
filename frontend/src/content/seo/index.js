@@ -57,7 +57,7 @@ export function resolveSeoPage(path, locale) {
       }
 
       if (relatedPath === '/register') {
-        return { path: '/register', title: locale === 'ar' ? 'تسجيل' : locale === 'en' ? 'Sign up' : 'Inscription' };
+        return { path: '/register', title: locale === 'ar' ? 'تسجيل' : 'Inscription' };
       }
 
       return null;
@@ -69,7 +69,7 @@ export function resolveSeoPage(path, locale) {
 }
 
 function buildBreadcrumbs(page, locale) {
-  const homeLabel = locale === 'ar' ? 'الرئيسية' : locale === 'en' ? 'Home' : 'Accueil';
+  const homeLabel = locale === 'ar' ? 'الرئيسية' : 'Accueil';
   const items = [{ path: '/', name: homeLabel }];
   const chain = [];
   let current = page;
