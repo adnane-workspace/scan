@@ -64,7 +64,7 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Renseigner au minimum côté backend : `DATABASE_URL`, `JWT_SECRET`, et les clés Cloudinary.  
+Renseigner au minimum côté backend : `DATABASE_URL`, `DIRECT_URL` (même valeur en local ; en prod, l’URL **sans** pooler), `JWT_SECRET`, et les clés Cloudinary.  
 Côté frontend : `VITE_API_URL` (ex. `http://localhost:5000/api`).
 
 Puis :
