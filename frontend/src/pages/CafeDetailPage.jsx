@@ -5,6 +5,7 @@ import PasswordField from '../components/ui/PasswordField.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { useToast } from '../hooks/useToast.js';
 import { deletePlatformCafe, getPlatformCafe, populateCafeContent, resetPlatformCafePassword, resetTrialCafe, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
@@ -25,6 +26,7 @@ export default function CafeDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const { t, locale } = useLocale();
+  const toast = useToast();
   const { refreshCafes } = useOutletContext();
   const navigate = useNavigate();
   const [cafe, setCafe] = useState(null);
@@ -37,13 +39,11 @@ export default function CafeDetailPage() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
-  const [resetSuccess, setResetSuccess] = useState('');
   const [qrBusy, setQrBusy] = useState(false);
   const [reviewNote, setReviewNote] = useState('');
   const [deleteName, setDeleteName] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [trialBusy, setTrialBusy] = useState(false);
-  const [trialSuccess, setTrialSuccess] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -111,7 +111,6 @@ export default function CafeDetailPage() {
 
     setResetting(true);
     setError('');
-    setResetSuccess('');
 
     try {
       const result = await resetPlatformCafePassword(cafe._id, password);
@@ -120,7 +119,7 @@ export default function CafeDetailPage() {
       setShowNew(false);
       setShowConfirm(false);
       setShowResetForm(false);
-      setResetSuccess(t('platform.passwordUpdated', { email: result.email }));
+      toast.success(t('platform.passwordUpdated', { email: result.email }));
     } catch (err) {
       setError(getApiError(err, t, 'platform.resetError'));
     } finally {
@@ -177,12 +176,11 @@ export default function CafeDetailPage() {
 
     setTrialBusy(true);
     setError('');
-    setTrialSuccess('');
 
     try {
       const updated = await updatePlatformCafe(cafe._id, { trialRole });
       setCafe((current) => ({ ...current, ...updated }));
-      setTrialSuccess(
+      toast.success(
         trialRole === 'playground'
           ? t('platform.trialSetPlayground')
           : trialRole === 'template'
@@ -204,12 +202,11 @@ export default function CafeDetailPage() {
 
     setTrialBusy(true);
     setError('');
-    setTrialSuccess('');
 
     try {
       const updated = await resetTrialCafe(cafe._id);
       setCafe(updated);
-      setTrialSuccess(t('platform.trialResetDone'));
+      toast.success(t('platform.trialResetDone'));
       await refreshCafes?.();
     } catch (err) {
       setError(getApiError(err, t, 'platform.trialResetError'));
@@ -225,12 +222,11 @@ export default function CafeDetailPage() {
 
     setTrialBusy(true);
     setError('');
-    setTrialSuccess('');
 
     try {
       const updated = await populateCafeContent(cafe._id);
       setCafe(updated);
-      setTrialSuccess(t('platform.populateSuccess'));
+      toast.success(t('platform.populateSuccess'));
       await refreshCafes?.();
     } catch (err) {
       setError(getApiError(err, t, 'platform.populateError'));
@@ -410,11 +406,6 @@ export default function CafeDetailPage() {
           <div className="space-y-3 border-t border-outline-variant/30 pt-5">
             <h2 className="text-lg font-semibold text-on-surface">{t('platform.trialTitle')}</h2>
             <p className="text-sm text-on-surface-variant">{t('platform.trialHint')}</p>
-            {trialSuccess ? (
-              <p className="rounded-xl border border-primary/20 bg-primary-container px-4 py-3 text-sm text-on-primary-container">
-                {trialSuccess}
-              </p>
-            ) : null}
             <p className="font-semibold text-on-surface">
               {cafe.trialRole === 'playground'
                 ? t('platform.trialRolePlayground')
@@ -476,11 +467,6 @@ export default function CafeDetailPage() {
             <p className="text-sm text-on-surface-variant">
               {t('platform.passwordHint', { email: cafe.ownerEmail || t('platform.owner') })}
             </p>
-            {resetSuccess ? (
-              <p className="rounded-xl border border-primary/20 bg-primary-container px-4 py-3 text-sm text-on-primary-container">
-                {resetSuccess}
-              </p>
-            ) : null}
             {showResetForm ? (
               <form onSubmit={handleResetPassword} className="grid gap-3">
                 <PasswordField
@@ -529,7 +515,6 @@ export default function CafeDetailPage() {
                 type="button"
                 onClick={() => {
                   setShowResetForm(true);
-                  setResetSuccess('');
                 }}
                 className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface"
               >

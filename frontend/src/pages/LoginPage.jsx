@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import MarketingLink from '../components/common/MarketingLink.jsx';
 import AuthBrandPanel from '../components/auth/AuthBrandPanel.jsx';
@@ -8,6 +8,7 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { useToast } from '../hooks/useToast.js';
 import { resendVerificationRequest } from '../services/auth.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { getHomePath } from '../utils/paths.js';
@@ -15,6 +16,7 @@ import { getHomePath } from '../utils/paths.js';
 export default function LoginPage() {
   const { isAuthenticated, isReady, login, user } = useAuth();
   const { t, locale } = useLocale();
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -22,6 +24,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!location.state?.resetSuccess) {
+      return;
+    }
+
+    toast.success(t('auth.resetSuccess'));
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.pathname, location.state, navigate, t, toast]);
 
   if (!isReady) {
     return (
@@ -128,12 +139,6 @@ export default function LoginPage() {
                 {t('auth.forgotPassword')}
               </Link>
             </div>
-
-            {location.state?.resetSuccess ? (
-              <p className="rounded-xl border border-tertiary/20 bg-tertiary/10 px-4 py-3 text-sm text-on-surface">
-                {t('auth.resetSuccess')}
-              </p>
-            ) : null}
 
             {error ? (
               <p

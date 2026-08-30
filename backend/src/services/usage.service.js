@@ -38,12 +38,22 @@ function emptyCafeBucket(cafe) {
     isActive: cafe.isActive !== false,
     logos: 0,
     covers: 0,
+    menuBackgrounds: 0,
     productImages: 0,
     categoryImages: 0,
     photoCount: 0,
     bytes: 0,
     unmatchedCount: 0,
   };
+}
+
+function cafeMenuBackground(menuUi) {
+  if (!menuUi || typeof menuUi !== 'object') {
+    return '';
+  }
+
+  const value = menuUi.backgroundImage;
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 function uniqueSlugs(values) {
@@ -67,7 +77,7 @@ function productionApiBase() {
 async function loadFromDatabase(client) {
   const [cafes, products, categories] = await Promise.all([
     client.cafe.findMany({
-      select: { id: true, name: true, slug: true, isActive: true, logo: true, cover: true },
+      select: { id: true, name: true, slug: true, isActive: true, logo: true, cover: true, menuUi: true },
       orderBy: { name: 'asc' },
     }),
     client.product.findMany({
@@ -78,7 +88,14 @@ async function loadFromDatabase(client) {
     }),
   ]);
 
-  return { cafes, products, categories };
+  return {
+    cafes: cafes.map((cafe) => ({
+      ...cafe,
+      menuBackground: cafeMenuBackground(cafe.menuUi),
+    })),
+    products,
+    categories,
+  };
 }
 
 async function loadFromProductionMenus(apiBase, slugs) {
@@ -98,6 +115,26 @@ async function loadFromProductionMenus(apiBase, slugs) {
 
         const menu = payload.data;
         const cafeId = slug;
+        const categoryImages = [];
+        const productImages = [];
+
+        for (const category of menu.categories || []) {
+          if (category.image) {
+            categoryImages.push({ cafeId, image: category.image });
+          }
+
+          for (const product of category.products || []) {
+            if (product.image) {
+              productImages.push({ cafeId, image: product.image });
+            }
+          }
+        }
+
+        // Public menu may fall back cover → category image; only count a distinct cover.
+        const rawCover = menu.cafe.cover || '';
+        const coverIsCategoryFallback = Boolean(
+          rawCover && categoryImages.some((item) => item.image === rawCover),
+        );
 
         cafes.push({
           id: cafeId,
@@ -105,20 +142,12 @@ async function loadFromProductionMenus(apiBase, slugs) {
           slug,
           isActive: true,
           logo: menu.cafe.logo || '',
-          cover: menu.cafe.cover || '',
+          cover: coverIsCategoryFallback ? '' : rawCover,
+          menuBackground: cafeMenuBackground(menu.cafe.menuUi),
         });
 
-        for (const category of menu.categories || []) {
-          if (category.image) {
-            categories.push({ cafeId, image: category.image });
-          }
-
-          for (const product of category.products || []) {
-            if (product.image) {
-              products.push({ cafeId, image: product.image });
-            }
-          }
-        }
+        categories.push(...categoryImages);
+        products.push(...productImages);
       } catch {
         // Skip slugs that are not on production.
       }
@@ -153,7 +182,15 @@ function buildCafeReport({ cafes, products, categories, folder, bytesByPublicId 
       const size = bytesByPublicId.get(publicId);
 
       if (size) {
-        bucket.bytes += size;
+        // Attribute bytes once per public id per café.
+        if (!bucket._seenPublicIds) {
+          bucket._seenPublicIds = new Set();
+        }
+
+        if (!bucket._seenPublicIds.has(publicId)) {
+          bucket._seenPublicIds.add(publicId);
+          bucket.bytes += size;
+        }
       } else {
         bucket.unmatchedCount += 1;
       }
@@ -165,15 +202,20 @@ function buildCafeReport({ cafes, products, categories, folder, bytesByPublicId 
   cafes.forEach((cafe) => {
     addImage(cafe.id, cafe.logo, 'logos');
     addImage(cafe.id, cafe.cover, 'covers');
+    addImage(cafe.id, cafe.menuBackground, 'menuBackgrounds');
   });
   products.forEach((product) => addImage(product.cafeId, product.image, 'productImages'));
   categories.forEach((category) => addImage(category.cafeId, category.image, 'categoryImages'));
 
   const cafesReport = [...byCafe.values()]
-    .map((item) => ({
-      ...item,
-      photoCount: item.logos + item.covers + item.productImages + item.categoryImages,
-    }))
+    .map((item) => {
+      const { _seenPublicIds, ...rest } = item;
+      return {
+        ...rest,
+        photoCount:
+          item.logos + item.covers + item.menuBackgrounds + item.productImages + item.categoryImages,
+      };
+    })
     .sort((a, b) => b.bytes - a.bytes || b.photoCount - a.photoCount);
 
   return { cafesReport, referencedPublicIds };
@@ -240,6 +282,8 @@ export async function getStorageReport({ force = false } = {}) {
       cafeCount: cafesReport.length,
       photos: resources.length,
       logos: cafesReport.reduce((sum, item) => sum + item.logos, 0),
+      covers: cafesReport.reduce((sum, item) => sum + item.covers, 0),
+      menuBackgrounds: cafesReport.reduce((sum, item) => sum + item.menuBackgrounds, 0),
       productImages: cafesReport.reduce((sum, item) => sum + item.productImages, 0),
       categoryImages: cafesReport.reduce((sum, item) => sum + item.categoryImages, 0),
       bytes: cloudinaryBytes,

@@ -3,20 +3,28 @@ import { normalizeMenuUi } from '../../utils/menuUi.js';
 
 export default function PublicMenuFrame({ cafe, className = '', children }) {
   const ui = normalizeMenuUi(cafe?.menuUi);
-  const locked = className.includes('menu-app');
-  const customColor = !locked && ui.bgMode === 'color' && ui.backgroundColor ? ui.backgroundColor : '';
-  const customImage = !locked && ui.bgMode === 'image' && ui.backgroundImage ? ui.backgroundImage : '';
+  const isAppSkin = className.includes('menu-app');
+  const customColor = ui.bgMode === 'color' && ui.backgroundColor ? ui.backgroundColor : '';
+  const customImage = ui.bgMode === 'image' && ui.backgroundImage ? ui.backgroundImage : '';
+
+  const style = customColor
+    ? { '--color-background': customColor }
+    : customImage
+      ? { '--color-background': 'transparent', background: 'transparent' }
+      : undefined;
+
+  const veilClass = isAppSkin ? 'bg-[#f4f2ee]/82' : ui.theme === 'dark' ? 'bg-background/70' : 'bg-background/75';
 
   return (
     <div
       className={`menu-theme-${ui.theme} relative min-h-screen bg-background text-on-surface ${className}`}
       data-menu-theme={ui.theme}
-      style={customColor ? { '--color-background': customColor } : undefined}
+      style={style}
     >
       {customImage ? (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
           <CloudinaryImage src={customImage} alt="" preset="cover" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-background/75" />
+          <div className={`absolute inset-0 ${veilClass}`} />
         </div>
       ) : null}
       <div className="relative z-10 flex h-full min-h-full flex-1 flex-col">{children}</div>

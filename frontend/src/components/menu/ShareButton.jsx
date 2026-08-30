@@ -26,7 +26,9 @@ export default function ShareButton({ title, text, url, className = '', showLabe
   const tone =
     variant === 'primary'
       ? 'h-12 w-full justify-center bg-[#0d1b2a] text-[#e8d5a8] shadow-[0_10px_24px_rgba(13,27,42,0.16)] hover:bg-[#162536]'
-      : 'h-10 text-[#0d1b2a] hover:bg-[#0d1b2a]/6';
+      : variant === 'sheet'
+        ? 'h-12 w-full justify-center border border-[#0d1b2a]/12 bg-[#f7f6f3] text-[#0d1b2a] hover:border-[#c4a574]/60 hover:bg-white'
+        : 'h-10 text-[#0d1b2a] hover:bg-[#0d1b2a]/6';
 
   return (
     <button

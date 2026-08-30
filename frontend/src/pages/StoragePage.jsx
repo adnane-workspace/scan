@@ -105,6 +105,8 @@ export default function StoragePage() {
               value={formatCount(report.totals.photos, locale)}
               hint={t('storage.photosHint', {
                 logos: formatCount(report.totals.logos, locale),
+                covers: formatCount(report.totals.covers || 0, locale),
+                menuBackgrounds: formatCount(report.totals.menuBackgrounds || 0, locale),
                 products: formatCount(report.totals.productImages, locale),
                 categories: formatCount(report.totals.categoryImages, locale),
               })}
@@ -136,6 +138,8 @@ export default function StoragePage() {
                   <th className="px-4 py-3 font-semibold">{t('storage.colCafe')}</th>
                   <th className="px-4 py-3 font-semibold">{t('storage.colPhotos')}</th>
                   <th className="px-4 py-3 font-semibold">{t('storage.colLogos')}</th>
+                  <th className="px-4 py-3 font-semibold">{t('storage.colCovers')}</th>
+                  <th className="px-4 py-3 font-semibold">{t('storage.colMenuBg')}</th>
                   <th className="px-4 py-3 font-semibold">{t('storage.colProducts')}</th>
                   <th className="px-4 py-3 font-semibold">{t('storage.colCategories')}</th>
                   <th className="px-4 py-3 font-semibold">{t('storage.colSize')}</th>
@@ -145,7 +149,7 @@ export default function StoragePage() {
               <tbody>
                 {cafes.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-6 text-on-surface-variant" colSpan={7}>
+                    <td className="px-4 py-6 text-on-surface-variant" colSpan={9}>
                       {t('storage.empty')}
                     </td>
                   </tr>
@@ -167,6 +171,8 @@ export default function StoragePage() {
                         </td>
                         <td className="px-4 py-3 font-medium text-on-surface">{cafe.photoCount}</td>
                         <td className="px-4 py-3 text-on-surface-variant">{cafe.logos}</td>
+                        <td className="px-4 py-3 text-on-surface-variant">{cafe.covers || 0}</td>
+                        <td className="px-4 py-3 text-on-surface-variant">{cafe.menuBackgrounds || 0}</td>
                         <td className="px-4 py-3 text-on-surface-variant">{cafe.productImages}</td>
                         <td className="px-4 py-3 text-on-surface-variant">{cafe.categoryImages}</td>
                         <td className="px-4 py-3 font-medium text-on-surface">{formatBytes(cafe.bytes, locale)}</td>

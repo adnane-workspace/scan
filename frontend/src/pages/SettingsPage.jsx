@@ -7,6 +7,7 @@ import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import PasswordField from '../components/ui/PasswordField.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
+import { useToast } from '../hooks/useToast.js';
 import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import { LOCALES } from '../i18n/messages.js';
 import { useTheme } from '../hooks/useTheme.js';
@@ -155,6 +156,7 @@ function SettingsSkeleton() {
 export default function SettingsPage() {
   const { user } = useAuth();
   const { t, locale, setLocale } = useLocale();
+  const toast = useToast();
   const { theme, setTheme } = useTheme();
   const { refreshStats } = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -164,7 +166,6 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -174,10 +175,8 @@ export default function SettingsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
-  const [languageSaved, setLanguageSaved] = useState(false);
   const [menuUi, setMenuUi] = useState(DEFAULT_MENU_UI);
   const [colorDraft, setColorDraft] = useState('');
   const [menuUiSaving, setMenuUiSaving] = useState(false);
@@ -262,13 +261,12 @@ export default function SettingsPage() {
 
     setUploading('logo');
     setError('');
-    setSuccess('');
 
     try {
       const url = await uploadCafeLogo(file, 'logo');
       const cafe = await updateMyCafe(cafePayload({ logo: url }));
       applyCafe(cafe);
-      setSuccess(t('settings.saved'));
+      toast.success(t('settings.saved'));
       await refreshStats?.();
     } catch (err) {
       setError(getApiError(err, t, 'settings.uploadError'));
@@ -291,12 +289,11 @@ export default function SettingsPage() {
     const timer = window.setTimeout(async () => {
       setSaving(true);
       setError('');
-      setSuccess('');
 
       try {
         const cafe = await updateMyCafe(toCafeForm(form));
         applyCafe(cafe);
-        setSuccess(t('settings.saved'));
+        toast.success(t('settings.saved'));
         await refreshStats?.();
       } catch (err) {
         setError(getApiError(err, t, 'settings.saveError'));
@@ -306,7 +303,7 @@ export default function SettingsPage() {
     }, 700);
 
     return () => window.clearTimeout(timer);
-  }, [form, isSuperAdmin, loading, t, refreshStats]);
+  }, [form, isSuperAdmin, loading, t, refreshStats, toast]);
 
   function resetPasswordFields() {
     setCurrentPassword('');
@@ -388,7 +385,6 @@ export default function SettingsPage() {
   async function handlePasswordSubmit(event) {
     event.preventDefault();
     setPasswordError('');
-    setPasswordSuccess('');
 
     if (newPassword !== confirmPassword) {
       setPasswordError(t('settings.passwordMismatch'));
@@ -401,7 +397,7 @@ export default function SettingsPage() {
       await changePasswordRequest({ currentPassword, newPassword });
       resetPasswordFields();
       setShowPasswordForm(false);
-      setPasswordSuccess(t('settings.passwordUpdated'));
+      toast.success(t('settings.passwordUpdated'));
     } catch (err) {
       setPasswordError(getApiError(err, t, 'settings.passwordError'));
     } finally {
@@ -421,10 +417,8 @@ export default function SettingsPage() {
           </h1>
           <p className="mt-1 text-sm text-on-surface-variant">
             {t('settings.subtitle')}
-            {tab === 'general' && !isSuperAdmin && (saving || success) ? (
-              <span className="ms-2 font-medium text-primary">
-                {saving ? t('settings.saving') : t('settings.saved')}
-              </span>
+            {tab === 'general' && !isSuperAdmin && saving ? (
+              <span className="ms-2 font-medium text-primary">{t('settings.saving')}</span>
             ) : null}
           </p>
         </div>
@@ -600,11 +594,6 @@ export default function SettingsPage() {
 
           {tab === 'security' ? (
             <SectionCard icon="lock" title={t('settings.passwordTitle')} subtitle={t('settings.passwordHint')}>
-              {passwordSuccess ? (
-                <p className="rounded-xl border border-primary/20 bg-primary-container px-4 py-3 text-sm text-on-primary-container">
-                  {passwordSuccess}
-                </p>
-              ) : null}
               {passwordError ? (
                 <p className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error">
                   {passwordError}
@@ -666,7 +655,6 @@ export default function SettingsPage() {
                   type="button"
                   onClick={() => {
                     setShowPasswordForm(true);
-                    setPasswordSuccess('');
                     setPasswordError('');
                   }}
                   className="inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover"
@@ -680,11 +668,6 @@ export default function SettingsPage() {
 
           {tab === 'language' ? (
             <SectionCard icon="translate" title={t('settings.languageTitle')} subtitle={t('settings.languageHint')}>
-              {languageSaved ? (
-                <p className="rounded-xl border border-primary/20 bg-primary-container px-4 py-3 text-sm text-on-primary-container">
-                  {t('settings.languageSaved')}
-                </p>
-              ) : null}
               <div className="grid gap-3 sm:grid-cols-2">
                 {LOCALES.map((item) => {
                   const active = locale === item.id;
@@ -694,8 +677,11 @@ export default function SettingsPage() {
                       key={item.id}
                       type="button"
                       onClick={() => {
+                        if (locale === item.id) {
+                          return;
+                        }
                         setLocale(item.id);
-                        setLanguageSaved(true);
+                        toast.success(t('settings.languageSaved'));
                       }}
                       className={`rounded-2xl border px-5 py-4 text-start transition-colors ${
                         active
