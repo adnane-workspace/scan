@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { startTrialSession } from '../controllers/trial.controller.js';
+import { startTrialSchema } from '../validators/trial.validator.js';
 import {
   forgotPassword,
   getMe,
@@ -40,6 +42,13 @@ const registerLimit = rateLimit({
   code: 'TOO_MANY_REGISTER_ATTEMPTS',
 });
 
+const trialLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many trial attempts. Try again later.',
+  code: 'TOO_MANY_TRIAL_ATTEMPTS',
+});
+
 const resetRequestLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -62,6 +71,7 @@ const resetCompleteLimit = rateLimit({
 });
 
 authRouter.post('/register', registerLimit, validate(registerSchema), registerAdmin);
+authRouter.post('/trial', trialLimit, validate(startTrialSchema), startTrialSession);
 authRouter.post('/verify-email', resetVerifyLimit, validate(verifyResetCodeSchema), verifyEmailCode);
 authRouter.post('/resend-verification', resetRequestLimit, validate(resendVerificationSchema), resendVerification);
 authRouter.post('/login', loginLimit, validate(loginSchema), loginAdmin);

@@ -66,7 +66,7 @@ export default function MarketingLayout({ children }) {
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSwitcher compact className="hidden md:inline-flex" />
             <AppLink
-              to="/register"
+              to="/essai"
               className="hidden h-10 items-center rounded-xl bg-primary px-4 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-colors hover:bg-primary-hover md:inline-flex lg:px-5"
             >
               {t('landing.ctaTrial')}
@@ -107,7 +107,7 @@ export default function MarketingLayout({ children }) {
               <AppLink to="/login" className="py-2.5 font-semibold text-on-surface md:hidden" onClick={() => setMenuOpen(false)}>
                 {t('auth.loginTitle')}
               </AppLink>
-              <AppLink to="/register" className="mt-1 rounded-xl bg-primary px-4 py-3 text-center font-semibold text-on-primary md:hidden" onClick={() => setMenuOpen(false)}>
+              <AppLink to="/essai" className="mt-1 rounded-xl bg-primary px-4 py-3 text-center font-semibold text-on-primary md:hidden" onClick={() => setMenuOpen(false)}>
                 {t('landing.ctaTrial')}
               </AppLink>
             </nav>

@@ -35,12 +35,20 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <AppLink
-            to="/register"
-            className="mt-8 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary hover:bg-primary-hover"
-          >
-            {t('landing.ctaStart')}
-          </AppLink>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <AppLink
+              to="/register"
+              className="inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary hover:bg-primary-hover"
+            >
+              {t('landing.ctaStart')}
+            </AppLink>
+            <AppLink
+              to="/essai"
+              className="inline-flex rounded-xl border border-outline-variant px-5 py-3 text-sm font-semibold text-on-surface hover:bg-surface-container"
+            >
+              {t('landing.ctaTrial')}
+            </AppLink>
+          </div>
         </div>
 
         {page.sections.slice(1).map((section) => (

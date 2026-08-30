@@ -51,6 +51,11 @@ export default function SiteLandingPage() {
                 {t('landing.ctaDemo')}
               </Link>
             </div>
+            <p className="mt-4 text-sm text-on-surface-variant">
+              <AppLink to="/essai" className="font-semibold text-primary hover:underline">
+                {t('landing.ctaFilledTrial')}
+              </AppLink>
+            </p>
           </div>
         </section>
 

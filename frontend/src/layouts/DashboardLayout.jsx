@@ -32,6 +32,7 @@ const headerSubtitleKeys = {
   '/platform/settings': 'header.settings',
   '/platform/cafes': 'header.cafes',
   '/platform/cafes/new': 'header.cafeNew',
+  '/platform/trials': 'header.trials',
   '/platform/qr-requests': 'header.qrRequests',
   '/platform/logs': 'header.logs',
   '/platform/storage': 'header.storage',

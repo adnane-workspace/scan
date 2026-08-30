@@ -36,6 +36,8 @@ enum ActivityAction {
   qr_change_requested
   qr_change_approved
   qr_change_rejected
+  trial_started
+  trial_reset
 }
 
 enum QrChangeRequestStatus {
@@ -47,6 +49,12 @@ enum QrChangeRequestStatus {
 enum VerificationPurpose {
   password_reset
   email_verify
+}
+
+enum CafeTrialRole {
+  none
+  playground
+  template
 }
 
 model Cafe {
@@ -64,6 +72,7 @@ model Cafe {
   isActive        Boolean       @default(true)
   qrGeneratedAt   DateTime?
   qrChangeAllowed Boolean       @default(false)
+  trialRole       CafeTrialRole @default(none)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   users           User[]
@@ -71,6 +80,8 @@ model Cafe {
   products        Product[]
   activityLogs    ActivityLog[]
   qrChangeRequests QrChangeRequest[]
+
+  @@index([trialRole])
 }
 
 model User {
@@ -90,6 +101,18 @@ model User {
   qrChangeReviews  QrChangeRequest[] @relation("QrChangeReviewer")
 
   @@index([cafeId])
+}
+
+model TrialLead {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(80)
+  email     String   @db.VarChar(160)
+  phone     String   @db.VarChar(30)
+  cafeName  String   @db.VarChar(120)
+  city      String   @default("") @db.VarChar(80)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model QrChangeRequest {

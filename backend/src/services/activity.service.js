@@ -15,6 +15,8 @@ export const ACTIVITY_ACTIONS = [
   'qr_change_requested',
   'qr_change_approved',
   'qr_change_rejected',
+  'trial_started',
+  'trial_reset',
 ];
 
 const CAFE_ACTIONS = [
@@ -28,6 +30,8 @@ const CAFE_ACTIONS = [
   'qr_change_requested',
   'qr_change_approved',
   'qr_change_rejected',
+  'trial_started',
+  'trial_reset',
 ];
 
 const SECURITY_ACTIONS = ['auth_login_failed', 'auth_password_changed'];

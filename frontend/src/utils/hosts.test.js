@@ -117,6 +117,10 @@ test('getAppHref points marketing visitors at the app origin', () => {
     getAppHref('/register', { hostname: 'www.scanosh.com', protocol: 'https:', rootDomain: root }),
     'https://app.scanosh.com/register',
   );
+  assert.equal(
+    getAppHref('/essai', { hostname: 'www.scanosh.com', protocol: 'https:', rootDomain: root }),
+    'https://app.scanosh.com/essai',
+  );
 });
 
 test('tenantPathFromMenuUrl keeps printed QR nested paths', () => {

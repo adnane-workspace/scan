@@ -284,6 +284,10 @@ export default function RegisterPage() {
             <Link to="/login" className="font-semibold text-primary hover:underline">
               {t('auth.submit')}
             </Link>
+            {' · '}
+            <Link to="/essai" className="font-semibold text-primary hover:underline">
+              {t('auth.trialLink')}
+            </Link>
           </p>
         </div>
       </section>

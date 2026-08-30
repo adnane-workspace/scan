@@ -98,7 +98,12 @@ export const updatePlatformCafeSchema = z.object({
   params: z.object({
     id: uuidSchema,
   }),
-  body: z.object({
-    isActive: z.boolean(),
-  }),
+  body: z
+    .object({
+      isActive: z.boolean().optional(),
+      trialRole: z.enum(['none', 'playground', 'template']).optional(),
+    })
+    .refine((value) => value.isActive !== undefined || value.trialRole !== undefined, {
+      message: 'At least one field is required',
+    }),
 });

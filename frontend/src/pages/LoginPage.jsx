@@ -160,6 +160,10 @@ export default function LoginPage() {
             <Link to="/register" className="font-semibold text-primary hover:underline">
               {t('auth.createCafe')}
             </Link>
+            {' · '}
+            <Link to="/essai" className="font-semibold text-primary hover:underline">
+              {t('auth.trialLink')}
+            </Link>
           </p>
         </div>
       </section>

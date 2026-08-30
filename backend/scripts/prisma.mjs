@@ -1,7 +1,8 @@
+import 'dotenv/config';
 import { spawn } from 'node:child_process';
 
 function ensureDirectUrl() {
-  if (process.env.DIRECT_URL) {
+  if (String(process.env.DIRECT_URL || '').trim()) {
     return;
   }
 

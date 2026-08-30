@@ -20,6 +20,11 @@ export async function loginRequest(credentials) {
   return data.data;
 }
 
+export async function startTrialRequest(payload) {
+  const { data } = await api.post('/auth/trial', payload, { timeout: 20000 });
+  return data.data;
+}
+
 export async function fetchCurrentUser() {
   const { data } = await api.get('/auth/me');
   return data.data.user;

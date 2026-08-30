@@ -9,6 +9,7 @@ import {
   resetCafePassword,
   updateCafeStatus,
 } from '../controllers/platform.controller.js';
+import { getTrialLeads, populateCafeContent, resetCafeTrial } from '../controllers/trial.controller.js';
 import { listQrRequests, reviewQrRequest, unlockQr } from '../controllers/qr.controller.js';
 import { authenticate, requireSuperAdmin } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
@@ -29,12 +30,15 @@ platformRouter.get('/storage', getStorage);
 platformRouter.get('/logs', validate(listActivityLogsSchema), listLogs);
 platformRouter.get('/qr-requests', validate(listQrChangeRequestsSchema), listQrRequests);
 platformRouter.post('/qr-requests/:id/review', validate(reviewQrChangeRequestSchema), reviewQrRequest);
+platformRouter.get('/trial-leads', getTrialLeads);
 platformRouter.get('/cafes', listCafes);
 platformRouter.post('/cafes', validate(createPlatformCafeSchema), createCafe);
 platformRouter.get('/cafes/:id', validate(platformCafeIdSchema), getCafe);
 platformRouter.patch('/cafes/:id', validate(updatePlatformCafeSchema), updateCafeStatus);
 platformRouter.delete('/cafes/:id', validate(platformCafeIdSchema), deleteCafe);
 platformRouter.post('/cafes/:id/password', validate(resetPlatformCafePasswordSchema), resetCafePassword);
+platformRouter.post('/cafes/:id/reset-trial', validate(platformCafeIdSchema), resetCafeTrial);
+platformRouter.post('/cafes/:id/populate', validate(platformCafeIdSchema), populateCafeContent);
 platformRouter.post('/cafes/:id/qr/unlock', validate(platformCafeIdSchema), unlockQr);
 
 export { platformRouter };

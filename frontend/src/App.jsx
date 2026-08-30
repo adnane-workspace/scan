@@ -36,6 +36,8 @@ const PublicMenuLandingPage = lazy(() => import('./pages/PublicMenuLandingPage.j
 const PublicMenuPage = lazy(() => import('./pages/PublicMenuPage.jsx'));
 const QrRequestsPage = lazy(() => import('./pages/QrRequestsPage.jsx'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
+const TrialPage = lazy(() => import('./pages/TrialPage.jsx'));
+const TrialLeadsPage = lazy(() => import('./pages/TrialLeadsPage.jsx'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'));
 const SiteLandingPage = lazy(() => import('./pages/SiteLandingPage.jsx'));
 const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage.jsx'));
@@ -104,6 +106,7 @@ function AuthRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/essai" element={<TrialPage />} />
     </Route>
   );
 }
@@ -126,6 +129,7 @@ function ProductRoutes() {
           <Route path="cafes" element={<CafesPage />} />
           <Route path="cafes/new" element={<CreateCafePage />} />
           <Route path="cafes/:id" element={<CafeDetailPage />} />
+          <Route path="trials" element={<TrialLeadsPage />} />
           <Route path="qr-requests" element={<QrRequestsPage />} />
           <Route path="logs" element={<ActivityLogsPage />} />
           <Route path="storage" element={<StoragePage />} />
@@ -171,6 +175,7 @@ function MenuTenantRoutes({ slug }) {
       <Routes>
         <Route path="/login" element={<ToAppRedirect />} />
         <Route path="/register" element={<ToAppRedirect />} />
+        <Route path="/essai" element={<ToAppRedirect />} />
         <Route path="/forgot-password" element={<ToAppRedirect />} />
         <Route path="/app" element={<ToAppRedirect />} />
         <Route path="/app/*" element={<ToAppRedirect />} />
@@ -212,6 +217,7 @@ function MarketingHostRoutes() {
       {MarketingRoutes()}
       <Route path="/login" element={<ToAppRedirect />} />
       <Route path="/register" element={<ToAppRedirect />} />
+      <Route path="/essai" element={<ToAppRedirect />} />
       <Route path="/forgot-password" element={<ToAppRedirect />} />
       <Route path="/app" element={<ToAppRedirect />} />
       <Route path="/app/*" element={<ToAppRedirect />} />

@@ -28,6 +28,7 @@ function toPlatformCafe(cafe, counts) {
     qrGeneratedAt: cafe.qrGeneratedAt || null,
     qrChangeAllowed: Boolean(cafe.qrChangeAllowed),
     pendingQrChange: Boolean(counts.pendingQrChange),
+    trialRole: cafe.trialRole || 'none',
     ...ownerFromUsers(cafe.users),
   };
 }
@@ -109,6 +110,7 @@ export async function listPlatformCafes() {
       createdAt: true,
       qrGeneratedAt: true,
       qrChangeAllowed: true,
+      trialRole: true,
       ...ownerSelect,
     },
   });
@@ -159,9 +161,26 @@ export async function updatePlatformCafe(cafeId, payload, actor) {
     throw new ApiError(404, 'Cafe not found', null, 'CAFE_NOT_FOUND');
   }
 
+  const data = {};
+
+  if (payload.isActive !== undefined) {
+    data.isActive = payload.isActive;
+  }
+
+  if (payload.trialRole !== undefined) {
+    data.trialRole = payload.trialRole;
+  }
+
+  if (payload.trialRole === 'playground' || payload.trialRole === 'template') {
+    await prisma.cafe.updateMany({
+      where: { trialRole: payload.trialRole, id: { not: cafeId } },
+      data: { trialRole: 'none' },
+    });
+  }
+
   const updated = await prisma.cafe.update({
     where: { id: cafeId },
-    data: { isActive: payload.isActive },
+    data,
     select: {
       id: true,
       name: true,
@@ -170,6 +189,7 @@ export async function updatePlatformCafe(cafeId, payload, actor) {
       createdAt: true,
       qrGeneratedAt: true,
       qrChangeAllowed: true,
+      trialRole: true,
       ...ownerSelect,
     },
   });
@@ -179,17 +199,33 @@ export async function updatePlatformCafe(cafeId, payload, actor) {
     prisma.category.count({ where: { cafeId } }),
   ]);
 
-  invalidatePublicMenu(cafeId, [cafe.slug]);
+  if (payload.isActive !== undefined) {
+    invalidatePublicMenu(cafeId, [cafe.slug]);
+  }
 
-  await recordActivity({
-    action: payload.isActive ? 'cafe_activated' : 'cafe_deactivated',
-    actorId: actor?.id,
-    cafeId,
-    metadata: {
-      cafeName: cafe.name,
-      slug: cafe.slug,
-    },
-  });
+  if (payload.isActive !== undefined) {
+    await recordActivity({
+      action: payload.isActive ? 'cafe_activated' : 'cafe_deactivated',
+      actorId: actor?.id,
+      cafeId,
+      metadata: {
+        cafeName: cafe.name,
+        slug: cafe.slug,
+      },
+    });
+  } else {
+    await recordActivity({
+      action: 'cafe_updated',
+      actorId: actor?.id,
+      cafeId,
+      metadata: {
+        cafeName: cafe.name,
+        slug: cafe.slug,
+        fields: ['trialRole'],
+        trialRole: payload.trialRole,
+      },
+    });
+  }
 
   return toPlatformCafe(updated, { productCount, categoryCount });
 }

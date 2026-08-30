@@ -58,3 +58,18 @@ export async function unlockCafeQr(id) {
   const { data } = await api.post(`/platform/cafes/${id}/qr/unlock`);
   return data.data.qr;
 }
+
+export async function populateCafeContent(id) {
+  const { data } = await api.post(`/platform/cafes/${id}/populate`);
+  return data.data.cafe;
+}
+
+export async function resetTrialCafe(id) {
+  const { data } = await api.post(`/platform/cafes/${id}/reset-trial`);
+  return data.data.cafe;
+}
+
+export async function listTrialLeads() {
+  const { data } = await api.get('/platform/trial-leads');
+  return data.data.leads;
+}

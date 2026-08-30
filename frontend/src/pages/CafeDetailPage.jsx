@@ -5,7 +5,7 @@ import PasswordField from '../components/ui/PasswordField.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
-import { deletePlatformCafe, getPlatformCafe, resetPlatformCafePassword, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
+import { deletePlatformCafe, getPlatformCafe, populateCafeContent, resetPlatformCafePassword, resetTrialCafe, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
@@ -42,6 +42,8 @@ export default function CafeDetailPage() {
   const [reviewNote, setReviewNote] = useState('');
   const [deleteName, setDeleteName] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [trialBusy, setTrialBusy] = useState(false);
+  const [trialSuccess, setTrialSuccess] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -165,6 +167,75 @@ export default function CafeDetailPage() {
       setError(getApiError(err, t, 'qr.reviewError'));
     } finally {
       setQrBusy(false);
+    }
+  }
+
+  async function handleTrialRole(trialRole) {
+    if (!cafe) {
+      return;
+    }
+
+    setTrialBusy(true);
+    setError('');
+    setTrialSuccess('');
+
+    try {
+      const updated = await updatePlatformCafe(cafe._id, { trialRole });
+      setCafe((current) => ({ ...current, ...updated }));
+      setTrialSuccess(
+        trialRole === 'playground'
+          ? t('platform.trialSetPlayground')
+          : trialRole === 'template'
+            ? t('platform.trialSetTemplate')
+            : t('platform.trialCleared'),
+      );
+      await refreshCafes?.();
+    } catch (err) {
+      setError(getApiError(err, t, 'platform.updateError'));
+    } finally {
+      setTrialBusy(false);
+    }
+  }
+
+  async function handleResetTrial() {
+    if (!cafe) {
+      return;
+    }
+
+    setTrialBusy(true);
+    setError('');
+    setTrialSuccess('');
+
+    try {
+      const updated = await resetTrialCafe(cafe._id);
+      setCafe(updated);
+      setTrialSuccess(t('platform.trialResetDone'));
+      await refreshCafes?.();
+    } catch (err) {
+      setError(getApiError(err, t, 'platform.trialResetError'));
+    } finally {
+      setTrialBusy(false);
+    }
+  }
+
+  async function handlePopulate() {
+    if (!cafe || !window.confirm(t('platform.populateConfirm'))) {
+      return;
+    }
+
+    setTrialBusy(true);
+    setError('');
+    setTrialSuccess('');
+
+    try {
+      const updated = await populateCafeContent(cafe._id);
+      setCafe(updated);
+      setTrialSuccess(t('platform.populateSuccess'));
+      await refreshCafes?.();
+    } catch (err) {
+      setError(getApiError(err, t, 'platform.populateError'));
+    } finally {
+      setTrialBusy(false);
     }
   }
 
@@ -334,6 +405,70 @@ export default function CafeDetailPage() {
                 {t('qr.unlock')}
               </button>
             ) : null}
+          </div>
+
+          <div className="space-y-3 border-t border-outline-variant/30 pt-5">
+            <h2 className="text-lg font-semibold text-on-surface">{t('platform.trialTitle')}</h2>
+            <p className="text-sm text-on-surface-variant">{t('platform.trialHint')}</p>
+            {trialSuccess ? (
+              <p className="rounded-xl border border-primary/20 bg-primary-container px-4 py-3 text-sm text-on-primary-container">
+                {trialSuccess}
+              </p>
+            ) : null}
+            <p className="font-semibold text-on-surface">
+              {cafe.trialRole === 'playground'
+                ? t('platform.trialRolePlayground')
+                : cafe.trialRole === 'template'
+                  ? t('platform.trialRoleTemplate')
+                  : t('platform.trialRoleNone')}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={trialBusy}
+                onClick={() => handleTrialRole('playground')}
+                className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface disabled:opacity-60"
+              >
+                {t('platform.trialMarkPlayground')}
+              </button>
+              <button
+                type="button"
+                disabled={trialBusy}
+                onClick={() => handleTrialRole('template')}
+                className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface disabled:opacity-60"
+              >
+                {t('platform.trialMarkTemplate')}
+              </button>
+              {cafe.trialRole !== 'none' ? (
+                <button
+                  type="button"
+                  disabled={trialBusy}
+                  onClick={() => handleTrialRole('none')}
+                  className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface disabled:opacity-60"
+                >
+                  {t('platform.trialClearRole')}
+                </button>
+              ) : null}
+              {cafe.trialRole === 'playground' ? (
+                <button
+                  type="button"
+                  disabled={trialBusy}
+                  onClick={handleResetTrial}
+                  className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary disabled:opacity-60"
+                >
+                  {trialBusy ? t('common.saving') : t('platform.trialReset')}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={trialBusy}
+                  onClick={handlePopulate}
+                  className="rounded-xl bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary/20 disabled:opacity-60"
+                >
+                  {trialBusy ? t('common.saving') : t('platform.populateAction')}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-3 border-t border-outline-variant/30 pt-5">

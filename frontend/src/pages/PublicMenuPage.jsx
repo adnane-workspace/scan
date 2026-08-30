@@ -11,7 +11,6 @@ import { useLocale } from '../hooks/useLocale.js';
 import { findPublicCategory, findPublicParent } from '../utils/categoryTree.js';
 import { getMenuPaths } from '../utils/hosts.js';
 import { buildShareUrl } from '../utils/share.js';
-import ShareButton from '../components/menu/ShareButton.jsx';
 import { formatPrice } from '../utils/format.js';
 
 const categoryGridClass =
@@ -191,16 +190,7 @@ export default function PublicMenuPage() {
       <div className="min-h-screen overflow-x-hidden">
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
-          <MenuHeading
-            title={selectedCategory.name}
-            action={
-              <ShareButton
-                title={`${selectedCategory.name} · ${cafe.name}`}
-                text={t('menu.shareCategoryText', { category: selectedCategory.name, cafe: cafe.name })}
-                url={buildShareUrl({ slug, categoryId: selectedCategory.id })}
-              />
-            }
-          />
+          <MenuHeading title={selectedCategory.name} />
           <div className={categoryGridClass}>
             {selectedCategory.children.map((category) => (
               <CategoryGridCard key={category.id} category={category} slug={slug} />
@@ -219,16 +209,7 @@ export default function PublicMenuPage() {
       <div className="min-h-screen overflow-x-hidden">
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
-          <MenuHeading
-            title={selectedCategory.name}
-            action={
-              <ShareButton
-                title={`${selectedCategory.name} · ${cafe.name}`}
-                text={t('menu.shareCategoryText', { category: selectedCategory.name, cafe: cafe.name })}
-                url={buildShareUrl({ slug, categoryId: selectedCategory.id })}
-              />
-            }
-          />
+          <MenuHeading title={selectedCategory.name} />
           <div className={productGridClass}>
             {selectedCategory.products.map((product) => (
               <PublicProductCard key={product.id} product={product} onSelect={openProduct} />
@@ -258,16 +239,7 @@ export default function PublicMenuPage() {
     <div className="min-h-screen overflow-x-hidden">
       <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
       <div className={contentClass}>
-        <MenuHeading
-          title={t('menu.ourCategories')}
-          action={
-            <ShareButton
-              title={t('menu.pageTitle', { name: cafe.name })}
-              text={cafe.description || t('menu.pageDescription', { name: cafe.name })}
-              url={buildShareUrl({ slug })}
-            />
-          }
-        />
+        <MenuHeading title={t('menu.ourCategories')} />
         <div className={categoryGridClass}>
           {menu.categories.map((category) => (
             <CategoryGridCard key={category.id} category={category} slug={slug} />

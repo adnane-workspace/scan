@@ -12,7 +12,7 @@ import Field from '../components/ui/Field.jsx';
 const ACTION_GROUPS = [
   {
     id: 'groupCafe',
-    actions: ['cafe_created', 'cafe_activated', 'cafe_deactivated', 'cafe_deleted', 'cafe_password_reset', 'cafe_updated', 'qr_generated', 'qr_change_requested', 'qr_change_approved', 'qr_change_rejected'],
+    actions: ['cafe_created', 'cafe_activated', 'cafe_deactivated', 'cafe_deleted', 'cafe_password_reset', 'cafe_updated', 'qr_generated', 'qr_change_requested', 'qr_change_approved', 'qr_change_rejected', 'trial_started', 'trial_reset'],
   },
   {
     id: 'groupMenu',
@@ -35,6 +35,8 @@ const ACTION_META = {
   qr_change_requested: { icon: 'outgoing_mail', tone: 'warn' },
   qr_change_approved: { icon: 'verified', tone: 'ok' },
   qr_change_rejected: { icon: 'block', tone: 'bad' },
+  trial_started: { icon: 'science', tone: 'ok' },
+  trial_reset: { icon: 'restart_alt', tone: 'warn' },
   auth_login_failed: { icon: 'gpp_maybe', tone: 'bad' },
   auth_password_changed: { icon: 'password', tone: 'warn' },
   product_deleted: { icon: 'delete', tone: 'bad' },
@@ -98,6 +100,17 @@ function logDetail(item, t) {
       email: meta.email || t('common.none'),
       reason: failReason(meta.reason, t),
     });
+  }
+
+  if (item.action === 'trial_started') {
+    return t('logs.detailTrialStart', {
+      email: meta.leadEmail || t('common.none'),
+      cafe: meta.leadCafeName || t('common.none'),
+    });
+  }
+
+  if (item.action === 'trial_reset') {
+    return t('logs.detailTrialReset', { name: meta.templateName || t('common.none') });
   }
 
   if (item.action === 'product_deleted') {
