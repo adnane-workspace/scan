@@ -29,26 +29,28 @@ export default function CategoryGridCard({ category, slug }) {
   return (
     <Link
       to={paths.category(category.id)}
-      className="group relative block aspect-[3/4] overflow-hidden rounded-2xl bg-surface-container-high shadow-sm ring-1 ring-on-surface/5 sm:aspect-[3/4]"
+      className="group relative block aspect-[3/4] overflow-hidden rounded-[1.35rem] bg-[#d8d4cc] shadow-[0_10px_28px_rgba(13,27,42,0.08)] ring-1 ring-[#0d1b2a]/6"
     >
       {cover ? (
         <CloudinaryImage
           src={cover}
           alt=""
           preset="categoryCover"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-surface-container text-on-surface-variant">
-          <MaterialIcon name="grid_view" className="text-4xl opacity-50" />
+        <div className="flex h-full w-full items-center justify-center bg-[#ebe8e2] text-[#0d1b2a]/35">
+          <MaterialIcon name="grid_view" className="text-4xl" />
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0d1b2a] via-[#0d1b2a]/25 to-transparent" />
       <span className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
         <span className="line-clamp-2 text-start font-display text-sm font-semibold leading-snug text-white sm:text-base">
           {category.name}
         </span>
-        {meta ? <span className="mt-1 block text-[11px] font-medium text-white/75 sm:text-xs">{meta}</span> : null}
+        {meta ? (
+          <span className="mt-1 block text-[11px] font-medium tracking-wide text-[#e8d5a8] sm:text-xs">{meta}</span>
+        ) : null}
       </span>
     </Link>
   );

@@ -3,8 +3,9 @@ import { normalizeMenuUi } from '../../utils/menuUi.js';
 
 export default function PublicMenuFrame({ cafe, className = '', children }) {
   const ui = normalizeMenuUi(cafe?.menuUi);
-  const customColor = ui.bgMode === 'color' && ui.backgroundColor ? ui.backgroundColor : '';
-  const customImage = ui.bgMode === 'image' && ui.backgroundImage ? ui.backgroundImage : '';
+  const locked = className.includes('menu-app');
+  const customColor = !locked && ui.bgMode === 'color' && ui.backgroundColor ? ui.backgroundColor : '';
+  const customImage = !locked && ui.bgMode === 'image' && ui.backgroundImage ? ui.backgroundImage : '';
 
   return (
     <div

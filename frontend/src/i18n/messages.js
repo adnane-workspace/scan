@@ -646,6 +646,10 @@ export const messages = {
       subCount: '{count} catégories',
       pageTitle: '{name} — Menu',
       pageDescription: 'Menu de {name}',
+      share: 'Partager',
+      shareCopied: 'Lien copié',
+      shareError: 'Partage impossible',
+      shareCategoryText: '{category} — {cafe}',
     },
     location: {
       title: 'Emplacement du café',
@@ -1438,6 +1442,10 @@ export const messages = {
       subCount: '{count} تصنيفات',
       pageTitle: '{name} — القائمة',
       pageDescription: 'قائمة {name}',
+      share: 'مشاركة',
+      shareCopied: 'تم نسخ الرابط',
+      shareError: 'تعذرت المشاركة',
+      shareCategoryText: '{category} — {cafe}',
     },
     location: {
       title: 'موقع المقهى',

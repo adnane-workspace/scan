@@ -10,11 +10,14 @@ import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { findPublicCategory, findPublicParent } from '../utils/categoryTree.js';
 import { getMenuPaths } from '../utils/hosts.js';
+import { buildShareUrl } from '../utils/share.js';
+import ShareButton from '../components/menu/ShareButton.jsx';
+import { formatPrice } from '../utils/format.js';
 
 const categoryGridClass =
-  'grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
-const productGridClass = 'grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
-const contentClass = 'mx-auto max-w-7xl px-3 py-3 sm:px-6 sm:py-6 lg:px-8 lg:py-8';
+  'grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+const productGridClass = 'grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+const contentClass = 'mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8';
 
 function MenuStatus({ title, message }) {
   return (
@@ -25,12 +28,26 @@ function MenuStatus({ title, message }) {
   );
 }
 
+function MenuHeading({ title, action }) {
+  return (
+    <div className="mb-5 flex items-start justify-between gap-3 sm:mb-8">
+      <div className="min-w-0">
+        <h1 className="break-words font-display text-[1.35rem] font-semibold tracking-tight text-[#0d1b2a] sm:text-2xl md:text-3xl">
+          {title}
+        </h1>
+        <span className="mt-2.5 block h-px w-9 bg-[#c4a574]" />
+      </div>
+      {action}
+    </div>
+  );
+}
+
 function MenuSkeleton() {
   return (
     <div className={`${contentClass} animate-pulse`}>
       <div className={categoryGridClass}>
         {Array.from({ length: 8 }).map((_, index) => (
-          <div key={index} className="aspect-[4/5] rounded-xl bg-surface-container-high sm:rounded-2xl" />
+          <div key={index} className="aspect-[3/4] rounded-[1.35rem] bg-[#ebe8e2]" />
         ))}
       </div>
     </div>
@@ -40,13 +57,42 @@ function MenuSkeleton() {
 export default function PublicMenuPage() {
   const slug = useMenuSlug();
   const { categoryId } = useParams();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [searchParams, setSearchParams] = useSearchParams();
   const { menu, loading, errorStatus } = usePublicMenu(slug);
   const selectedProductId = searchParams.get('product');
   const paths = getMenuPaths(slug);
 
+  const selectedCategory = useMemo(
+    () => findPublicCategory(menu?.categories, categoryId),
+    [menu, categoryId],
+  );
+
+  const selectedParent = useMemo(
+    () => (categoryId ? findPublicParent(menu?.categories, categoryId) : undefined),
+    [menu, categoryId],
+  );
+
+  const selectedProduct = useMemo(
+    () => selectedCategory?.products?.find((product) => String(product.id) === String(selectedProductId)) || null,
+    [selectedCategory, selectedProductId],
+  );
+
   useEffect(() => {
+    if (menu?.cafe && selectedCategory) {
+      setPageMeta({
+        title: selectedProduct
+          ? `${selectedProduct.name} · ${menu.cafe.name}`
+          : `${selectedCategory.name} · ${menu.cafe.name}`,
+        description:
+          selectedProduct?.description ||
+          menu.cafe.description ||
+          t('menu.pageDescription', { name: menu.cafe.name }),
+        robots: 'noindex,follow',
+      });
+      return;
+    }
+
     if (menu?.cafe) {
       setPageMeta({
         title: t('menu.pageTitle', { name: menu.cafe.name }),
@@ -62,22 +108,7 @@ export default function PublicMenuPage() {
         description: t('menu.missing'),
       });
     }
-  }, [menu, errorStatus, t]);
-
-  const selectedCategory = useMemo(
-    () => findPublicCategory(menu?.categories, categoryId),
-    [menu, categoryId],
-  );
-
-  const selectedParent = useMemo(
-    () => (categoryId ? findPublicParent(menu?.categories, categoryId) : undefined),
-    [menu, categoryId],
-  );
-
-  const selectedProduct = useMemo(
-    () => selectedCategory?.products.find((product) => String(product.id) === String(selectedProductId)) || null,
-    [selectedCategory, selectedProductId],
-  );
+  }, [menu, errorStatus, selectedCategory, selectedProduct, t]);
 
   const openProduct = useCallback(
     (product) => {
@@ -96,7 +127,11 @@ export default function PublicMenuPage() {
   const hasChildren = Boolean(selectedCategory?.children?.length);
 
   function frame(content) {
-    return <PublicMenuFrame cafe={cafe}>{content}</PublicMenuFrame>;
+    return (
+      <PublicMenuFrame cafe={cafe} className="menu-app">
+        {content}
+      </PublicMenuFrame>
+    );
   }
 
   if (loading) {
@@ -156,9 +191,16 @@ export default function PublicMenuPage() {
       <div className="min-h-screen overflow-x-hidden">
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
-          <h1 className="mb-3 break-words font-display text-lg font-semibold tracking-tight text-on-surface sm:mb-6 sm:text-2xl md:text-3xl">
-            {selectedCategory.name}
-          </h1>
+          <MenuHeading
+            title={selectedCategory.name}
+            action={
+              <ShareButton
+                title={`${selectedCategory.name} · ${cafe.name}`}
+                text={t('menu.shareCategoryText', { category: selectedCategory.name, cafe: cafe.name })}
+                url={buildShareUrl({ slug, categoryId: selectedCategory.id })}
+              />
+            }
+          />
           <div className={categoryGridClass}>
             {selectedCategory.children.map((category) => (
               <CategoryGridCard key={category.id} category={category} slug={slug} />
@@ -177,16 +219,37 @@ export default function PublicMenuPage() {
       <div className="min-h-screen overflow-x-hidden">
         <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
         <div className={contentClass}>
-          <h1 className="mb-3 break-words font-display text-lg font-semibold tracking-tight text-on-surface sm:mb-6 sm:text-2xl md:text-3xl">
-            {selectedCategory.name}
-          </h1>
+          <MenuHeading
+            title={selectedCategory.name}
+            action={
+              <ShareButton
+                title={`${selectedCategory.name} · ${cafe.name}`}
+                text={t('menu.shareCategoryText', { category: selectedCategory.name, cafe: cafe.name })}
+                url={buildShareUrl({ slug, categoryId: selectedCategory.id })}
+              />
+            }
+          />
           <div className={productGridClass}>
             {selectedCategory.products.map((product) => (
               <PublicProductCard key={product.id} product={product} onSelect={openProduct} />
             ))}
           </div>
         </div>
-        <PublicProductSheet product={selectedProduct} onClose={closeProduct} />
+        <PublicProductSheet
+          product={selectedProduct}
+          onClose={closeProduct}
+          shareTitle={selectedProduct ? `${selectedProduct.name} · ${cafe.name}` : ''}
+          shareText={
+            selectedProduct
+              ? `${selectedProduct.name} — ${formatPrice(selectedProduct.price, locale)}`
+              : ''
+          }
+          shareUrl={
+            selectedProduct
+              ? buildShareUrl({ slug, categoryId: selectedCategory.id, productId: selectedProduct.id })
+              : ''
+          }
+        />
       </div>,
     );
   }
@@ -195,9 +258,16 @@ export default function PublicMenuPage() {
     <div className="min-h-screen overflow-x-hidden">
       <PublicMenuHeader cafe={cafe} slug={slug} backTo={landingPath} backLabel={t('menu.home')} />
       <div className={contentClass}>
-        <h1 className="mb-3 break-words font-display text-lg font-semibold tracking-tight text-on-surface sm:mb-6 sm:text-2xl md:text-3xl">
-          {t('menu.ourCategories')}
-        </h1>
+        <MenuHeading
+          title={t('menu.ourCategories')}
+          action={
+            <ShareButton
+              title={t('menu.pageTitle', { name: cafe.name })}
+              text={cafe.description || t('menu.pageDescription', { name: cafe.name })}
+              url={buildShareUrl({ slug })}
+            />
+          }
+        />
         <div className={categoryGridClass}>
           {menu.categories.map((category) => (
             <CategoryGridCard key={category.id} category={category} slug={slug} />

@@ -5,6 +5,7 @@ import { categoryRouter } from './category.routes.js';
 import { dashboardRouter } from './dashboard.routes.js';
 import { healthRouter } from './health.routes.js';
 import { menuRouter } from './menu.routes.js';
+import { shareRouter } from './share.routes.js';
 import { platformRouter } from './platform.routes.js';
 import { productRouter } from './product.routes.js';
 
@@ -14,6 +15,7 @@ router.use('/health', healthRouter);
 router.use('/auth', authRouter);
 router.use('/platform', platformRouter);
 router.use('/menu', menuRouter);
+router.use('/share', shareRouter);
 
 router.use('/me/cafe', cafeRouter);
 router.use('/me/categories', categoryRouter);
