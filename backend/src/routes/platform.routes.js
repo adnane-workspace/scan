@@ -7,6 +7,7 @@ import {
   listCafes,
   listLogs,
   resetCafePassword,
+  updateCafeOwnerEmail,
   updateCafeStatus,
 } from '../controllers/platform.controller.js';
 import { getTrialLeads, populateCafeContent, resetCafeTrial } from '../controllers/trial.controller.js';
@@ -18,6 +19,7 @@ import {
   listActivityLogsSchema,
   platformCafeIdSchema,
   resetPlatformCafePasswordSchema,
+  updatePlatformCafeEmailSchema,
   updatePlatformCafeSchema,
 } from '../validators/cafe.validator.js';
 import { listQrChangeRequestsSchema, reviewQrChangeRequestSchema } from '../validators/qr.validator.js';
@@ -37,6 +39,7 @@ platformRouter.get('/cafes/:id', validate(platformCafeIdSchema), getCafe);
 platformRouter.patch('/cafes/:id', validate(updatePlatformCafeSchema), updateCafeStatus);
 platformRouter.delete('/cafes/:id', validate(platformCafeIdSchema), deleteCafe);
 platformRouter.post('/cafes/:id/password', validate(resetPlatformCafePasswordSchema), resetCafePassword);
+platformRouter.post('/cafes/:id/email', validate(updatePlatformCafeEmailSchema), updateCafeOwnerEmail);
 platformRouter.post('/cafes/:id/reset-trial', validate(platformCafeIdSchema), resetCafeTrial);
 platformRouter.post('/cafes/:id/populate', validate(platformCafeIdSchema), populateCafeContent);
 platformRouter.post('/cafes/:id/qr/unlock', validate(platformCafeIdSchema), unlockQr);

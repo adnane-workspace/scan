@@ -12,7 +12,7 @@ import Field from '../components/ui/Field.jsx';
 const ACTION_GROUPS = [
   {
     id: 'groupCafe',
-    actions: ['cafe_created', 'cafe_activated', 'cafe_deactivated', 'cafe_deleted', 'cafe_password_reset', 'cafe_updated', 'qr_generated', 'qr_change_requested', 'qr_change_approved', 'qr_change_rejected', 'trial_started', 'trial_reset'],
+    actions: ['cafe_created', 'cafe_activated', 'cafe_deactivated', 'cafe_deleted', 'cafe_password_reset', 'cafe_email_updated', 'cafe_updated', 'qr_generated', 'qr_change_requested', 'qr_change_approved', 'qr_change_rejected', 'trial_started', 'trial_reset'],
   },
   {
     id: 'groupMenu',
@@ -30,6 +30,7 @@ const ACTION_META = {
   cafe_deactivated: { icon: 'block', tone: 'bad' },
   cafe_deleted: { icon: 'delete', tone: 'bad' },
   cafe_password_reset: { icon: 'lock_reset', tone: 'warn' },
+  cafe_email_updated: { icon: 'mail', tone: 'warn' },
   cafe_updated: { icon: 'storefront', tone: 'warn' },
   qr_generated: { icon: 'qr_code_2', tone: 'ok' },
   qr_change_requested: { icon: 'outgoing_mail', tone: 'warn' },
@@ -85,6 +86,13 @@ function logDetail(item, t) {
 
   if (item.action === 'cafe_password_reset') {
     return t('logs.detailReset', { email: meta.ownerEmail || t('common.none') });
+  }
+
+  if (item.action === 'cafe_email_updated') {
+    return t('logs.detailEmailUpdated', {
+      previous: meta.previousEmail || t('common.none'),
+      next: meta.ownerEmail || t('common.none'),
+    });
   }
 
   if (item.action === 'cafe_updated') {

@@ -6,7 +6,7 @@ import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { useToast } from '../hooks/useToast.js';
-import { deletePlatformCafe, getPlatformCafe, populateCafeContent, resetPlatformCafePassword, resetTrialCafe, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe } from '../services/platform.service.js';
+import { deletePlatformCafe, getPlatformCafe, populateCafeContent, resetPlatformCafePassword, resetTrialCafe, reviewQrChangeRequest, unlockCafeQr, updatePlatformCafe, updatePlatformCafeOwnerEmail } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
 import { hasCoordinates, mapsHref } from '../utils/location.js';
@@ -34,11 +34,14 @@ export default function CafeDetailPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [showResetForm, setShowResetForm] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [ownerEmail, setOwnerEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [emailSaving, setEmailSaving] = useState(false);
   const [qrBusy, setQrBusy] = useState(false);
   const [reviewNote, setReviewNote] = useState('');
   const [deleteName, setDeleteName] = useState('');
@@ -73,6 +76,12 @@ export default function CafeDetailPage() {
       cancelled = true;
     };
   }, [id, t]);
+
+  useEffect(() => {
+    if (cafe?.ownerEmail) {
+      setOwnerEmail(cafe.ownerEmail);
+    }
+  }, [cafe?.ownerEmail]);
 
   if (user?.role !== 'superadmin') {
     return <Navigate to={getHomePath(user)} replace />;
@@ -124,6 +133,38 @@ export default function CafeDetailPage() {
       setError(getApiError(err, t, 'platform.resetError'));
     } finally {
       setResetting(false);
+    }
+  }
+
+  async function handleUpdateEmail(event) {
+    event.preventDefault();
+
+    if (!cafe) {
+      return;
+    }
+
+    const nextEmail = ownerEmail.trim().toLowerCase();
+
+    if (!nextEmail || nextEmail === cafe.ownerEmail) {
+      setShowEmailForm(false);
+      return;
+    }
+
+    setEmailSaving(true);
+    setError('');
+
+    try {
+      const result = await updatePlatformCafeOwnerEmail(cafe._id, nextEmail);
+      const updated = await getPlatformCafe(cafe._id);
+      setCafe(updated);
+      setOwnerEmail(updated.ownerEmail || result.email);
+      setShowEmailForm(false);
+      toast.success(t('platform.emailUpdated', { email: result.email }));
+      await refreshCafes?.();
+    } catch (err) {
+      setError(getApiError(err, t, 'platform.emailUpdateError'));
+    } finally {
+      setEmailSaving(false);
     }
   }
 
@@ -460,6 +501,55 @@ export default function CafeDetailPage() {
                 </button>
               )}
             </div>
+          </div>
+
+          <div className="space-y-3 border-t border-outline-variant/30 pt-5">
+            <h2 className="text-lg font-semibold text-on-surface">{t('platform.emailTitle')}</h2>
+            <p className="text-sm text-on-surface-variant">{t('platform.emailHint')}</p>
+            {showEmailForm ? (
+              <form onSubmit={handleUpdateEmail} className="grid gap-3">
+                <Field
+                  name="ownerEmail"
+                  type="email"
+                  label={t('platform.ownerEmail')}
+                  icon="mail"
+                  value={ownerEmail}
+                  onChange={(event) => setOwnerEmail(event.target.value)}
+                  autoComplete="email"
+                  required
+                />
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="submit"
+                    disabled={emailSaving}
+                    className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary disabled:opacity-60"
+                  >
+                    {emailSaving ? t('common.saving') : t('platform.saveEmail')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEmailForm(false);
+                      setOwnerEmail(cafe.ownerEmail || '');
+                    }}
+                    className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEmailForm(true);
+                  setOwnerEmail(cafe.ownerEmail || '');
+                }}
+                className="rounded-xl bg-surface-container-high px-5 py-2.5 text-sm font-semibold text-on-surface"
+              >
+                {t('platform.changeEmail')}
+              </button>
+            )}
           </div>
 
           <div className="space-y-3 border-t border-outline-variant/30 pt-5">

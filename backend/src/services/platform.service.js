@@ -299,6 +299,65 @@ export async function resetPlatformCafePassword(cafeId, password, actor) {
   return { email: owner.email };
 }
 
+export async function updatePlatformCafeOwnerEmail(cafeId, email, actor) {
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const owner = await prisma.user.findFirst({
+    where: { cafeId, role: 'admin' },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, email: true },
+  });
+
+  if (!owner) {
+    throw new ApiError(404, 'No manager for this cafe', null, 'CAFE_OWNER_MISSING');
+  }
+
+  if (owner.email === normalizedEmail) {
+    return { email: normalizedEmail, previousEmail: owner.email };
+  }
+
+  const existing = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: { id: true },
+  });
+
+  if (existing && existing.id !== owner.id) {
+    throw new ApiError(409, 'Email already in use', null, 'EMAIL_IN_USE');
+  }
+
+  const previousEmail = owner.email;
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: owner.id },
+      data: {
+        email: normalizedEmail,
+        emailVerifiedAt: new Date(),
+      },
+    }),
+    prisma.passwordReset.deleteMany({ where: { email: previousEmail } }),
+  ]);
+
+  const cafe = await prisma.cafe.findUnique({
+    where: { id: cafeId },
+    select: { name: true, slug: true },
+  });
+
+  await recordActivity({
+    action: 'cafe_email_updated',
+    actorId: actor?.id,
+    cafeId,
+    metadata: {
+      cafeName: cafe?.name,
+      slug: cafe?.slug,
+      previousEmail,
+      ownerEmail: normalizedEmail,
+    },
+  });
+
+  return { email: normalizedEmail, previousEmail };
+}
+
 export async function deletePlatformCafe(cafeId, actor) {
   const cafe = await prisma.cafe.findUnique({
     where: { id: cafeId },

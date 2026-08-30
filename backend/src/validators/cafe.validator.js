@@ -82,6 +82,15 @@ export const resetPlatformCafePasswordSchema = z.object({
   }),
 });
 
+export const updatePlatformCafeEmailSchema = z.object({
+  params: z.object({
+    id: uuidSchema,
+  }),
+  body: z.object({
+    email: z.string().trim().toLowerCase().email(),
+  }),
+});
+
 export const listActivityLogsSchema = z.object({
   query: z.object({
     action: z

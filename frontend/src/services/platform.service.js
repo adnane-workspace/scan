@@ -42,6 +42,11 @@ export async function resetPlatformCafePassword(id, password) {
   return data.data;
 }
 
+export async function updatePlatformCafeOwnerEmail(id, email) {
+  const { data } = await api.post(`/platform/cafes/${id}/email`, { email });
+  return data.data;
+}
+
 export async function listQrChangeRequests(status = 'pending') {
   const { data } = await api.get('/platform/qr-requests', {
     params: status && status !== 'all' ? { status } : undefined,

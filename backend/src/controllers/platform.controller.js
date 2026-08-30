@@ -8,6 +8,7 @@ import {
   listPlatformCafes,
   resetPlatformCafePassword,
   updatePlatformCafe,
+  updatePlatformCafeOwnerEmail,
 } from '../services/platform.service.js';
 
 export const createCafe = asyncHandler(async (req, res) => {
@@ -66,6 +67,20 @@ export const resetCafePassword = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Password updated',
+    data: result,
+  });
+});
+
+export const updateCafeOwnerEmail = asyncHandler(async (req, res) => {
+  const result = await updatePlatformCafeOwnerEmail(
+    req.validated.params.id,
+    req.validated.body.email,
+    req.user,
+  );
+
+  res.status(200).json({
+    success: true,
+    message: 'Email updated',
     data: result,
   });
 });

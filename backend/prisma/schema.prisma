@@ -21,6 +21,7 @@ enum ActivityAction {
   cafe_deactivated
   cafe_deleted
   cafe_password_reset
+  cafe_email_updated
   cafe_updated
   auth_login
   auth_login_failed
