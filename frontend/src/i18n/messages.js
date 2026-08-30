@@ -138,8 +138,6 @@ export const messages = {
       menuShowPhoneHint: 'Bouton d’appel sur la page d’accueil du menu.',
       menuShowAddress: 'Adresse et itinéraire',
       menuShowAddressHint: 'Lien Maps sur la page d’accueil.',
-      menuShowLanguage: 'Choix de langue',
-      menuShowLanguageHint: 'Permet au client de passer en français ou en arabe.',
       menuPreview: 'Voir le menu public',
     },
     common: {
@@ -934,8 +932,6 @@ export const messages = {
       menuShowPhoneHint: 'زر الاتصال في صفحة استقبال القائمة.',
       menuShowAddress: 'العنوان والاتجاهات',
       menuShowAddressHint: 'رابط الخرائط في صفحة الاستقبال.',
-      menuShowLanguage: 'اختيار اللغة',
-      menuShowLanguageHint: 'يسمح للزبون بالتبديل بين الفرنسية والعربية.',
       menuPreview: 'عرض القائمة العامة',
     },
     common: {

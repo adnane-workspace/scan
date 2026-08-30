@@ -1,15 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
 import { getMenuPaths } from '../../utils/hosts.js';
-import { normalizeMenuUi } from '../../utils/menuUi.js';
-import LanguageSwitcher from '../ui/LanguageSwitcher.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
 import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 
 export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
   const { t } = useLocale();
   const paths = getMenuPaths(slug);
-  const ui = normalizeMenuUi(cafe?.menuUi);
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#0d1b2a]/8 bg-[#f7f6f3]/88 pt-[env(safe-area-inset-top)] backdrop-blur-2xl">
@@ -45,11 +42,7 @@ export default function PublicMenuHeader({ cafe, slug, backTo, backLabel }) {
           </span>
         </Link>
 
-        {ui.showLanguage ? (
-          <LanguageSwitcher compact tone="menu" className="justify-self-end" />
-        ) : (
-          <span className="w-10" />
-        )}
+        <span className="w-10" />
       </div>
     </header>
   );

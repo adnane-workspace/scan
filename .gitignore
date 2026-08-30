@@ -6,6 +6,7 @@ tmp-stitch*
 next.md*
 TECHNICAL.md*
 .docs/
+docs/
 # Environment and secrets
 .env
 .env.local

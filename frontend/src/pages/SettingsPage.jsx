@@ -747,6 +747,28 @@ export default function SettingsPage() {
 
           {tab === 'menu' ? (
             <SectionCard icon="menu_book" title={t('settings.menuTitle')} subtitle={t('settings.menuHint')}>
+              <div>
+                <p className="mb-3 text-xs font-semibold tracking-[0.12em] text-on-surface-variant uppercase">
+                  {t('settings.logo')}
+                </p>
+                <ImagePicker
+                  preview={form.logo}
+                  emptyClass="h-28 w-28"
+                  uploading={uploading === 'logo'}
+                  hasImage={Boolean(form.logo)}
+                  chooseLabel={t('settings.chooseLogo')}
+                  replaceLabel={t('settings.replaceLogo')}
+                  uploadingLabel={t('settings.uploading')}
+                  removeLabel={t('settings.removeLogo')}
+                  emptyHint={t('settings.logoHintEmpty')}
+                  viewLabel={t('settings.viewPhoto')}
+                  onChange={handleLogoChange}
+                  onRemove={() => setForm((current) => ({ ...current, logo: '' }))}
+                  onPreview={() => setPreviewUrl(form.logo)}
+                  disabled={Boolean(uploading)}
+                />
+                <p className="mt-2 text-sm text-on-surface-variant">{t('settings.logoHint')}</p>
+              </div>
               {menuUiSaving ? (
                 <p className="text-sm font-medium text-primary">{t('settings.saving')}</p>
               ) : null}
@@ -800,7 +822,6 @@ export default function SettingsPage() {
                 {[
                   { key: 'showPhone', label: t('settings.menuShowPhone'), hint: t('settings.menuShowPhoneHint') },
                   { key: 'showAddress', label: t('settings.menuShowAddress'), hint: t('settings.menuShowAddressHint') },
-                  { key: 'showLanguage', label: t('settings.menuShowLanguage'), hint: t('settings.menuShowLanguageHint') },
                 ].map((item) => (
                   <label
                     key={item.key}
