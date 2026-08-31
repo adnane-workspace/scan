@@ -1,4 +1,5 @@
 import { prisma } from '../config/prisma.js';
+import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
 
 export async function getHealthStatus() {
@@ -11,5 +12,9 @@ export async function getHealthStatus() {
   return {
     success: true,
     message: 'API is running',
+    mail: {
+      provider: env.RESEND_API_KEY ? 'resend' : env.SMTP_HOST ? 'smtp' : 'none',
+      from: env.MAIL_FROM,
+    },
   };
 }

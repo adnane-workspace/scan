@@ -153,6 +153,14 @@ export default function ForgotPasswordPage() {
     return (
       <AuthChrome title={t('auth.resetCodeTitle')} subtitle={t('auth.resetCodeSubtitle', { email })} footer={footer}>
         <form className="flex flex-col gap-4" onSubmit={handleVerify}>
+          {info ? (
+            <p className="rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-on-surface">
+              {info}
+            </p>
+          ) : null}
+
+          <p className="text-sm text-on-surface-variant">{t('auth.emailDeliveryHint')}</p>
+
           <AuthField
             id="code"
             label={t('auth.resetCode')}
@@ -168,8 +176,6 @@ export default function ForgotPasswordPage() {
             invalid={Boolean(error)}
             errorId="reset-error"
           />
-
-          {info ? <p className="text-sm text-on-surface-variant">{info}</p> : null}
 
           {error ? (
             <p id="reset-error" role="alert" className="rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error">
@@ -282,6 +288,8 @@ export default function ForgotPasswordPage() {
             {error}
           </p>
         ) : null}
+
+        <p className="text-sm text-on-surface-variant">{t('auth.emailDeliveryHint')}</p>
 
         <button
           type="submit"

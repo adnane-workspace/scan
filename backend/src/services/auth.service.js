@@ -320,6 +320,7 @@ export async function resendEmailVerification({ email, locale = 'fr' }) {
   });
 
   if (!user || user.emailVerifiedAt) {
+    console.info(`[email-verify] resend skipped for ${normalizedEmail} (missing or already verified)`);
     return { retryAfter: RESET_RESEND_MS / 1000 };
   }
 
@@ -444,6 +445,8 @@ export async function requestPasswordReset({ email, locale = 'fr' }) {
     if (channel !== 'log') {
       console.info(`[password-reset] email sent via ${channel} to ${user.email}`);
     }
+  } else {
+    console.info(`[password-reset] skipped for ${normalizedEmail} (no account)`);
   }
 
   return { retryAfter: RESET_RESEND_MS / 1000 };

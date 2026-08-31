@@ -29,6 +29,7 @@ export default function RegisterPage() {
   const [code, setCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [retryAfter, setRetryAfter] = useState(pendingEmail ? 60 : 0);
 
@@ -64,6 +65,7 @@ export default function RegisterPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     setError('');
+    setInfo('');
     setIsSubmitting(true);
 
     try {
@@ -76,6 +78,7 @@ export default function RegisterPage() {
         locale,
       });
       setRetryAfter(Number(result.retryAfter) || 60);
+      setInfo(t('auth.verifyCodeSent', { email: form.email }));
       setStep('code');
     } catch (err) {
       setError(getApiError(err, t, 'auth.registerError'));
@@ -106,6 +109,7 @@ export default function RegisterPage() {
     try {
       const result = await resendVerificationRequest({ email: form.email, locale });
       setRetryAfter(Number(result.retryAfter) || 60);
+      setInfo(t('auth.verifyCodeSent', { email: form.email }));
     } catch (err) {
       setError(getApiError(err, t, 'auth.resetSendError'));
     } finally {
@@ -142,6 +146,14 @@ export default function RegisterPage() {
 
           {step === 'code' ? (
             <form className="flex flex-col gap-4" onSubmit={handleVerify}>
+              {info ? (
+                <p className="rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-on-surface">
+                  {info}
+                </p>
+              ) : null}
+
+              <p className="text-sm text-on-surface-variant">{t('auth.emailDeliveryHint')}</p>
+
               <AuthField
                 id="code"
                 label={t('auth.resetCode')}

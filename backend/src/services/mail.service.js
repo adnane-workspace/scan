@@ -133,16 +133,27 @@ async function sendWithResend({ to, subject, html, text }) {
     body: JSON.stringify({
       from: env.MAIL_FROM,
       to: [to],
+      reply_to: 'contact@scanosh.com',
       subject,
       html,
       text,
     }),
   });
 
+  const details = await response.text();
+
   if (!response.ok) {
-    const details = await response.text();
     console.error('Resend send failed:', details);
     throw new ApiError(502, `Unable to send email (${response.status})`, details, 'EMAIL_SEND_FAILED');
+  }
+
+  try {
+    const { id } = JSON.parse(details);
+    if (id) {
+      console.info(`[resend] queued id=${id} to=${to} from=${env.MAIL_FROM}`);
+    }
+  } catch {
+    console.info(`[resend] queued to=${to} from=${env.MAIL_FROM}`);
   }
 }
 
