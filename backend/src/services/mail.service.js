@@ -123,6 +123,30 @@ async function dispatchEmail(payload) {
   return 'log';
 }
 
+function parseResendError(details) {
+  try {
+    const payload = typeof details === 'string' ? JSON.parse(details) : details;
+    const message = String(payload?.message || '');
+
+    if (message.includes('testing email address') || message.includes('example.com')) {
+      return new ApiError(
+        422,
+        'Cette adresse email ne peut pas recevoir de messages (domaine de test). Utilise une vraie adresse Gmail, Outlook, etc.',
+        details,
+        'EMAIL_RECIPIENT_BLOCKED',
+      );
+    }
+
+    if (message) {
+      return new ApiError(502, `Resend: ${message}`, details, 'EMAIL_SEND_FAILED');
+    }
+  } catch {
+    // Fall through to generic error.
+  }
+
+  return new ApiError(502, 'Unable to send email', details, 'EMAIL_SEND_FAILED');
+}
+
 async function sendWithResend({ to, subject, html, text }) {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -144,7 +168,7 @@ async function sendWithResend({ to, subject, html, text }) {
 
   if (!response.ok) {
     console.error('Resend send failed:', details);
-    throw new ApiError(502, `Unable to send email (${response.status})`, details, 'EMAIL_SEND_FAILED');
+    throw parseResendError(details);
   }
 
   try {
