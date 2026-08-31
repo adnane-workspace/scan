@@ -1,5 +1,13 @@
-import 'dotenv/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
 import { spawn } from 'node:child_process';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+if (!process.env.VERCEL) {
+  dotenv.config({ path: path.resolve(__dirname, '../.env'), quiet: true });
+}
 
 function ensureDirectUrl() {
   if (String(process.env.DIRECT_URL || '').trim()) {

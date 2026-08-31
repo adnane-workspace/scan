@@ -5,11 +5,14 @@ import { z } from 'zod';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-dotenv.config({
-  path: path.resolve(__dirname, '../../.env'),
-  quiet: true,
-  override: process.env.NODE_ENV !== 'production',
-});
+// Vercel injects env vars — never load backend/.env there (CLI deploys can bundle it).
+if (!process.env.VERCEL) {
+  dotenv.config({
+    path: path.resolve(__dirname, '../../.env'),
+    quiet: true,
+    override: true,
+  });
+}
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
