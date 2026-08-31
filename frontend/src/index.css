@@ -320,6 +320,53 @@ html[dir="rtl"] {
   }
 }
 
+@keyframes landingFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landingKenBurns {
+  from {
+    transform: scale(1.06);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.landing-fade-up {
+  animation: landingFadeUp 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-fade-up-delay-1 {
+  animation-delay: 0.12s;
+}
+
+.landing-fade-up-delay-2 {
+  animation-delay: 0.24s;
+}
+
+.landing-fade-up-delay-3 {
+  animation-delay: 0.36s;
+}
+
+.landing-hero-media {
+  animation: landingKenBurns 12s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-fade-up,
+  .landing-hero-media {
+    animation: none;
+  }
+}
+
 .location-picker-map {
   flex: 1 1 auto;
   width: 100%;

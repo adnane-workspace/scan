@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import AppLink from '../components/common/AppLink.jsx';
 import MarketingLink from '../components/common/MarketingLink.jsx';
@@ -17,8 +17,10 @@ import {
 } from '../utils/paths.js';
 
 function navLinkClass(active) {
-  return `text-label-lg font-semibold tracking-[0.05em] uppercase ${
-    active ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
+  return `relative rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
+    active
+      ? 'text-on-surface after:absolute after:inset-x-2.5 after:bottom-0.5 after:h-px after:bg-on-surface'
+      : 'text-on-surface-variant hover:text-on-surface'
   }`;
 }
 
@@ -26,7 +28,9 @@ export default function MarketingLayout({ children }) {
   const { t } = useLocale();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const path = location.pathname;
+  const isHome = path === '/';
 
   const links = [
     { to: LANDING_HOME, label: t('landing.navHome'), match: (value) => value === '/' },
@@ -36,86 +40,174 @@ export default function MarketingLayout({ children }) {
     { to: LANDING_BLOG, label: t('landing.navBlog'), match: (value) => value.startsWith('/blog') },
   ];
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [path]);
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 12);
+    }
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const overHero = isHome && !scrolled;
+  const floating = overHero && !menuOpen;
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-on-surface">
-      <header className="fixed top-0 z-50 w-full border-b border-outline-variant/20 bg-surface/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:px-10">
-          <MarketingLink
-            to="/"
-            className="relative z-20 flex min-w-0 shrink items-center"
-            aria-label={APP_NAME}
-            onClick={() => {
-              if (path === '/') {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-
-              setMenuOpen(false);
-            }}
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top)]">
+        <div
+          className={`pointer-events-auto mx-auto max-w-7xl px-3 transition-[padding] duration-300 sm:px-4 lg:px-6 ${
+            floating ? 'pt-3 sm:pt-4' : 'pt-0 sm:pt-3'
+          }`}
+        >
+          <div
+            className={`transition-[border-radius,box-shadow,background-color,border-color] duration-300 ${
+              overHero
+                ? 'rounded-2xl border border-white/15 bg-[#0d1b2a]/55 shadow-[0_12px_40px_rgba(13,27,42,0.28)] backdrop-blur-xl'
+                : 'rounded-none border-b border-outline-variant/25 bg-surface/90 shadow-sm backdrop-blur-xl sm:rounded-2xl sm:border sm:border-outline-variant/30 sm:bg-surface/95 sm:shadow-[0_8px_30px_rgba(13,27,42,0.06)]'
+            }`}
           >
-            <BrandLogo className="h-8 max-w-[11rem] sm:h-10 sm:max-w-[14rem]" />
-          </MarketingLink>
+            <div className="flex h-14 items-center justify-between gap-3 px-3 sm:h-16 sm:px-5 lg:px-6">
+              <MarketingLink
+                to="/"
+                className="relative z-20 flex min-w-0 shrink items-center"
+                aria-label={APP_NAME}
+                onClick={() => {
+                  if (path === '/') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+              >
+                <BrandLogo onDark={overHero} className="h-7 max-w-[10rem] sm:h-8 sm:max-w-[12rem]" />
+              </MarketingLink>
 
-          <nav className="hidden items-center gap-5 xl:flex xl:gap-7">
-            {links.map((link) => (
-              <Link key={link.to} to={link.to} className={navLinkClass(link.match(path))}>
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+              <nav className="hidden items-center gap-0.5 lg:flex">
+                {links.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={
+                      overHero
+                        ? `relative rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                            link.match(path)
+                              ? 'text-[#e0e1dd] after:absolute after:inset-x-2.5 after:bottom-0.5 after:h-px after:bg-[#e0e1dd]'
+                              : 'text-[#e0e1dd]/70 hover:text-[#e0e1dd]'
+                          }`
+                        : navLinkClass(link.match(path))
+                    }
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <LanguageSwitcher compact className="hidden md:inline-flex" />
-            <AppLink
-              to="/essai"
-              className="hidden h-10 items-center rounded-xl bg-primary px-4 text-label-lg font-semibold tracking-[0.05em] text-on-primary shadow-md transition-colors hover:bg-primary-hover md:inline-flex lg:px-5"
-            >
-              {t('landing.ctaTrial')}
-            </AppLink>
-            <AppLink
-              to="/login"
-              className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-xl bg-primary text-on-primary shadow-md transition-colors hover:bg-primary-hover md:w-auto md:px-4 lg:px-5"
-              aria-label={t('auth.loginTitle')}
-            >
-              <MaterialIcon name="person" className="text-[18px]" />
-              <span className="hidden text-label-lg font-semibold tracking-[0.05em] md:inline">{t('landing.ctaLogin')}</span>
-            </AppLink>
-            <button
-              type="button"
-              className="rounded-xl p-2 text-on-surface xl:hidden"
-              aria-label={t('common.openMenu')}
-              onClick={() => setMenuOpen((open) => !open)}
-            >
-              <MaterialIcon name={menuOpen ? 'close' : 'menu'} />
-            </button>
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                <LanguageSwitcher compact onDark={overHero} className="hidden md:inline-flex" />
+                <AppLink
+                  to="/login"
+                  className={`hidden items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors sm:inline-flex ${
+                    overHero
+                      ? 'text-[#e0e1dd]/85 hover:bg-white/10 hover:text-[#e0e1dd]'
+                      : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                  }`}
+                >
+                  {t('landing.ctaLogin')}
+                </AppLink>
+                <AppLink
+                  to="/essai"
+                  className={`inline-flex h-9 items-center rounded-xl px-3.5 text-sm font-semibold transition-transform hover:-translate-y-0.5 sm:h-10 sm:px-4 ${
+                    overHero
+                      ? 'bg-[#e0e1dd] text-[#0d1b2a] hover:bg-white'
+                      : 'bg-primary text-on-primary hover:bg-primary-hover'
+                  }`}
+                >
+                  {t('landing.ctaTrial')}
+                </AppLink>
+                <button
+                  type="button"
+                  className={`inline-flex h-9 w-9 items-center justify-center rounded-xl transition-colors lg:hidden ${
+                    overHero
+                      ? 'text-[#e0e1dd] hover:bg-white/10'
+                      : 'text-on-surface hover:bg-surface-container'
+                  }`}
+                  aria-label={t('common.openMenu')}
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((open) => !open)}
+                >
+                  <MaterialIcon name={menuOpen ? 'close' : 'menu'} />
+                </button>
+              </div>
+            </div>
+
+            {menuOpen ? (
+              <div
+                className={`border-t px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden ${
+                  overHero ? 'border-white/10' : 'border-outline-variant/25'
+                }`}
+              >
+                <nav className="flex flex-col gap-0.5">
+                  {links.map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      className={`rounded-xl px-3 py-2.5 text-sm font-medium ${
+                        overHero
+                          ? link.match(path)
+                            ? 'bg-white/10 text-[#e0e1dd]'
+                            : 'text-[#e0e1dd]/80 hover:bg-white/5'
+                          : link.match(path)
+                            ? 'bg-surface-container text-on-surface'
+                            : 'text-on-surface-variant hover:bg-surface-container/70 hover:text-on-surface'
+                      }`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  <Link
+                    to={LANDING_CONTACT}
+                    className={`rounded-xl px-3 py-2.5 text-sm font-medium ${
+                      overHero
+                        ? 'text-[#e0e1dd]/80 hover:bg-white/5'
+                        : 'text-on-surface-variant hover:bg-surface-container/70 hover:text-on-surface'
+                    }`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {t('landing.navContact')}
+                  </Link>
+                  <div className="px-1 py-2 md:hidden">
+                    <LanguageSwitcher compact onDark={overHero} />
+                  </div>
+                  <AppLink
+                    to="/login"
+                    className={`rounded-xl px-3 py-2.5 text-sm font-medium sm:hidden ${
+                      overHero ? 'text-[#e0e1dd]/80' : 'text-on-surface-variant'
+                    }`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {t('auth.loginTitle')}
+                  </AppLink>
+                </nav>
+              </div>
+            ) : null}
           </div>
         </div>
-
-        {menuOpen ? (
-          <div className="border-t border-outline-variant/20 bg-surface px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] xl:hidden">
-            <nav className="flex flex-col gap-1">
-              {links.map((link) => (
-                <Link key={link.to} to={link.to} className="py-2.5 font-semibold text-on-surface" onClick={() => setMenuOpen(false)}>
-                  {link.label}
-                </Link>
-              ))}
-              <Link to={LANDING_CONTACT} className="py-2.5 font-semibold text-on-surface" onClick={() => setMenuOpen(false)}>
-                {t('landing.navContact')}
-              </Link>
-              <div className="py-2 md:hidden">
-                <LanguageSwitcher compact />
-              </div>
-              <AppLink to="/login" className="py-2.5 font-semibold text-on-surface md:hidden" onClick={() => setMenuOpen(false)}>
-                {t('auth.loginTitle')}
-              </AppLink>
-              <AppLink to="/essai" className="mt-1 rounded-xl bg-primary px-4 py-3 text-center font-semibold text-on-primary md:hidden" onClick={() => setMenuOpen(false)}>
-                {t('landing.ctaTrial')}
-              </AppLink>
-            </nav>
-          </div>
-        ) : null}
       </header>
 
-      <div className="pt-[calc(4rem+env(safe-area-inset-top))] sm:pt-[calc(5rem+env(safe-area-inset-top))]">{children}</div>
+      <div
+        className={
+          isHome
+            ? ''
+            : 'pt-[calc(3.5rem+env(safe-area-inset-top))] sm:pt-[calc(5.5rem+env(safe-area-inset-top))]'
+        }
+      >
+        {children}
+      </div>
 
       <footer className="bg-surface-container-high pt-12 pb-[max(2rem,env(safe-area-inset-bottom))] sm:pt-16">
         <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 sm:gap-12 sm:px-6 lg:px-10">
@@ -129,7 +221,7 @@ export default function MarketingLayout({ children }) {
               <p className="max-w-sm text-on-surface-variant">{t('landing.footerBlurb')}</p>
             </div>
             <div>
-              <h4 className="mb-6 text-label-lg font-semibold tracking-[0.05em] text-on-surface uppercase">{t('landing.footerProduct')}</h4>
+              <h4 className="mb-6 text-sm font-semibold tracking-wide text-on-surface uppercase">{t('landing.footerProduct')}</h4>
               <ul className="flex flex-col gap-4 text-on-surface-variant">
                 <li>
                   <Link to={LANDING_PRODUCT} className="hover:text-primary">
@@ -154,7 +246,7 @@ export default function MarketingLayout({ children }) {
               </ul>
             </div>
             <div>
-              <h4 className="mb-6 text-label-lg font-semibold tracking-[0.05em] text-on-surface uppercase">{t('landing.footerResources')}</h4>
+              <h4 className="mb-6 text-sm font-semibold tracking-wide text-on-surface uppercase">{t('landing.footerResources')}</h4>
               <ul className="flex flex-col gap-4 text-on-surface-variant">
                 <li>
                   <Link to={LANDING_FEATURES} className="hover:text-primary">
@@ -179,7 +271,7 @@ export default function MarketingLayout({ children }) {
               </ul>
             </div>
             <div>
-              <h4 className="mb-6 text-label-lg font-semibold tracking-[0.05em] text-on-surface uppercase">{t('landing.footerContact')}</h4>
+              <h4 className="mb-6 text-sm font-semibold tracking-wide text-on-surface uppercase">{t('landing.footerContact')}</h4>
               <ul className="flex flex-col gap-4 text-on-surface-variant">
                 <li className="flex items-center gap-2">
                   <MaterialIcon name="alternate_email" className="text-[18px]" />
@@ -209,7 +301,7 @@ export default function MarketingLayout({ children }) {
               href={DEVELOPER_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1 inline-block font-display text-2xl tracking-tight text-primary hover:underline"
+              className="mt-1 inline-block text-2xl tracking-tight text-primary hover:underline"
             >
               {DEVELOPER_NAME}
             </a>
