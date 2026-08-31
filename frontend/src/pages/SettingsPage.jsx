@@ -337,8 +337,10 @@ export default function SettingsPage() {
         setColorDraft(saved.backgroundColor);
       }
       clearPublicMenuCache(cafe.slug || form.slug);
+      toast.success(t('settings.menuUiSaved'));
     } catch (err) {
       setError(getApiError(err, t, 'settings.saveError'));
+      toast.error(getApiError(err, t, 'settings.saveError'));
     } finally {
       setMenuUiSaving(false);
     }

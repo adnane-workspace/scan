@@ -14,6 +14,7 @@ export default function CloudinaryImage({
   width,
   height,
   decoding = 'async',
+  onError,
 }) {
   if (!src) {
     return null;
@@ -65,6 +66,7 @@ export default function CloudinaryImage({
       fetchPriority={fetchPriority}
       width={width}
       height={height}
+      onError={onError}
     />
   );
 }

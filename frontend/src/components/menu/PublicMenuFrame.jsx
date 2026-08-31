@@ -13,7 +13,13 @@ export default function PublicMenuFrame({ cafe, className = '', children }) {
       ? { '--color-background': 'transparent', background: 'transparent' }
       : undefined;
 
-  const veilClass = isAppSkin ? 'bg-[#f4f2ee]/82' : ui.theme === 'dark' ? 'bg-background/70' : 'bg-background/75';
+  const veilClass = customImage
+    ? isAppSkin
+      ? 'bg-[#0d1b2a]/40'
+      : ui.theme === 'dark'
+        ? 'bg-background/70'
+        : 'bg-background/75'
+    : '';
 
   return (
     <div
@@ -24,7 +30,7 @@ export default function PublicMenuFrame({ cafe, className = '', children }) {
       {customImage ? (
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
           <CloudinaryImage src={customImage} alt="" preset="cover" className="h-full w-full object-cover" />
-          <div className={`absolute inset-0 ${veilClass}`} />
+          {veilClass ? <div className={`absolute inset-0 ${veilClass}`} /> : null}
         </div>
       ) : null}
       <div className="relative z-10 flex h-full min-h-full flex-1 flex-col">{children}</div>

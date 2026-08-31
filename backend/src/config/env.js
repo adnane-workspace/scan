@@ -38,7 +38,7 @@ const envSchema = z.object({
     (value) => String(value || '').replace(/\s+/g, ''),
     z.string().optional().default(''),
   ),
-  MAIL_FROM: z.string().trim().optional().default('Scanosh <noreply@qtable.app>'),
+  MAIL_FROM: z.string().trim().optional().default('Scanosh <contact@scanosh.com>'),
   ROOT_DOMAIN: z.string().trim().optional().default('scanosh.com'),
 });
 

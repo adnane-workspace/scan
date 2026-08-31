@@ -141,6 +141,7 @@ async function sendWithResend({ to, subject, html, text }) {
 
   if (!response.ok) {
     const details = await response.text();
+    console.error('Resend send failed:', details);
     throw new ApiError(502, `Unable to send email (${response.status})`, details, 'EMAIL_SEND_FAILED');
   }
 }

@@ -28,7 +28,15 @@ export function normalizeHexColor(value) {
 export function normalizeMenuUi(value) {
   const raw = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   const backgroundImage = typeof raw.backgroundImage === 'string' ? raw.backgroundImage.trim().slice(0, 2048) : '';
-  const bgMode = BG_MODES.has(raw.bgMode) ? raw.bgMode : 'default';
+  let bgMode = BG_MODES.has(raw.bgMode) ? raw.bgMode : 'default';
+
+  if (bgMode === 'image' && !backgroundImage) {
+    bgMode = 'default';
+  }
+
+  if (bgMode === 'color' && !normalizeHexColor(raw.backgroundColor)) {
+    bgMode = 'default';
+  }
 
   return {
     theme: raw.theme === 'light' ? 'light' : 'dark',

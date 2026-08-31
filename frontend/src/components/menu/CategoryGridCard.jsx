@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocale } from '../../hooks/useLocale.js';
 import { firstPublicCover } from '../../utils/categoryTree.js';
@@ -23,20 +24,23 @@ function categoryMeta(category, t) {
 export default function CategoryGridCard({ category, slug }) {
   const { t } = useLocale();
   const cover = firstPublicCover(category);
+  const [coverFailed, setCoverFailed] = useState(false);
   const paths = getMenuPaths(slug);
   const meta = categoryMeta(category, t);
+  const showCover = Boolean(cover) && !coverFailed;
 
   return (
     <Link
       to={paths.category(category.id)}
       className="group relative block aspect-[3/4] overflow-hidden rounded-[1.35rem] bg-[#d8d4cc] shadow-[0_10px_28px_rgba(13,27,42,0.08)] ring-1 ring-[#0d1b2a]/6"
     >
-      {cover ? (
+      {showCover ? (
         <CloudinaryImage
           src={cover}
           alt=""
           preset="categoryCover"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          onError={() => setCoverFailed(true)}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-[#ebe8e2] text-[#0d1b2a]/35">

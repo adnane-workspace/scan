@@ -1,9 +1,24 @@
 import bcrypt from 'bcrypt';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
+import { env } from './config/env.js';
 import { prisma } from './config/prisma.js';
 import { uploadProductImage } from './services/storage.service.js';
 
 const DEMO_PASSWORD = 'adnane2004';
+
+function isLocalDatabase(url) {
+  return /localhost|127\.0\.0\.1/i.test(String(url || ''));
+}
+
+function assertLocalSeedTarget() {
+  if (isLocalDatabase(env.DATABASE_URL) || process.env.ALLOW_PROD_SEED === '1') {
+    return;
+  }
+
+  console.error('Seed blocked: DATABASE_URL is not local.');
+  console.error('Use backend/.env with localhost, or set ALLOW_PROD_SEED=1 to override.');
+  process.exit(1);
+}
 
 const PHOTO = (id) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&h=900&q=80`;
@@ -490,6 +505,7 @@ async function resolveImage(item) {
 }
 
 async function seed() {
+  assertLocalSeedTarget();
   await connectDatabase();
 
   const cafe = await prisma.cafe.upsert({
