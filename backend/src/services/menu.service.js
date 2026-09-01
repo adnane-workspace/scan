@@ -1,7 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { groupByParent } from '../utils/categoryTree.js';
-import { normalizeMenuUi } from '../utils/menuUi.js';
+import { normalizeMenuUi, normalizeSectionVisibility } from '../utils/menuUi.js';
 import { readPublicMenuCache, writePublicMenuCache } from './menuCache.service.js';
 
 function toPublicProduct(product) {
@@ -12,6 +12,12 @@ function toPublicProduct(product) {
     price: Number(product.price),
     image: product.image || '',
   };
+}
+
+function countNodeProducts(node) {
+  const direct = node.products?.length || 0;
+  const nested = (node.children || []).reduce((total, child) => total + countNodeProducts(child), 0);
+  return direct + nested;
 }
 
 function buildPublicTree(categories, productsByCategory) {
@@ -29,13 +35,33 @@ function buildPublicTree(categories, productsByCategory) {
       id: category.id,
       name: category.name,
       image: category.image || '',
+      description: category.description || '',
       parentId: category.parentId || null,
+      sectionKey: category.sectionKey || null,
       children,
       products,
     };
   }
 
   return (byParent.get('') || []).map(buildNode).filter(Boolean);
+}
+
+function buildPublicSections(tree, menuUi) {
+  const visibility = normalizeSectionVisibility(menuUi?.sectionVisibility);
+
+  return tree
+    .filter((node) => node.sectionKey && visibility[node.sectionKey] !== false)
+    .map((node) => ({
+      key: node.sectionKey,
+      id: node.id,
+      name: node.name,
+      image: node.image || '',
+      description: node.description || '',
+      childCount: node.children?.length || 0,
+      productCount: countNodeProducts(node),
+      children: node.children || [],
+    }))
+    .filter((section) => section.children.length > 0);
 }
 
 export async function getPublicMenu(slug) {
@@ -80,7 +106,15 @@ async function loadPublicMenu(slug) {
     prisma.category.findMany({
       where: { cafeId: cafe.id },
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
-      select: { id: true, name: true, image: true, order: true, parentId: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        image: true,
+        order: true,
+        parentId: true,
+        sectionKey: true,
+      },
     }),
     prisma.product.findMany({
       where: { cafeId: cafe.id, available: true },
@@ -109,6 +143,10 @@ async function loadPublicMenu(slug) {
     productsByCategory.get(key).push(product);
   }
 
+  const menuUi = normalizeMenuUi(cafe.menuUi);
+  const categoryTree = buildPublicTree(categories, productsByCategory);
+  const sections = menuUi.sectionsEnabled ? buildPublicSections(categoryTree, menuUi) : [];
+
   return {
     cafeId: cafe.id,
     data: {
@@ -121,9 +159,10 @@ async function loadPublicMenu(slug) {
         phone: cafe.phone || '',
         latitude: cafe.latitude,
         longitude: cafe.longitude,
-        menuUi: normalizeMenuUi(cafe.menuUi),
+        menuUi,
       },
-      categories: buildPublicTree(categories, productsByCategory),
+      categories: categoryTree,
+      sections,
     },
   };
 }

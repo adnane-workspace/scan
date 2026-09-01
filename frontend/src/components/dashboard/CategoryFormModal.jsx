@@ -8,6 +8,8 @@ export default function CategoryFormModal({
   editing,
   form,
   parentOptions = [],
+  showParentSelect = true,
+  sectionLabel = '',
   saving,
   uploading,
   error,
@@ -54,14 +56,21 @@ export default function CategoryFormModal({
 
         <form onSubmit={onSubmit} className="grid gap-4">
           <Field name="name" label={t('categoryForm.name')} icon="label" value={form.name} onChange={onChange} placeholder="Cafés" required />
-          <Field as="select" name="parentId" label={t('categoryForm.parent')} icon="account_tree" value={form.parentId || ''} onChange={onChange}>
-            <option value="">{t('categoryForm.parentRoot')}</option>
-            {parentOptions.map((category) => (
-              <option key={category._id} value={category._id} depth={category.depth}>
-                {category.name}
-              </option>
-            ))}
-          </Field>
+          {sectionLabel ? (
+            <p className="rounded-xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
+              {sectionLabel}
+            </p>
+          ) : null}
+          {showParentSelect ? (
+            <Field as="select" name="parentId" label={t('categoryForm.parent')} icon="account_tree" value={form.parentId || ''} onChange={onChange}>
+              <option value="">{t('categoryForm.parentRoot')}</option>
+              {parentOptions.map((category) => (
+                <option key={category._id} value={category._id} depth={category.depth}>
+                  {category.name}
+                </option>
+              ))}
+            </Field>
+          ) : null}
           <Field name="order" type="number" label={t('categoryForm.order')} icon="sort" value={form.order} onChange={onChange} />
           <Field
             as="textarea"

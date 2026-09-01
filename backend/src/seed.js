@@ -504,6 +504,13 @@ async function resolveImage(item) {
   }
 }
 
+const CAFE_CATEGORY_NAMES = new Set([
+  'Boissons chaudes',
+  'Boissons froides',
+  'Petit-déjeuner & Brunch',
+  'Viennoiseries & Snacks',
+]);
+
 async function seed() {
   assertLocalSeedTarget();
   await connectDatabase();
@@ -523,6 +530,7 @@ async function seed() {
         showPhone: true,
         showAddress: true,
         bgMode: 'default',
+        sectionsEnabled: true,
       },
       trialRole: 'template',
       isActive: true,
@@ -542,6 +550,7 @@ async function seed() {
         showPhone: true,
         showAddress: true,
         bgMode: 'default',
+        sectionsEnabled: true,
       },
       trialRole: 'template',
       isActive: true,
@@ -575,10 +584,31 @@ async function seed() {
 
   let productCount = 0;
 
+  const restaurantSection = await prisma.category.create({
+    data: {
+      cafeId: cafe.id,
+      name: 'Restaurant',
+      description: 'Entrées, plats, pizzas et desserts.',
+      sectionKey: 'restaurant',
+      order: 1,
+    },
+  });
+
+  const cafeSection = await prisma.category.create({
+    data: {
+      cafeId: cafe.id,
+      name: 'Café',
+      description: 'Boissons, brunch et viennoiseries.',
+      sectionKey: 'cafe',
+      order: 2,
+    },
+  });
+
   for (const cat of catalog) {
     const category = await prisma.category.create({
       data: {
         cafeId: cafe.id,
+        parentId: CAFE_CATEGORY_NAMES.has(cat.name) ? cafeSection.id : restaurantSection.id,
         name: cat.name,
         description: cat.description,
         image: await resolveImage({
@@ -610,7 +640,7 @@ async function seed() {
 
   console.log('\nSeed terminé.');
   console.log(`Café modèle : ${cafe.name} (/${cafe.slug}) · rôle template`);
-  console.log(`${catalog.length} catégories · ${productCount} produits`);
+  console.log(`${catalog.length} catégories · ${productCount} produits · sections Restaurant/Café`);
   console.log(`Admin démo : admin@example.com / ${DEMO_PASSWORD}`);
   console.log(`Menu public : http://localhost:5173/menu/${cafe.slug}`);
 

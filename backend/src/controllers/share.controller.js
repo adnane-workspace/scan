@@ -36,6 +36,7 @@ function shareHtml(preview) {
 
 export const getShare = asyncHandler(async (req, res) => {
   const preview = await getSharePreview(req.validated.params.slug, {
+    sectionKey: req.validated.query.section,
     categoryId: req.validated.query.category,
     productId: req.validated.query.product,
   });

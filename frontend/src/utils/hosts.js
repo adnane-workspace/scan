@@ -133,6 +133,9 @@ export function getMenuPaths(slug, hostname = currentLocationParts().hostname) {
   if (host.kind === 'menu') {
     return {
       home: '/',
+      sections: '/sections',
+      section: (key) => `/${key}`,
+      sectionCategory: (key, id) => `/${key}/${id}`,
       categories: '/categories',
       category: (id) => `/${id}`,
     };
@@ -140,6 +143,9 @@ export function getMenuPaths(slug, hostname = currentLocationParts().hostname) {
 
   return {
     home: `/menu/${slug}`,
+    sections: `/menu/${slug}/sections`,
+    section: (key) => `/menu/${slug}/${key}`,
+    sectionCategory: (key, id) => `/menu/${slug}/${key}/${id}`,
     categories: `/menu/${slug}/categories`,
     category: (id) => `/menu/${slug}/${id}`,
   };

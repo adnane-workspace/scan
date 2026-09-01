@@ -14,6 +14,11 @@ const parentIdSchema = z.preprocess(
   uuidSchema.nullable(),
 );
 
+const sectionKeySchema = z.preprocess(
+  (value) => (value === '' || value === undefined ? null : value),
+  z.enum(['restaurant', 'cafe']).nullable(),
+);
+
 export const createCategorySchema = z.object({
   body: z.object({
     name: z.string().trim().min(1).max(80),
@@ -21,6 +26,7 @@ export const createCategorySchema = z.object({
     order: z.number().int().optional(),
     image: imageSchema.optional(),
     parentId: parentIdSchema.optional(),
+    sectionKey: sectionKeySchema.optional(),
   }),
 });
 
@@ -35,6 +41,7 @@ export const updateCategorySchema = z.object({
       order: z.number().int().optional(),
       image: imageSchema.optional(),
       parentId: parentIdSchema.optional(),
+      sectionKey: sectionKeySchema.optional(),
     })
     .refine((data) => Object.keys(data).length > 0, {
       message: 'At least one field is required',

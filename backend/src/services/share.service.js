@@ -1,5 +1,6 @@
 import { env } from '../config/env.js';
 import { stripCloudinaryTransforms } from '../utils/cloudinaryUrl.js';
+import { isMenuSectionKey } from '../utils/menuSections.js';
 import { getPublicMenu } from './menu.service.js';
 
 function findProduct(nodes, productId) {
@@ -89,11 +90,17 @@ function clientOrigin() {
     .replace(/\/$/, '');
 }
 
-export function menuDeepLink(slug, categoryId, productId) {
+export function menuDeepLink(slug, { sectionKey, categoryId, productId } = {}) {
   const isProd = env.NODE_ENV === 'production';
   let url = isProd ? `https://${slug}.${env.ROOT_DOMAIN}` : `${clientOrigin()}/menu/${slug}`;
 
-  if (categoryId) {
+  if (sectionKey && isMenuSectionKey(sectionKey)) {
+    url += `/${sectionKey}`;
+
+    if (categoryId) {
+      url += `/${categoryId}`;
+    }
+  } else if (categoryId) {
     url += `/${categoryId}`;
   }
 
@@ -104,10 +111,24 @@ export function menuDeepLink(slug, categoryId, productId) {
   return url;
 }
 
-export async function getSharePreview(slug, { categoryId, productId } = {}) {
+export async function getSharePreview(slug, { sectionKey, categoryId, productId } = {}) {
   const menu = await getPublicMenu(slug);
   const cafe = menu.cafe;
-  const category = categoryId ? findCategory(menu.categories, categoryId) : null;
+  const sectionsEnabled = cafe.menuUi?.sectionsEnabled === true;
+  let category = categoryId ? findCategory(menu.categories, categoryId) : null;
+
+  if (!category && categoryId && sectionsEnabled) {
+    for (const section of menu.sections || []) {
+      const match = section.children?.find((item) => String(item.id) === String(categoryId));
+
+      if (match) {
+        category = match;
+        sectionKey = sectionKey || section.key;
+        break;
+      }
+    }
+  }
+
   const foundProduct = productId ? findProduct(category ? [category] : menu.categories, productId) : null;
   const product = foundProduct?.product || null;
 
@@ -120,7 +141,11 @@ export async function getSharePreview(slug, { categoryId, productId } = {}) {
   }
 
   const image = ogImage(product?.image || firstCover(category) || cafe.cover || cafe.logo);
-  const target = menuDeepLink(slug, category?.id, product?.id);
+  const target = menuDeepLink(slug, {
+    sectionKey: sectionsEnabled ? sectionKey : null,
+    categoryId: category?.id,
+    productId: product?.id,
+  });
 
   if (product) {
     return {

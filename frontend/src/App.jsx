@@ -33,12 +33,14 @@ const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage.jsx'));
 const PublicMenuLandingPage = lazy(() => import('./pages/PublicMenuLandingPage.jsx'));
+const PublicMenuSectionsPage = lazy(() => import('./pages/PublicMenuSectionsPage.jsx'));
 const PublicMenuPage = lazy(() => import('./pages/PublicMenuPage.jsx'));
 const QrRequestsPage = lazy(() => import('./pages/QrRequestsPage.jsx'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
 const TrialPage = lazy(() => import('./pages/TrialPage.jsx'));
 const TrialLeadsPage = lazy(() => import('./pages/TrialLeadsPage.jsx'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'));
+const PublicMenuSettingsPage = lazy(() => import('./pages/PublicMenuSettingsPage.jsx'));
 const SiteLandingPage = lazy(() => import('./pages/SiteLandingPage.jsx'));
 const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage.jsx'));
 const PricingPage = lazy(() => import('./pages/PricingPage.jsx'));
@@ -119,6 +121,7 @@ function ProductRoutes() {
           <Route index element={<DashboardPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="categories" element={<CategoriesPage />} />
+          <Route path="menu" element={<PublicMenuSettingsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Route>
@@ -159,10 +162,19 @@ function MarketingRoutes() {
   );
 }
 
+function SectionMenuPage({ sectionKey }) {
+  return <PublicMenuPage fixedSectionKey={sectionKey} />;
+}
+
 function UnifiedPublicMenuRoutes() {
   return (
     <Route element={<PublicLayout />}>
       <Route path="/menu/:slug" element={<PublicMenuLandingPage />} />
+      <Route path="/menu/:slug/sections" element={<PublicMenuSectionsPage />} />
+      <Route path="/menu/:slug/restaurant/:categoryId" element={<SectionMenuPage sectionKey="restaurant" />} />
+      <Route path="/menu/:slug/restaurant" element={<SectionMenuPage sectionKey="restaurant" />} />
+      <Route path="/menu/:slug/cafe/:categoryId" element={<SectionMenuPage sectionKey="cafe" />} />
+      <Route path="/menu/:slug/cafe" element={<SectionMenuPage sectionKey="cafe" />} />
       <Route path="/menu/:slug/categories" element={<PublicMenuPage />} />
       <Route path="/menu/:slug/:categoryId" element={<PublicMenuPage />} />
     </Route>
@@ -183,6 +195,11 @@ function MenuTenantRoutes({ slug }) {
         <Route path="/platform/*" element={<ToAppRedirect />} />
         <Route element={<PublicLayout />}>
           <Route path="/" element={<PublicMenuLandingPage />} />
+          <Route path="/sections" element={<PublicMenuSectionsPage />} />
+          <Route path="/restaurant/:categoryId" element={<SectionMenuPage sectionKey="restaurant" />} />
+          <Route path="/restaurant" element={<SectionMenuPage sectionKey="restaurant" />} />
+          <Route path="/cafe/:categoryId" element={<SectionMenuPage sectionKey="cafe" />} />
+          <Route path="/cafe" element={<SectionMenuPage sectionKey="cafe" />} />
           <Route path="/categories" element={<PublicMenuPage />} />
           <Route path="/:categoryId" element={<PublicMenuPage />} />
         </Route>

@@ -3,6 +3,11 @@ export const DEFAULT_MENU_UI = {
   showPhone: true,
   showAddress: true,
   showLanguage: true,
+  sectionsEnabled: false,
+  sectionVisibility: {
+    restaurant: true,
+    cafe: true,
+  },
   bgMode: 'default',
   backgroundColor: '',
   backgroundImage: '',
@@ -25,6 +30,15 @@ export function normalizeHexColor(value) {
   return match ? `#${match[1].toLowerCase()}` : '';
 }
 
+export function normalizeSectionVisibility(value) {
+  const raw = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+
+  return {
+    restaurant: raw.restaurant !== false,
+    cafe: raw.cafe !== false,
+  };
+}
+
 export function normalizeMenuUi(value) {
   const raw = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   const backgroundImage = typeof raw.backgroundImage === 'string' ? raw.backgroundImage.trim().slice(0, 2048) : '';
@@ -43,6 +57,8 @@ export function normalizeMenuUi(value) {
     showPhone: raw.showPhone !== false,
     showAddress: raw.showAddress !== false,
     showLanguage: raw.showLanguage !== false,
+    sectionsEnabled: raw.sectionsEnabled === true,
+    sectionVisibility: normalizeSectionVisibility(raw.sectionVisibility),
     bgMode,
     backgroundColor: normalizeHexColor(raw.backgroundColor),
     backgroundImage,

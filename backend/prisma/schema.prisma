@@ -58,6 +58,11 @@ enum CafeTrialRole {
   template
 }
 
+enum MenuSectionKey {
+  restaurant
+  cafe
+}
+
 model Cafe {
   id          String        @id @default(uuid())
   name        String        @db.VarChar(120)
@@ -175,11 +180,13 @@ model Category {
   name        String     @db.VarChar(80)
   description String     @default("") @db.VarChar(300)
   image       String     @default("")
-  order       Int        @default(0)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  order       Int            @default(0)
+  sectionKey  MenuSectionKey?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   products    Product[]
 
+  @@unique([cafeId, sectionKey])
   @@index([cafeId, order])
   @@index([cafeId, parentId, order])
 }

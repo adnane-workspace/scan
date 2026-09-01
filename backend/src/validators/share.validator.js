@@ -8,6 +8,7 @@ const optionalId = z.preprocess((value) => {
 
 export const sharePreviewSchema = publicMenuSlugSchema.extend({
   query: z.object({
+    section: z.enum(['restaurant', 'cafe']).optional(),
     category: optionalId,
     product: optionalId,
   }),

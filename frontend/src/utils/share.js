@@ -1,10 +1,20 @@
 import { API_URL, getPublicMenuUrl } from './constants.js';
+import { isMenuSectionKey } from './menuSections.js';
 
-export function buildMenuDeepLink({ slug, categoryId, productId }) {
+export function buildMenuDeepLink({ slug, sectionKey, categoryId, productId }) {
   const base = String(getPublicMenuUrl(slug) || '').replace(/\/$/, '');
 
   if (!base) {
     return '';
+  }
+
+  if (sectionKey && isMenuSectionKey(sectionKey)) {
+    if (!categoryId) {
+      return `${base}/${sectionKey}`;
+    }
+
+    const url = `${base}/${sectionKey}/${categoryId}`;
+    return productId ? `${url}?product=${encodeURIComponent(productId)}` : url;
   }
 
   if (!categoryId) {
@@ -15,8 +25,12 @@ export function buildMenuDeepLink({ slug, categoryId, productId }) {
   return productId ? `${url}?product=${encodeURIComponent(productId)}` : url;
 }
 
-export function buildShareUrl({ slug, categoryId, productId }) {
+export function buildShareUrl({ slug, sectionKey, categoryId, productId }) {
   const params = new URLSearchParams();
+
+  if (sectionKey) {
+    params.set('section', sectionKey);
+  }
 
   if (categoryId) {
     params.set('category', categoryId);
