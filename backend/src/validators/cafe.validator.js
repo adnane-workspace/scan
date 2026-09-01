@@ -33,7 +33,7 @@ export const updateCafeSchema = z.object({
               cafe: z.boolean().optional(),
             })
             .optional(),
-          bgMode: z.enum(['default', 'color', 'image']).optional(),
+          bgMode: z.enum(['color', 'image', 'default']).optional(),
           backgroundColor: z.string().trim().max(16).optional(),
           backgroundImage: z.string().trim().max(2048).optional(),
         })

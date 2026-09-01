@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import ImageLightbox from '../components/ui/ImageLightbox.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
@@ -10,7 +10,14 @@ import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import { getMyCafe, updateMyCafe, uploadCafeLogo } from '../services/cafe.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
 import { getApiError } from '../utils/apiError.js';
-import { DEFAULT_MENU_UI, normalizeHexColor, normalizeMenuUi, themeBackground } from '../utils/menuUi.js';
+import { DEFAULT_MENU_UI, normalizeHexColor, normalizeMenuUi } from '../utils/menuUi.js';
+
+function draftSnapshot(logo, menuUi) {
+  return JSON.stringify({
+    logo: logo || '',
+    menuUi: normalizeMenuUi(menuUi),
+  });
+}
 
 export default function PublicMenuSettingsPage() {
   const { t } = useLocale();
@@ -18,16 +25,14 @@ export default function PublicMenuSettingsPage() {
   const { refreshStats } = useOutletContext() || {};
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState('');
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [slug, setSlug] = useState('');
   const [logo, setLogo] = useState('');
   const [menuUi, setMenuUi] = useState(DEFAULT_MENU_UI);
-  const [colorDraft, setColorDraft] = useState('');
-  const [menuUiSaving, setMenuUiSaving] = useState(false);
+  const [colorDraft, setColorDraft] = useState(DEFAULT_MENU_UI.backgroundColor);
+  const [savedSnapshotValue, setSavedSnapshotValue] = useState(() => draftSnapshot('', DEFAULT_MENU_UI));
   const [previewUrl, setPreviewUrl] = useState('');
-  const menuColorTimerRef = useRef(0);
-  const menuUiRef = useRef(menuUi);
-  menuUiRef.current = menuUi;
 
   useEffect(() => {
     let cancelled = false;
@@ -38,11 +43,14 @@ export default function PublicMenuSettingsPage() {
           return;
         }
 
-        setSlug(cafe.slug || '');
-        setLogo(cafe.logo || '');
+        const nextLogo = cafe.logo || '';
         const nextUi = normalizeMenuUi(cafe.menuUi);
+
+        setSlug(cafe.slug || '');
+        setLogo(nextLogo);
         setMenuUi(nextUi);
         setColorDraft(nextUi.backgroundColor);
+        setSavedSnapshotValue(draftSnapshot(nextLogo, nextUi));
       })
       .catch((err) => {
         if (!cancelled) {
@@ -60,46 +68,24 @@ export default function PublicMenuSettingsPage() {
     };
   }, [t]);
 
-  useEffect(() => () => window.clearTimeout(menuColorTimerRef.current), []);
+  const isDirty = useMemo(
+    () => draftSnapshot(logo, menuUi) !== savedSnapshotValue,
+    [logo, menuUi, savedSnapshotValue],
+  );
 
-  async function persistMenuUi(partial) {
-    const merged = { ...menuUiRef.current, ...partial };
+  function patchMenuUi(partial) {
+    setMenuUi((current) => {
+      const next = normalizeMenuUi({ ...current, ...partial });
 
-    if (partial.bgMode === 'color' && !normalizeHexColor(merged.backgroundColor)) {
-      merged.backgroundColor = themeBackground(merged.theme);
-    }
-
-    const next = normalizeMenuUi(merged);
-    setMenuUi(next);
-
-    if (next.bgMode === 'color' && next.backgroundColor) {
-      setColorDraft(next.backgroundColor);
-    }
-
-    setMenuUiSaving(true);
-    setError('');
-
-    try {
-      const cafe = await updateMyCafe({ menuUi: next });
-      const saved = normalizeMenuUi(cafe.menuUi);
-      setMenuUi(saved);
-
-      if (saved.bgMode === 'color' && saved.backgroundColor) {
-        setColorDraft(saved.backgroundColor);
+      if (next.bgMode === 'color') {
+        setColorDraft(next.backgroundColor);
       }
 
-      clearPublicMenuCache(cafe.slug || slug);
-      toast.success(t('settings.menuUiSaved'));
-    } catch (err) {
-      const message = getApiError(err, t, 'settings.saveError');
-      setError(message);
-      toast.error(message);
-    } finally {
-      setMenuUiSaving(false);
-    }
+      return next;
+    });
   }
 
-  function persistMenuBackgroundColor(value) {
+  function handleMenuBackgroundColor(value) {
     setColorDraft(value);
     const hex = normalizeHexColor(value);
 
@@ -107,13 +93,34 @@ export default function PublicMenuSettingsPage() {
       return;
     }
 
-    const next = normalizeMenuUi({ ...menuUiRef.current, bgMode: 'color', backgroundColor: hex });
-    setMenuUi(next);
+    patchMenuUi({ bgMode: 'color', backgroundColor: hex });
+  }
 
-    window.clearTimeout(menuColorTimerRef.current);
-    menuColorTimerRef.current = window.setTimeout(() => {
-      persistMenuUi({ bgMode: 'color', backgroundColor: hex });
-    }, 400);
+  async function handleSave() {
+    const nextUi = normalizeMenuUi(menuUi);
+
+    setSaving(true);
+    setError('');
+
+    try {
+      const cafe = await updateMyCafe({ logo, menuUi: nextUi });
+      const savedLogo = cafe.logo || '';
+      const savedUi = normalizeMenuUi(cafe.menuUi);
+
+      setLogo(savedLogo);
+      setMenuUi(savedUi);
+      setColorDraft(savedUi.backgroundColor);
+      setSavedSnapshotValue(draftSnapshot(savedLogo, savedUi));
+      clearPublicMenuCache(cafe.slug || slug);
+      toast.success(t('settings.menuUiSaved'));
+      await refreshStats?.();
+    } catch (err) {
+      const message = getApiError(err, t, 'settings.saveError');
+      setError(message);
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleLogoChange(event) {
@@ -129,11 +136,7 @@ export default function PublicMenuSettingsPage() {
 
     try {
       const url = await uploadCafeLogo(file, 'logo');
-      const cafe = await updateMyCafe({ logo: url });
-      setLogo(cafe.logo || url);
-      clearPublicMenuCache(cafe.slug || slug);
-      toast.success(t('settings.saved'));
-      await refreshStats?.();
+      setLogo(url);
     } catch (err) {
       setError(getApiError(err, t, 'settings.uploadError'));
     } finally {
@@ -141,18 +144,8 @@ export default function PublicMenuSettingsPage() {
     }
   }
 
-  async function handleLogoRemove() {
-    setError('');
-
-    try {
-      const cafe = await updateMyCafe({ logo: '' });
-      setLogo('');
-      clearPublicMenuCache(cafe.slug || slug);
-      toast.success(t('settings.saved'));
-      await refreshStats?.();
-    } catch (err) {
-      setError(getApiError(err, t, 'settings.saveError'));
-    }
+  function handleLogoRemove() {
+    setLogo('');
   }
 
   async function handleMenuBackgroundImage(event) {
@@ -168,7 +161,7 @@ export default function PublicMenuSettingsPage() {
 
     try {
       const url = await uploadCafeLogo(file, 'menuBg');
-      await persistMenuUi({ bgMode: 'image', backgroundImage: url });
+      patchMenuUi({ bgMode: 'image', backgroundImage: url });
     } catch (err) {
       setError(getApiError(err, t, 'settings.uploadError'));
     } finally {
@@ -177,6 +170,7 @@ export default function PublicMenuSettingsPage() {
   }
 
   const publicUrl = getPublicMenuUrl(slug);
+  const saveDisabled = !isDirty || saving || Boolean(uploading);
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6">
@@ -185,19 +179,32 @@ export default function PublicMenuSettingsPage() {
           <h1 className="font-display text-2xl font-semibold tracking-tight text-on-surface sm:text-[1.75rem]">
             {t('publicMenu.title')}
           </h1>
-          <p className="mt-1 text-sm text-on-surface-variant">{t('publicMenu.subtitle')}</p>
+          <p className="mt-1 text-sm text-on-surface-variant">
+            {isDirty ? t('publicMenu.unsaved') : t('publicMenu.subtitle')}
+          </p>
         </div>
-        {publicUrl ? (
-          <a
-            href={publicUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container"
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saveDisabled}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <MaterialIcon name="open_in_new" className="text-[18px]" />
-            {t('settings.viewMenu')}
-          </a>
-        ) : null}
+            <MaterialIcon name="save" className="text-[18px]" />
+            {saving ? t('common.saving') : t('common.save')}
+          </button>
+          {publicUrl ? (
+            <a
+              href={publicUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container"
+            >
+              <MaterialIcon name="open_in_new" className="text-[18px]" />
+              {t('settings.viewMenu')}
+            </a>
+          ) : null}
+        </div>
       </div>
 
       {error ? (
@@ -225,48 +232,20 @@ export default function PublicMenuSettingsPage() {
               onChange={handleLogoChange}
               onRemove={handleLogoRemove}
               onPreview={() => setPreviewUrl(logo)}
-              disabled={Boolean(uploading)}
+              disabled={Boolean(uploading) || saving}
             />
           </SettingsSectionCard>
 
-          <SettingsSectionCard icon="palette" title={t('settings.menuTheme')} subtitle={t('settings.menuHint')}>
-            {menuUiSaving ? <p className="text-sm font-medium text-primary">{t('settings.saving')}</p> : null}
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                { id: 'light', icon: 'light_mode', title: t('settings.themeLight'), hint: t('settings.menuThemeLightHint') },
-                { id: 'dark', icon: 'dark_mode', title: t('settings.themeDark'), hint: t('settings.menuThemeDarkHint') },
-              ].map((item) => {
-                const active = menuUi.theme === item.id;
-
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => persistMenuUi({ theme: item.id })}
-                    className={`rounded-2xl border px-5 py-4 text-start transition-colors ${
-                      active
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                        : 'border-outline-variant bg-surface-container-low hover:bg-surface-container-high'
-                    }`}
-                  >
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container text-primary">
-                      <MaterialIcon name={item.icon} />
-                    </span>
-                    <p className="mt-3 font-display text-xl font-semibold text-on-surface">{item.title}</p>
-                    <p className="mt-1 text-sm text-on-surface-variant">{item.hint}</p>
-                  </button>
-                );
-              })}
-            </div>
+          <SettingsSectionCard icon="wallpaper" title={t('publicMenu.backgroundTitle')} subtitle={t('publicMenu.backgroundHint')}>
             <MenuBackgroundEditor
               menuUi={menuUi}
               colorDraft={colorDraft}
               uploading={uploading === 'menuBg'}
               t={t}
-              onModeChange={(bgMode) => persistMenuUi({ bgMode })}
-              onColorChange={persistMenuBackgroundColor}
+              onModeChange={(bgMode) => patchMenuUi({ bgMode })}
+              onColorChange={handleMenuBackgroundColor}
               onImageChange={handleMenuBackgroundImage}
-              onImageRemove={() => persistMenuUi({ backgroundImage: '', bgMode: 'default' })}
+              onImageRemove={() => patchMenuUi({ backgroundImage: '', bgMode: 'color' })}
               onImagePreview={() => setPreviewUrl(menuUi.backgroundImage)}
             />
           </SettingsSectionCard>
@@ -287,7 +266,7 @@ export default function PublicMenuSettingsPage() {
                 <input
                   type="checkbox"
                   checked={Boolean(menuUi[item.key])}
-                  onChange={(event) => persistMenuUi({ [item.key]: event.target.checked })}
+                  onChange={(event) => patchMenuUi({ [item.key]: event.target.checked })}
                   className="mt-1 h-5 w-5 accent-primary"
                 />
               </label>

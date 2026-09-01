@@ -1,9 +1,9 @@
 import CloudinaryImage from '../ui/CloudinaryImage.jsx';
 import MaterialIcon from '../ui/MaterialIcon.jsx';
-import { normalizeHexColor, themeBackground } from '../../utils/menuUi.js';
+import { DEFAULT_MENU_BACKGROUND, normalizeHexColor } from '../../utils/menuUi.js';
 
 const DARK_PRESETS = ['#0d1b2a', '#1b263b', '#415a77', '#2a1a14', '#1c2e24', '#3a1d28', '#1a1a1a', '#3d2b1f'];
-const LIGHT_PRESETS = ['#e0e1dd', '#f4efe6', '#f7f3ee', '#ece8e1', '#dce3ea', '#f3ece4'];
+const LIGHT_PRESETS = ['#f4f2ee', '#e0e1dd', '#f4efe6', '#f7f3ee', '#ece8e1', '#dce3ea', '#f3ece4'];
 
 function isLightHex(hex) {
   const value = normalizeHexColor(hex);
@@ -44,21 +44,9 @@ function ColorSwatch({ hex, selected, onSelect }) {
   );
 }
 
-function previewFill(menuUi) {
-  if (menuUi.bgMode === 'color' && menuUi.backgroundColor) {
-    return menuUi.backgroundColor;
-  }
-
-  return themeBackground(menuUi.theme);
-}
-
-function MenuPreview({ menuUi }) {
-  const isDark = menuUi.theme === 'dark';
-  const fill = previewFill(menuUi);
-  const card = isDark ? 'rgba(27, 38, 59, 0.88)' : 'rgba(255, 255, 255, 0.88)';
-  const title = isDark ? '#e0e1dd' : '#0d1b2a';
-  const muted = isDark ? '#778da9' : '#415a77';
+function MenuPreview({ menuUi, activeHex }) {
   const showImage = menuUi.bgMode === 'image' && menuUi.backgroundImage;
+  const fill = activeHex || DEFAULT_MENU_BACKGROUND;
 
   return (
     <div className="relative mx-auto aspect-[9/16] w-full max-w-[168px] overflow-hidden rounded-[1.6rem] border border-outline-variant bg-surface-container shadow-inner">
@@ -67,17 +55,17 @@ function MenuPreview({ menuUi }) {
       ) : (
         <div className="absolute inset-0" style={{ background: fill }} />
       )}
-      {showImage ? <div className="absolute inset-0" style={{ background: isDark ? 'rgba(13,27,42,0.72)' : 'rgba(224,225,221,0.72)' }} /> : null}
+      {showImage ? <div className="absolute inset-0 bg-[#0d1b2a]/40" /> : null}
       <div className="relative flex h-full flex-col px-3 pt-4 pb-3">
-        <div className="mb-3 h-1.5 w-10 self-center rounded-full" style={{ background: muted }} />
-        <div className="mb-2 h-2 w-16 rounded" style={{ background: title, opacity: 0.9 }} />
+        <div className="mb-3 h-1.5 w-10 self-center rounded-full bg-[#0d1b2a]/25" />
+        <div className="mb-2 h-2 w-16 rounded bg-[#0d1b2a]/80" />
         <div className="grid grid-cols-2 gap-1.5">
           {[0, 1, 2, 3].map((index) => (
-            <div key={index} className="overflow-hidden rounded-lg" style={{ background: card }}>
-              <div className="h-8" style={{ background: muted, opacity: 0.35 }} />
+            <div key={index} className="overflow-hidden rounded-lg bg-white/90 ring-1 ring-[#0d1b2a]/8">
+              <div className="h-8 bg-[#ebe8e2]" />
               <div className="space-y-1 p-1.5">
-                <div className="h-1.5 w-3/4 rounded" style={{ background: title, opacity: 0.7 }} />
-                <div className="h-1 w-1/2 rounded" style={{ background: muted, opacity: 0.7 }} />
+                <div className="h-1.5 w-3/4 rounded bg-[#0d1b2a]/60" />
+                <div className="h-1 w-1/2 rounded bg-[#0d1b2a]/30" />
               </div>
             </div>
           ))}
@@ -121,7 +109,7 @@ export default function MenuBackgroundEditor({
   onImageRemove,
   onImagePreview,
 }) {
-  const activeHex = normalizeHexColor(colorDraft) || menuUi.backgroundColor || themeBackground(menuUi.theme);
+  const activeHex = normalizeHexColor(colorDraft) || menuUi.backgroundColor || DEFAULT_MENU_BACKGROUND;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-low">
@@ -130,34 +118,21 @@ export default function MenuBackgroundEditor({
           <p className="mb-2 text-xs font-semibold tracking-[0.12em] text-on-surface-variant uppercase">
             {t('settings.menuBgPreview')}
           </p>
-          <MenuPreview menuUi={{ ...menuUi, backgroundColor: activeHex }} />
+          <MenuPreview menuUi={menuUi} activeHex={activeHex} />
         </div>
 
         <div className="min-w-0">
           <p className="mb-2 text-xs font-semibold tracking-[0.12em] text-on-surface-variant uppercase">
             {t('settings.menuBackground')}
           </p>
-          <div className="grid grid-cols-3 gap-2">
-            <ModeCard
-              active={menuUi.bgMode === 'default'}
-              label={t('settings.menuBgDefault')}
-              hint={t('settings.menuBgDefaultHint')}
-              onClick={() => onModeChange('default')}
-            >
-              <div className="absolute inset-0" style={{ background: themeBackground(menuUi.theme) }} />
-            </ModeCard>
+          <div className="grid grid-cols-2 gap-2">
             <ModeCard
               active={menuUi.bgMode === 'color'}
               label={t('settings.menuBgColor')}
               hint={t('settings.menuBgColorHint')}
               onClick={() => onModeChange('color')}
             >
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(135deg, ${menuUi.backgroundColor || '#415a77'}, ${themeBackground(menuUi.theme)})`,
-                }}
-              />
+              <div className="absolute inset-0" style={{ background: activeHex }} />
             </ModeCard>
             <ModeCard
               active={menuUi.bgMode === 'image'}

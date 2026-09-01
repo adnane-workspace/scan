@@ -38,8 +38,11 @@ export const messages = {
     },
     publicMenu: {
       title: 'Menu public',
-      subtitle: 'Apparence et éléments visibles par les clients sur le menu scanné.',
+      subtitle: 'Logo, fond du menu et éléments visibles sur la page d’accueil.',
+      unsaved: 'Modifications non enregistrées — cliquez sur Enregistrer.',
       visibilityHint: 'Contrôle ce qui apparaît sur la page d’accueil du menu.',
+      backgroundTitle: 'Fond du menu',
+      backgroundHint: 'Couleur unie ou image de fond pour le catalogue scanné.',
     },
     settings: {
       badge: 'Espace gérant',
@@ -929,8 +932,11 @@ export const messages = {
     },
     publicMenu: {
       title: 'القائمة العامة',
-      subtitle: 'المظهر والعناصر التي يراها الزبائن على القائمة الممسوحة.',
+      subtitle: 'الشعار وخلفية القائمة والعناصر الظاهرة في صفحة الاستقبال.',
+      unsaved: 'تعديلات غير محفوظة — انقر على حفظ.',
       visibilityHint: 'تحكم بما يظهر في صفحة استقبال القائمة.',
+      backgroundTitle: 'خلفية القائمة',
+      backgroundHint: 'لون موحّد أو صورة خلفية للقائمة الممسوحة.',
     },
     settings: {
       badge: 'فضاء المسؤول',

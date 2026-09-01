@@ -8,10 +8,12 @@ export const DEFAULT_MENU_UI = {
     restaurant: true,
     cafe: true,
   },
-  bgMode: 'default',
-  backgroundColor: '',
+  bgMode: 'color',
+  backgroundColor: '#f4f2ee',
   backgroundImage: '',
 };
+
+export const DEFAULT_MENU_BACKGROUND = '#f4f2ee';
 
 export const THEME_BACKGROUNDS = {
   light: '#e0e1dd',
@@ -19,7 +21,7 @@ export const THEME_BACKGROUNDS = {
 };
 
 const HEX_COLOR = /^#?([0-9a-fA-F]{6})$/;
-const BG_MODES = new Set(['default', 'color', 'image']);
+const BG_MODES = new Set(['color', 'image']);
 
 export function themeBackground(theme) {
   return theme === 'light' ? THEME_BACKGROUNDS.light : THEME_BACKGROUNDS.dark;
@@ -42,14 +44,16 @@ export function normalizeSectionVisibility(value) {
 export function normalizeMenuUi(value) {
   const raw = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   const backgroundImage = typeof raw.backgroundImage === 'string' ? raw.backgroundImage.trim().slice(0, 2048) : '';
-  let bgMode = BG_MODES.has(raw.bgMode) ? raw.bgMode : 'default';
+  const backgroundColor = normalizeHexColor(raw.backgroundColor) || DEFAULT_MENU_BACKGROUND;
 
-  if (bgMode === 'image' && !backgroundImage) {
-    bgMode = 'default';
+  let bgMode = BG_MODES.has(raw.bgMode) ? raw.bgMode : 'color';
+
+  if (raw.bgMode === 'default') {
+    bgMode = 'color';
   }
 
-  if (bgMode === 'color' && !normalizeHexColor(raw.backgroundColor)) {
-    bgMode = 'default';
+  if (bgMode === 'image' && !backgroundImage) {
+    bgMode = 'color';
   }
 
   return {
@@ -60,7 +64,7 @@ export function normalizeMenuUi(value) {
     sectionsEnabled: raw.sectionsEnabled === true,
     sectionVisibility: normalizeSectionVisibility(raw.sectionVisibility),
     bgMode,
-    backgroundColor: normalizeHexColor(raw.backgroundColor),
+    backgroundColor,
     backgroundImage,
   };
 }
