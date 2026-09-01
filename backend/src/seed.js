@@ -582,6 +582,24 @@ async function seed() {
     },
   });
 
+  await prisma.user.upsert({
+    where: { email: 'superadmin@example.com' },
+    update: {
+      name: 'Super Admin',
+      passwordHash,
+      role: 'superadmin',
+      cafeId: null,
+      emailVerifiedAt: new Date(),
+    },
+    create: {
+      name: 'Super Admin',
+      email: 'superadmin@example.com',
+      passwordHash,
+      role: 'superadmin',
+      emailVerifiedAt: new Date(),
+    },
+  });
+
   let productCount = 0;
 
   const restaurantSection = await prisma.category.create({
@@ -642,6 +660,7 @@ async function seed() {
   console.log(`Café modèle : ${cafe.name} (/${cafe.slug}) · rôle template`);
   console.log(`${catalog.length} catégories · ${productCount} produits · sections Restaurant/Café`);
   console.log(`Admin démo : admin@example.com / ${DEMO_PASSWORD}`);
+  console.log(`Superadmin : superadmin@example.com / ${DEMO_PASSWORD}`);
   console.log(`Menu public : http://localhost:5173/menu/${cafe.slug}`);
 
   await disconnectDatabase();
