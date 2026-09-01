@@ -94,11 +94,13 @@ test('getMenuPaths drop the /menu prefix on tenant hosts', () => {
   assert.equal(tenant.home, '/');
   assert.equal(tenant.categories, '/categories');
   assert.equal(tenant.category('abc'), '/abc');
+  assert.equal(tenant.developer, '/developer');
 
   const unified = getMenuPaths('cafe-central', 'localhost');
   assert.equal(unified.home, '/menu/cafe-central');
   assert.equal(unified.categories, '/menu/cafe-central/categories');
   assert.equal(unified.category('abc'), '/menu/cafe-central/abc');
+  assert.equal(unified.developer, '/menu/cafe-central/developer');
 });
 
 test('getMarketingHref points app visitors at the marketing origin', () => {

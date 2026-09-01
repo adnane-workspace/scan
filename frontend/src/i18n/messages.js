@@ -736,6 +736,21 @@ export const messages = {
       sectionsTitle: 'Que souhaitez-vous ?',
       sectionCategories: '{count} catégories · {products} plats',
       backToSections: 'Sections',
+      developer: {
+        badgeAria: 'À propos de Scanosh',
+        pageTitle: '{name} — Crédits',
+        pageDescription: 'Découvrez Scanosh, le menu digital QR, et son créateur.',
+        kicker: 'Menu digital',
+        productBody:
+          'Scanosh permet aux cafés et restaurants de publier un menu QR élégant, mis à jour en temps réel, sans réimprimer la carte.',
+        craftedBy: 'Conçu et développé par',
+        role: 'Développeur full-stack · Maroc',
+        stack: 'React · Node.js · PostgreSQL · Cloudinary',
+        contact: 'Me contacter',
+        visitScanosh: 'Découvrir Scanosh',
+        backHome: 'Retour',
+        footer: '© {year} {name}. Tous droits réservés.',
+      },
     },
     location: {
       title: 'Emplacement du café',
@@ -1631,6 +1646,21 @@ export const messages = {
       sectionsTitle: 'ماذا تريد؟',
       sectionCategories: '{count} تصنيفات · {products} أطباق',
       backToSections: 'الأقسام',
+      developer: {
+        badgeAria: 'حول Scanosh',
+        pageTitle: '{name} — الاعتمادات',
+        pageDescription: 'اكتشف Scanosh، القائمة الرقمية برمز QR، ومنشئها.',
+        kicker: 'قائمة رقمية',
+        productBody:
+          'يتيح Scanosh للمقاهي والمطاعم نشر قائمة QR أنيقة، محدّثة فورياً، دون إعادة طباعة البطاقة.',
+        craftedBy: 'صُمّم وطُوّر بواسطة',
+        role: 'مطوّر full-stack · المغرب',
+        stack: 'React · Node.js · PostgreSQL · Cloudinary',
+        contact: 'تواصل معي',
+        visitScanosh: 'اكتشف Scanosh',
+        backHome: 'رجوع',
+        footer: '© {year} {name}. جميع الحقوق محفوظة.',
+      },
     },
     location: {
       title: 'موقع المقهى',

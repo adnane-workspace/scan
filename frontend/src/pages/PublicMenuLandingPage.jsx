@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import MenuDeveloperBadge from '../components/menu/MenuDeveloperBadge.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import DocumentHead from '../components/seo/DocumentHead.jsx';
@@ -143,6 +144,10 @@ export default function PublicMenuLandingPage() {
 
       <div className="pointer-events-none absolute inset-0 bg-black/40" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/25" />
+
+      <div className="absolute left-0 top-0 z-20 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6">
+        <MenuDeveloperBadge to={paths.developer} />
+      </div>
 
       <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-lg flex-col justify-end px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-16 text-center min-[480px]:px-6 sm:max-w-xl sm:justify-center sm:px-8 sm:py-16">
         <div className="flex min-h-0 w-full shrink flex-col items-center">

@@ -38,8 +38,9 @@ function migrateStorageKey(from, to) {
 
 export const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL);
 export const APP_NAME = 'Scanosh';
-export const DEVELOPER_NAME = 'Adnan Elmenouar';
+export const DEVELOPER_NAME = 'Adnane EL MENOUAR';
 export const DEVELOPER_URL = 'https://elmenouar.linkmakeup.com/';
+export const MARKETING_SITE_URL = 'https://scanosh.com';
 export const TOKEN_STORAGE_KEY = 'qtable-token';
 export const USER_STORAGE_KEY = 'qtable-user';
 export const LOCALE_STORAGE_KEY = 'qtable-locale';

@@ -33,6 +33,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage.jsx'));
 const PublicMenuLandingPage = lazy(() => import('./pages/PublicMenuLandingPage.jsx'));
+const MenuDeveloperPage = lazy(() => import('./pages/MenuDeveloperPage.jsx'));
 const PublicMenuSectionsPage = lazy(() => import('./pages/PublicMenuSectionsPage.jsx'));
 const PublicMenuPage = lazy(() => import('./pages/PublicMenuPage.jsx'));
 const QrRequestsPage = lazy(() => import('./pages/QrRequestsPage.jsx'));
@@ -170,6 +171,7 @@ function UnifiedPublicMenuRoutes() {
   return (
     <Route element={<PublicLayout />}>
       <Route path="/menu/:slug" element={<PublicMenuLandingPage />} />
+      <Route path="/menu/:slug/developer" element={<MenuDeveloperPage />} />
       <Route path="/menu/:slug/sections" element={<PublicMenuSectionsPage />} />
       <Route path="/menu/:slug/restaurant/:categoryId" element={<SectionMenuPage sectionKey="restaurant" />} />
       <Route path="/menu/:slug/restaurant" element={<SectionMenuPage sectionKey="restaurant" />} />
@@ -195,6 +197,7 @@ function MenuTenantRoutes({ slug }) {
         <Route path="/platform/*" element={<ToAppRedirect />} />
         <Route element={<PublicLayout />}>
           <Route path="/" element={<PublicMenuLandingPage />} />
+          <Route path="/developer" element={<MenuDeveloperPage />} />
           <Route path="/sections" element={<PublicMenuSectionsPage />} />
           <Route path="/restaurant/:categoryId" element={<SectionMenuPage sectionKey="restaurant" />} />
           <Route path="/restaurant" element={<SectionMenuPage sectionKey="restaurant" />} />

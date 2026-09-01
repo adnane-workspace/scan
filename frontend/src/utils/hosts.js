@@ -138,6 +138,7 @@ export function getMenuPaths(slug, hostname = currentLocationParts().hostname) {
       sectionCategory: (key, id) => `/${key}/${id}`,
       categories: '/categories',
       category: (id) => `/${id}`,
+      developer: '/developer',
     };
   }
 
@@ -148,6 +149,7 @@ export function getMenuPaths(slug, hostname = currentLocationParts().hostname) {
     sectionCategory: (key, id) => `/menu/${slug}/${key}/${id}`,
     categories: `/menu/${slug}/categories`,
     category: (id) => `/menu/${slug}/${id}`,
+    developer: `/menu/${slug}/developer`,
   };
 }
 
