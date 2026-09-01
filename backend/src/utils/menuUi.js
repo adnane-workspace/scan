@@ -52,10 +52,6 @@ export function normalizeMenuUi(value) {
     bgMode = 'color';
   }
 
-  if (bgMode === 'image' && !backgroundImage) {
-    bgMode = 'color';
-  }
-
   return {
     theme: raw.theme === 'light' ? 'light' : 'dark',
     showPhone: raw.showPhone !== false,
@@ -67,4 +63,14 @@ export function normalizeMenuUi(value) {
     backgroundColor,
     backgroundImage,
   };
+}
+
+export function finalizeMenuUi(value) {
+  const ui = normalizeMenuUi(value);
+
+  if (ui.bgMode === 'image' && !ui.backgroundImage) {
+    return { ...ui, bgMode: 'color' };
+  }
+
+  return ui;
 }

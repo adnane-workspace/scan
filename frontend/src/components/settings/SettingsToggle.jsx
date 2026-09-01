@@ -1,0 +1,34 @@
+import MaterialIcon from '../ui/MaterialIcon.jsx';
+
+export function SettingsToggle({ checked, onChange, label, hint, icon }) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-outline-variant bg-surface-container-low px-4 py-4">
+      <div className="flex min-w-0 items-start gap-3">
+        {icon ? (
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-container text-primary">
+            <MaterialIcon name={icon} className="text-[20px]" />
+          </span>
+        ) : null}
+        <div className="min-w-0">
+          <p className="font-semibold text-on-surface">{label}</p>
+          {hint ? <p className="mt-0.5 text-sm text-on-surface-variant">{hint}</p> : null}
+        </div>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+          checked ? 'bg-primary' : 'bg-outline-variant'
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
+            checked ? 'translate-x-5 rtl:-translate-x-5' : ''
+          }`}
+        />
+      </button>
+    </div>
+  );
+}

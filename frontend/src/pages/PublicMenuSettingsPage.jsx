@@ -4,19 +4,30 @@ import ImageLightbox from '../components/ui/ImageLightbox.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import MenuBackgroundEditor from '../components/settings/MenuBackgroundEditor.jsx';
 import { SettingsImagePicker, SettingsSectionCard } from '../components/settings/SettingsPanels.jsx';
+import { SettingsToggle } from '../components/settings/SettingsToggle.jsx';
 import { useLocale } from '../hooks/useLocale.js';
 import { useToast } from '../hooks/useToast.js';
 import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import { getMyCafe, updateMyCafe, uploadCafeLogo } from '../services/cafe.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
 import { getApiError } from '../utils/apiError.js';
-import { DEFAULT_MENU_UI, normalizeHexColor, normalizeMenuUi } from '../utils/menuUi.js';
+import { DEFAULT_MENU_UI, finalizeMenuUi, normalizeHexColor, normalizeMenuUi } from '../utils/menuUi.js';
 
 function draftSnapshot(logo, menuUi) {
   return JSON.stringify({
     logo: logo || '',
     menuUi: normalizeMenuUi(menuUi),
   });
+}
+
+function PageSkeleton() {
+  return (
+    <div className="animate-pulse space-y-5">
+      <div className="h-48 rounded-[18px] bg-surface-container-low" />
+      <div className="h-72 rounded-[18px] bg-surface-container-low" />
+      <div className="h-36 rounded-[18px] bg-surface-container-low" />
+    </div>
+  );
 }
 
 export default function PublicMenuSettingsPage() {
@@ -97,7 +108,7 @@ export default function PublicMenuSettingsPage() {
   }
 
   async function handleSave() {
-    const nextUi = normalizeMenuUi(menuUi);
+    const nextUi = finalizeMenuUi(menuUi);
 
     setSaving(true);
     setError('');
@@ -173,26 +184,23 @@ export default function PublicMenuSettingsPage() {
   const saveDisabled = !isDirty || saving || Boolean(uploading);
 
   return (
-    <section className="mx-auto w-full max-w-3xl space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-on-surface sm:text-[1.75rem]">
-            {t('publicMenu.title')}
-          </h1>
-          <p className="mt-1 text-sm text-on-surface-variant">
-            {isDirty ? t('publicMenu.unsaved') : t('publicMenu.subtitle')}
-          </p>
+    <section className={`mx-auto w-full max-w-4xl space-y-6 ${isDirty ? 'pb-24 lg:pb-6' : ''}`}>
+      <div className="flex flex-col gap-4 border-b border-outline-variant pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-on-surface sm:text-[1.75rem]">
+              {t('publicMenu.title')}
+            </h1>
+            {isDirty ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:text-amber-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                {t('publicMenu.unsavedShort')}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1.5 max-w-xl text-sm text-on-surface-variant">{t('publicMenu.subtitle')}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saveDisabled}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <MaterialIcon name="save" className="text-[18px]" />
-            {saving ? t('common.saving') : t('common.save')}
-          </button>
+        <div className="hidden flex-wrap items-center gap-2 sm:flex">
           {publicUrl ? (
             <a
               href={publicUrl}
@@ -204,6 +212,15 @@ export default function PublicMenuSettingsPage() {
               {t('settings.viewMenu')}
             </a>
           ) : null}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saveDisabled}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <MaterialIcon name="save" className="text-[18px]" />
+            {saving ? t('common.saving') : t('common.save')}
+          </button>
         </div>
       </div>
 
@@ -212,30 +229,9 @@ export default function PublicMenuSettingsPage() {
       ) : null}
 
       {loading ? (
-        <div className="rounded-[18px] border border-outline-variant bg-surface-container-lowest px-6 py-10 text-sm text-on-surface-variant">
-          {t('common.loading')}
-        </div>
+        <PageSkeleton />
       ) : (
         <div className="space-y-5">
-          <SettingsSectionCard icon="storefront" title={t('settings.logo')} subtitle={t('settings.logoHint')}>
-            <SettingsImagePicker
-              preview={logo}
-              emptyClass="h-28 w-28"
-              uploading={uploading === 'logo'}
-              hasImage={Boolean(logo)}
-              chooseLabel={t('settings.chooseLogo')}
-              replaceLabel={t('settings.replaceLogo')}
-              uploadingLabel={t('settings.uploading')}
-              removeLabel={t('settings.removeLogo')}
-              emptyHint={t('settings.logoHintEmpty')}
-              viewLabel={t('settings.viewPhoto')}
-              onChange={handleLogoChange}
-              onRemove={handleLogoRemove}
-              onPreview={() => setPreviewUrl(logo)}
-              disabled={Boolean(uploading) || saving}
-            />
-          </SettingsSectionCard>
-
           <SettingsSectionCard icon="wallpaper" title={t('publicMenu.backgroundTitle')} subtitle={t('publicMenu.backgroundHint')}>
             <MenuBackgroundEditor
               menuUi={menuUi}
@@ -250,30 +246,74 @@ export default function PublicMenuSettingsPage() {
             />
           </SettingsSectionCard>
 
-          <SettingsSectionCard icon="visibility" title={t('settings.menuVisibility')} subtitle={t('publicMenu.visibilityHint')}>
-            {[
-              { key: 'showPhone', label: t('settings.menuShowPhone'), hint: t('settings.menuShowPhoneHint') },
-              { key: 'showAddress', label: t('settings.menuShowAddress'), hint: t('settings.menuShowAddressHint') },
-            ].map((item) => (
-              <label
-                key={item.key}
-                className="flex cursor-pointer items-start justify-between gap-4 rounded-2xl border border-outline-variant bg-surface-container-low px-4 py-4"
-              >
-                <span>
-                  <span className="block font-semibold text-on-surface">{item.label}</span>
-                  <span className="mt-0.5 block text-sm text-on-surface-variant">{item.hint}</span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={Boolean(menuUi[item.key])}
-                  onChange={(event) => patchMenuUi({ [item.key]: event.target.checked })}
-                  className="mt-1 h-5 w-5 accent-primary"
+          <div className="grid gap-5 lg:grid-cols-2">
+            <SettingsSectionCard icon="storefront" title={t('settings.logo')} subtitle={t('settings.logoHint')}>
+              <SettingsImagePicker
+                preview={logo}
+                emptyClass="h-28 w-28"
+                uploading={uploading === 'logo'}
+                hasImage={Boolean(logo)}
+                chooseLabel={t('settings.chooseLogo')}
+                replaceLabel={t('settings.replaceLogo')}
+                uploadingLabel={t('settings.uploading')}
+                removeLabel={t('settings.removeLogo')}
+                emptyHint={t('settings.logoHintEmpty')}
+                viewLabel={t('settings.viewPhoto')}
+                onChange={handleLogoChange}
+                onRemove={handleLogoRemove}
+                onPreview={() => setPreviewUrl(logo)}
+                disabled={Boolean(uploading) || saving}
+              />
+            </SettingsSectionCard>
+
+            <SettingsSectionCard icon="visibility" title={t('settings.menuVisibility')} subtitle={t('publicMenu.visibilityHint')}>
+              <div className="grid gap-3">
+                <SettingsToggle
+                  checked={Boolean(menuUi.showPhone)}
+                  onChange={(value) => patchMenuUi({ showPhone: value })}
+                  icon="call"
+                  label={t('settings.menuShowPhone')}
+                  hint={t('settings.menuShowPhoneHint')}
                 />
-              </label>
-            ))}
-          </SettingsSectionCard>
+                <SettingsToggle
+                  checked={Boolean(menuUi.showAddress)}
+                  onChange={(value) => patchMenuUi({ showAddress: value })}
+                  icon="location_on"
+                  label={t('settings.menuShowAddress')}
+                  hint={t('settings.menuShowAddressHint')}
+                />
+              </div>
+            </SettingsSectionCard>
+          </div>
         </div>
       )}
+
+      {isDirty ? (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-outline-variant bg-background/95 px-4 py-3 backdrop-blur-md sm:hidden">
+          <div className="mx-auto flex max-w-4xl gap-2">
+            {publicUrl ? (
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface"
+                aria-label={t('settings.viewMenu')}
+              >
+                <MaterialIcon name="open_in_new" className="text-[20px]" />
+              </a>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saveDisabled}
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-on-primary disabled:opacity-50"
+            >
+              <MaterialIcon name="save" className="text-[20px]" />
+              {saving ? t('common.saving') : t('common.save')}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <ImageLightbox src={previewUrl} onClose={() => setPreviewUrl('')} />
     </section>

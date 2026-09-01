@@ -153,7 +153,7 @@ export default function PublicMenuPage({ fixedSectionKey = null }) {
 
   function frame(content) {
     return (
-      <PublicMenuFrame cafe={cafe} className="menu-app">
+      <PublicMenuFrame cafe={cafe}>
         {content}
       </PublicMenuFrame>
     );
@@ -281,10 +281,16 @@ export default function PublicMenuPage({ fixedSectionKey = null }) {
       <PublicMenuHeader cafe={cafe} slug={slug} backTo={backTo} backLabel={backLabel} />
       <CategoryTabs items={tabItems} activeId={activeCategoryId} onSelect={goToCategory} />
       <div className={contentClass}>
-        <p className="mb-1 text-xs font-semibold tracking-[0.08em] text-[#0d1b2a]/45 uppercase">
+        <p
+          className="mb-1 text-xs font-semibold tracking-[0.1em] text-on-surface-variant uppercase"
+          style={{ textShadow: 'var(--menu-heading-shadow)' }}
+        >
           {isSectionMode ? section?.name : t('menu.categories')}
         </p>
-        <h1 className="mb-5 break-words text-[1.25rem] font-semibold tracking-tight text-[#0d1b2a] sm:mb-6 sm:text-2xl">
+        <h1
+          className="mb-5 break-words text-[1.35rem] font-semibold tracking-tight text-on-surface sm:mb-6 sm:text-2xl"
+          style={{ textShadow: 'var(--menu-heading-shadow)' }}
+        >
           {selection.category?.name}
         </h1>
 

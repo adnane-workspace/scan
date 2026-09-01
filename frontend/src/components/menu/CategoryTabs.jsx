@@ -33,10 +33,10 @@ function TabRail({ items, activeId, onSelect }) {
             role="tab"
             aria-selected={active}
             onClick={() => onSelect(item)}
-            className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-sm transition-colors ${
+            className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-sm transition-all duration-200 ${
               active
-                ? 'bg-[#0d1b2a] font-semibold text-[#e0e1dd]'
-                : 'bg-transparent font-medium text-[#0d1b2a]/65 hover:bg-[#0d1b2a]/6 hover:text-[#0d1b2a]'
+                ? 'bg-[var(--menu-tab-active-bg)] font-semibold text-[var(--menu-tab-active-text)] shadow-sm'
+                : 'bg-transparent font-medium text-[var(--menu-tab-inactive-text)] hover:bg-[var(--menu-tab-hover-bg)] hover:text-on-surface'
             }`}
           >
             {item.name}
@@ -53,7 +53,7 @@ export default function CategoryTabs({ items, activeId, onSelect }) {
   }
 
   return (
-    <div className="sticky top-[calc(3.75rem+env(safe-area-inset-top))] z-30 border-b border-[#0d1b2a]/8 bg-[#f7f6f3]/92 backdrop-blur-2xl sm:top-[calc(4.5rem+env(safe-area-inset-top))]">
+    <div className="sticky top-[calc(3.75rem+env(safe-area-inset-top))] z-30 border-b border-[var(--menu-chrome-border)] bg-[var(--menu-chrome-bg)] backdrop-blur-2xl transition-colors duration-500 sm:top-[calc(4.5rem+env(safe-area-inset-top))]">
       <TabRail items={items} activeId={activeId} onSelect={onSelect} />
     </div>
   );

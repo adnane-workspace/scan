@@ -10,13 +10,13 @@ export default function PublicProductListItem({ product, onSelect }) {
     <button
       type="button"
       onClick={() => onSelect(product)}
-      className="flex w-full gap-3 rounded-2xl bg-white p-3 text-start shadow-[0_4px_16px_rgba(13,27,42,0.04)] ring-1 ring-[#0d1b2a]/6 transition-colors active:bg-[#faf9f7] sm:gap-4 sm:p-4"
+      className="flex w-full gap-3 rounded-[1.15rem] bg-[var(--menu-card-bg)] p-3 text-start shadow-[var(--menu-card-shadow)] ring-1 ring-[var(--menu-card-ring)] transition-colors duration-200 active:bg-[#faf9f7] sm:gap-4 sm:rounded-2xl sm:p-4"
     >
-      <div className="h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-[#ebe8e2] sm:h-24 sm:w-24">
+      <div className="h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-surface-container sm:h-24 sm:w-24">
         {product.image ? (
           <CloudinaryImage src={product.image} alt="" preset="productCard" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[#0d1b2a]/30">
+          <div className="flex h-full w-full items-center justify-center text-on-surface/25">
             <MaterialIcon name="restaurant" className="text-2xl" />
           </div>
         )}
@@ -33,7 +33,7 @@ export default function PublicProductListItem({ product, onSelect }) {
         </div>
 
         {product.description ? (
-          <p className="mt-1.5 text-[13px] leading-relaxed text-[#4a5560] sm:text-sm">
+          <p className="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-[#4a5560] sm:text-sm">
             {product.description}
           </p>
         ) : null}

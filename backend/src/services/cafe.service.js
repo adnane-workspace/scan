@@ -4,7 +4,7 @@ import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
 import { invalidatePublicMenu } from './menuCache.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
-import { normalizeMenuUi } from '../utils/menuUi.js';
+import { normalizeMenuUi, finalizeMenuUi } from '../utils/menuUi.js';
 import { deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 
 function requireCafeId(user) {
@@ -101,7 +101,7 @@ export async function updateMyCafe(user, payload) {
   }
 
   if (payload.menuUi !== undefined) {
-    const nextUi = normalizeMenuUi(payload.menuUi);
+    const nextUi = finalizeMenuUi(payload.menuUi);
     nextUi.backgroundImage = normalizeImageUrl(nextUi.backgroundImage);
     data.menuUi = nextUi;
   }

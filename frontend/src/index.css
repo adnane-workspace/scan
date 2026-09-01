@@ -241,6 +241,19 @@ html.theme-dark input[type='date']::-webkit-calendar-picker-indicator,
   --menu-navy: #0d1b2a;
   --menu-gold: #c4a574;
   --menu-gold-soft: rgba(196, 165, 116, 0.18);
+  --menu-chrome-bg: rgba(255, 255, 255, 0.9);
+  --menu-chrome-border: rgba(13, 27, 42, 0.08);
+  --menu-chrome-pill-bg: rgba(255, 255, 255, 0.96);
+  --menu-chrome-pill-ring: rgba(13, 27, 42, 0.08);
+  --menu-tab-active-bg: #0d1b2a;
+  --menu-tab-active-text: #f7f6f3;
+  --menu-tab-inactive-text: rgba(13, 27, 42, 0.62);
+  --menu-tab-hover-bg: rgba(13, 27, 42, 0.06);
+  --menu-overlay: rgba(13, 27, 42, 0);
+  --menu-card-bg: #ffffff;
+  --menu-card-ring: rgba(13, 27, 42, 0.07);
+  --menu-card-shadow: 0 10px 28px rgba(13, 27, 42, 0.07);
+  --menu-heading-shadow: none;
   background: var(--color-background);
   color: var(--color-on-surface);
 }
