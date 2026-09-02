@@ -114,10 +114,10 @@ export function menuDeepLink(slug, { sectionKey, categoryId, productId } = {}) {
 export async function getSharePreview(slug, { sectionKey, categoryId, productId } = {}) {
   const menu = await getPublicMenu(slug);
   const cafe = menu.cafe;
-  const sectionsEnabled = cafe.menuUi?.sectionsEnabled === true;
+  const sectionsEnabled = true;
   let category = categoryId ? findCategory(menu.categories, categoryId) : null;
 
-  if (!category && categoryId && sectionsEnabled) {
+  if (!category && categoryId) {
     for (const section of menu.sections || []) {
       const match = section.children?.find((item) => String(item.id) === String(categoryId));
 

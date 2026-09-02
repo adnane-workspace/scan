@@ -1,12 +1,17 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
-import { isMenuSectionKey, SECTIONS_MAX_DEPTH } from '../utils/menuSections.js';
+import {
+  DEFAULT_SECTION_DEFS,
+  isMenuSectionKey,
+  MAX_MENU_SECTIONS,
+  SECTIONS_MAX_DEPTH,
+  slugifySectionKey,
+} from '../utils/menuSections.js';
 import { normalizeMenuUi } from '../utils/menuUi.js';
 import { recordActivity } from './activity.service.js';
 import { invalidatePublicMenu } from './menuCache.service.js';
 import { deleteCloudinaryImage, deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 import {
-  MAX_CATEGORY_DEPTH,
   collectDescendantIds,
   nodeDepth,
   subtreeHeight,
@@ -44,7 +49,8 @@ function normalizeSectionKey(sectionKey) {
     return null;
   }
 
-  return sectionKey;
+  const key = slugifySectionKey(sectionKey);
+  return key || null;
 }
 
 function toCategoryResponse(category, extras = {}) {
@@ -62,15 +68,6 @@ function toCategoryResponse(category, extras = {}) {
     productCount: extras.productCount ?? category._count?.products ?? 0,
     childCount: extras.childCount ?? category._count?.children ?? 0,
   };
-}
-
-async function loadCafeSectionsEnabled(cafeId) {
-  const cafe = await prisma.cafe.findUnique({
-    where: { id: cafeId },
-    select: { menuUi: true },
-  });
-
-  return normalizeMenuUi(cafe?.menuUi).sectionsEnabled;
 }
 
 async function loadCafeCategories(cafeId) {
@@ -100,19 +97,66 @@ async function findOwnedCategory(cafeId, categoryId) {
   return category;
 }
 
-function maxDepthForCafe(sectionsEnabled) {
-  return sectionsEnabled ? SECTIONS_MAX_DEPTH : MAX_CATEGORY_DEPTH;
-}
+/**
+ * Ensure Restaurant + Café section roots exist; attach any flat root categories under restaurant.
+ */
+export async function ensureDefaultSections(cafeId, client = prisma) {
+  const existing = await client.category.findMany({
+    where: { cafeId },
+    select: { id: true, parentId: true, sectionKey: true, order: true },
+  });
 
-async function assertSectionRules(cafeId, { categoryId, parentId, sectionKey, sectionsEnabled }) {
-  if (!sectionsEnabled) {
-    if (sectionKey) {
-      throw new ApiError(400, 'Menu sections are disabled for this cafe', null, 'SECTIONS_DISABLED');
+  const byKey = new Map(
+    existing.filter((item) => item.sectionKey).map((item) => [item.sectionKey, item]),
+  );
+  const rootIds = {};
+
+  for (const [index, def] of DEFAULT_SECTION_DEFS.entries()) {
+    if (byKey.has(def.key)) {
+      rootIds[def.key] = byKey.get(def.key).id;
+      continue;
     }
 
-    return;
+    const created = await client.category.create({
+      data: {
+        cafeId,
+        name: def.name,
+        sectionKey: def.key,
+        order: index + 1,
+      },
+      select: { id: true },
+    });
+
+    rootIds[def.key] = created.id;
   }
 
+  const flatRoots = existing.filter((item) => !item.parentId && !item.sectionKey);
+
+  if (flatRoots.length > 0 && rootIds.restaurant) {
+    await client.category.updateMany({
+      where: { id: { in: flatRoots.map((item) => item.id) } },
+      data: { parentId: rootIds.restaurant },
+    });
+  }
+
+  const cafe = await client.cafe.findUnique({
+    where: { id: cafeId },
+    select: { menuUi: true },
+  });
+  const menuUi = normalizeMenuUi(cafe?.menuUi);
+  const raw = cafe?.menuUi && typeof cafe.menuUi === 'object' ? cafe.menuUi : {};
+
+  if (raw.sectionsEnabled !== true) {
+    await client.cafe.update({
+      where: { id: cafeId },
+      data: { menuUi: { ...raw, ...menuUi, sectionsEnabled: true } },
+    });
+  }
+
+  return rootIds;
+}
+
+async function assertSectionRules(cafeId, { categoryId, parentId, sectionKey }) {
   const categories = await loadCafeCategories(cafeId);
   const sectionRoots = categories.filter((item) => item.sectionKey);
 
@@ -133,15 +177,20 @@ async function assertSectionRules(cafeId, { categoryId, parentId, sectionKey, se
       throw new ApiError(409, 'This menu section already exists', null, 'SECTION_KEY_DUPLICATE');
     }
 
-    if (!categoryId && sectionRoots.length >= 2) {
-      throw new ApiError(400, 'Only two menu sections are allowed', null, 'SECTION_MAX_ROOTS');
+    if (!categoryId && sectionRoots.length >= MAX_MENU_SECTIONS) {
+      throw new ApiError(
+        400,
+        `Maximum ${MAX_MENU_SECTIONS} menu sections allowed`,
+        { max: MAX_MENU_SECTIONS },
+        'SECTION_MAX_ROOTS',
+      );
     }
 
     return;
   }
 
   if (!parentId) {
-    throw new ApiError(400, 'Choose Restaurant or Cafe as the parent section', null, 'SECTION_PARENT_REQUIRED');
+    throw new ApiError(400, 'Choose a menu section as the parent', null, 'SECTION_PARENT_REQUIRED');
   }
 
   const parent = categories.find((item) => item.id === parentId);
@@ -151,7 +200,7 @@ async function assertSectionRules(cafeId, { categoryId, parentId, sectionKey, se
   }
 }
 
-async function assertParentRules(cafeId, categoryId, parentId, sectionsEnabled) {
+async function assertParentRules(cafeId, categoryId, parentId) {
   if (!parentId) {
     return;
   }
@@ -167,7 +216,7 @@ async function assertParentRules(cafeId, categoryId, parentId, sectionsEnabled) 
     throw new ApiError(400, 'Parent category not found', null, 'CATEGORY_PARENT_NOT_FOUND');
   }
 
-  if (sectionsEnabled && !parent.sectionKey) {
+  if (!parent.sectionKey) {
     throw new ApiError(400, 'Categories must belong to a menu section', null, 'SECTION_PARENT_REQUIRED');
   }
 
@@ -186,10 +235,14 @@ async function assertParentRules(cafeId, categoryId, parentId, sectionsEnabled) 
   const parentDepth = nodeDepth(categories, parentId);
   const movingHeight = categoryId ? subtreeHeight(categories, categoryId) : 1;
   const resultingDepth = parentDepth + movingHeight;
-  const maxDepth = maxDepthForCafe(sectionsEnabled);
 
-  if (resultingDepth > maxDepth) {
-    throw new ApiError(400, `Maximum ${maxDepth} category levels`, { max: maxDepth }, 'CATEGORY_MAX_DEPTH');
+  if (resultingDepth > SECTIONS_MAX_DEPTH) {
+    throw new ApiError(
+      400,
+      `Maximum ${SECTIONS_MAX_DEPTH} category levels`,
+      { max: SECTIONS_MAX_DEPTH },
+      'CATEGORY_MAX_DEPTH',
+    );
   }
 }
 
@@ -209,7 +262,8 @@ export async function assertLeafCategory(cafeId, categoryId) {
 
 export async function createCategory(user, payload) {
   const cafeId = requireCafeId(user);
-  const sectionsEnabled = await loadCafeSectionsEnabled(cafeId);
+  await ensureDefaultSections(cafeId);
+
   const parentId = normalizeParentId(payload.parentId) ?? null;
   const sectionKey = normalizeSectionKey(payload.sectionKey) ?? null;
 
@@ -217,11 +271,10 @@ export async function createCategory(user, payload) {
     categoryId: null,
     parentId,
     sectionKey,
-    sectionsEnabled,
   });
 
   if (parentId) {
-    await assertParentRules(cafeId, null, parentId, sectionsEnabled);
+    await assertParentRules(cafeId, null, parentId);
   }
 
   const category = await prisma.category.create({
@@ -261,6 +314,7 @@ export async function listCategories(user, query = {}) {
 
 async function loadMappedCategories(user) {
   const cafeId = requireCafeId(user);
+  await ensureDefaultSections(cafeId);
 
   const categories = await prisma.category.findMany({
     where: { cafeId },
@@ -292,7 +346,7 @@ export async function getCategoryById(user, categoryId) {
 
 export async function updateCategory(user, categoryId, payload) {
   const cafeId = requireCafeId(user);
-  const sectionsEnabled = await loadCafeSectionsEnabled(cafeId);
+  await ensureDefaultSections(cafeId);
   const current = await findOwnedCategory(cafeId, categoryId);
 
   const data = {
@@ -312,7 +366,6 @@ export async function updateCategory(user, categoryId, payload) {
       categoryId,
       parentId: current.parentId,
       sectionKey,
-      sectionsEnabled,
     });
 
     data.sectionKey = sectionKey;
@@ -325,9 +378,8 @@ export async function updateCategory(user, categoryId, payload) {
       categoryId,
       parentId,
       sectionKey: current.sectionKey,
-      sectionsEnabled,
     });
-    await assertParentRules(cafeId, categoryId, parentId, sectionsEnabled);
+    await assertParentRules(cafeId, categoryId, parentId);
     data.parentId = parentId;
 
     if (parentId) {
@@ -357,6 +409,16 @@ export async function deleteCategory(user, categoryId) {
 
   if (category._count.children > 0) {
     throw new ApiError(409, 'Delete subcategories first', null, 'CATEGORY_HAS_CHILDREN');
+  }
+
+  if (category.sectionKey) {
+    const sectionCount = await prisma.category.count({
+      where: { cafeId, sectionKey: { not: null } },
+    });
+
+    if (sectionCount <= 1) {
+      throw new ApiError(400, 'At least one menu section is required', null, 'SECTION_MIN_ROOTS');
+    }
   }
 
   const products = await prisma.product.findMany({

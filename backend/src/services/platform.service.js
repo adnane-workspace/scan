@@ -7,6 +7,7 @@ import { recordActivity } from './activity.service.js';
 import { invalidatePublicMenu } from './menuCache.service.js';
 import { findPendingQrRequest, toQrStatus } from './qr.service.js';
 import { deleteCloudinaryImage } from './storage.service.js';
+import { ensureDefaultSections } from './category.service.js';
 
 function ownerFromUsers(users = []) {
   const owner = users[0];
@@ -68,6 +69,7 @@ export async function createPlatformCafe({ ownerName, email, password, cafeName,
       data: {
         name: cafeName.trim(),
         slug: cafeSlug,
+        menuUi: { sectionsEnabled: true },
       },
     });
 
@@ -84,6 +86,8 @@ export async function createPlatformCafe({ ownerName, email, password, cafeName,
 
     return createdCafe;
   });
+
+  await ensureDefaultSections(cafe.id);
 
   await recordActivity({
     action: 'cafe_created',

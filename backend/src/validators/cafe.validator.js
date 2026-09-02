@@ -28,12 +28,7 @@ export const updateCafeSchema = z.object({
           showAddress: z.boolean().optional(),
           showLanguage: z.boolean().optional(),
           sectionsEnabled: z.boolean().optional(),
-          sectionVisibility: z
-            .object({
-              restaurant: z.boolean().optional(),
-              cafe: z.boolean().optional(),
-            })
-            .optional(),
+          sectionVisibility: z.record(z.string(), z.boolean()).optional(),
           bgMode: z.enum(['color', 'image', 'default']).optional(),
           backgroundColor: z.string().trim().max(16).optional(),
           backgroundImage: z.string().trim().max(2048).optional(),

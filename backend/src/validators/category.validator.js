@@ -17,7 +17,13 @@ const parentIdSchema = z.preprocess(
 
 const sectionKeySchema = z.preprocess(
   (value) => (value === '' || value === undefined ? null : value),
-  z.enum(['restaurant', 'cafe']).nullable(),
+  z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(40)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid section key')
+    .nullable(),
 );
 
 export const createCategorySchema = z.object({

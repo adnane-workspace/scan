@@ -1,15 +1,50 @@
 import { normalizeSectionVisibility } from './menuUi.js';
 
-export const MENU_SECTION_KEYS = ['restaurant', 'cafe'];
+export const DEFAULT_SECTION_DEFS = [
+  { key: 'restaurant', name: 'Restaurant' },
+  { key: 'cafe', name: 'Café' },
+];
 
+export const DEFAULT_SECTION_KEYS = DEFAULT_SECTION_DEFS.map((item) => item.key);
+
+/** @deprecated use DEFAULT_SECTION_KEYS */
+export const MENU_SECTION_KEYS = DEFAULT_SECTION_KEYS;
+
+export const MAX_MENU_SECTIONS = 12;
+export const SECTION_KEY_MAX_LENGTH = 40;
+
+const SECTION_KEY_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+export function slugifySectionKey(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, SECTION_KEY_MAX_LENGTH);
+}
+
 export function isMenuSectionKey(value) {
-  return MENU_SECTION_KEYS.includes(String(value || '').toLowerCase());
+  const key = String(value || '').toLowerCase().trim();
+  return Boolean(key) && key.length <= SECTION_KEY_MAX_LENGTH && SECTION_KEY_RE.test(key);
 }
 
 export function isLegacyCategoryId(value) {
   return UUID_RE.test(String(value || ''));
+}
+
+export function sectionIcon(sectionKey) {
+  if (sectionKey === 'cafe') {
+    return 'local_cafe';
+  }
+
+  if (sectionKey === 'restaurant') {
+    return 'restaurant';
+  }
+
+  return 'grid_view';
 }
 
 export function getActiveSections(menu) {
@@ -21,12 +56,7 @@ export function getActiveSections(menu) {
 }
 
 export function getSectionMenuDestination(menu, paths) {
-  const menuUi = menu?.cafe?.menuUi;
   const activeSections = getActiveSections(menu);
-
-  if (!menuUi?.sectionsEnabled) {
-    return paths.categories;
-  }
 
   if (activeSections.length > 1) {
     return paths.sections;

@@ -64,6 +64,7 @@ async function cloneCafeContent(tx, source, targetId) {
       data: {
         cafeId: targetId,
         parentId: category.parentId ? idMap.get(category.parentId) || null : null,
+        sectionKey: category.sectionKey || null,
         name: category.name,
         description: category.description,
         image: category.image,

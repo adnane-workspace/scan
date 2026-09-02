@@ -6,6 +6,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { generateToken } from '../utils/token.js';
 import { recordActivity } from './activity.service.js';
+import { ensureDefaultSections } from './category.service.js';
 import { sendEmailVerificationCode, sendPasswordResetCode } from './mail.service.js';
 
 function toPublicUser(user) {
@@ -155,11 +156,12 @@ export async function register({ name, email, password, cafeName, slug, locale =
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const { user } = await prisma.$transaction(async (tx) => {
+  const { cafe, user } = await prisma.$transaction(async (tx) => {
     const cafe = await tx.cafe.create({
       data: {
         name: cafeName.trim(),
         slug: cafeSlug,
+        menuUi: { sectionsEnabled: true },
       },
     });
 
@@ -175,6 +177,8 @@ export async function register({ name, email, password, cafeName, slug, locale =
 
     return { cafe, user: createdUser };
   });
+
+  await ensureDefaultSections(cafe.id);
 
   await recordActivity({
     action: 'cafe_created',

@@ -145,7 +145,7 @@ async function loadPublicMenu(slug) {
 
   const menuUi = normalizeMenuUi(cafe.menuUi);
   const categoryTree = buildPublicTree(categories, productsByCategory);
-  const sections = menuUi.sectionsEnabled ? buildPublicSections(categoryTree, menuUi) : [];
+  const sections = buildPublicSections(categoryTree, menuUi);
 
   return {
     cafeId: cafe.id,

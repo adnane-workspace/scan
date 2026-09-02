@@ -1,22 +1,25 @@
 import { useEffect, useMemo } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useMenuSlug } from '../context/MenuSlugContext.jsx';
 import { setPageMeta, usePublicMenu } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { getMenuPaths } from '../utils/hosts.js';
-import { normalizeMenuUi, resolveMenuBackdrop } from '../utils/menuUi.js';
-import { getActiveSections, getSectionMenuDestination } from '../utils/menuSections.js';
+import { resolveMenuBackdrop } from '../utils/menuUi.js';
+import { getActiveSections, getSectionMenuDestination, sectionIcon } from '../utils/menuSections.js';
+
+const SECTION_FALLBACK = {
+  accent: 'bg-white/15 text-white',
+  fallback: 'linear-gradient(160deg, #2a3530 0%, #141c24 100%)',
+};
 
 const SECTION_THEMES = {
   restaurant: {
-    icon: 'restaurant',
     accent: 'bg-[#e8d5a8]/15 text-[#e8d5a8]',
     fallback: 'linear-gradient(160deg, #2a3530 0%, #141c24 100%)',
   },
   cafe: {
-    icon: 'local_cafe',
     accent: 'bg-[#d4b896]/15 text-[#d4b896]',
     fallback: 'linear-gradient(160deg, #352a22 0%, #141c24 100%)',
   },
@@ -44,7 +47,8 @@ function SectionsStatus({ title, message }) {
 }
 
 function SectionCard({ section, to }) {
-  const theme = SECTION_THEMES[section.key] || SECTION_THEMES.restaurant;
+  const theme = SECTION_THEMES[section.key] || SECTION_FALLBACK;
+  const icon = sectionIcon(section.key);
 
   return (
     <Link
@@ -61,7 +65,7 @@ function SectionCard({ section, to }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center" style={{ background: theme.fallback }}>
-            <MaterialIcon name={theme.icon} className="text-[1.75rem] text-white/70" />
+            <MaterialIcon name={icon} className="text-[1.75rem] text-white/70" />
           </div>
         )}
       </div>
@@ -93,7 +97,6 @@ export default function PublicMenuSectionsPage() {
   const { menu, loading, errorStatus } = usePublicMenu(slug);
   const paths = getMenuPaths(slug);
   const cafe = menu?.cafe;
-  const ui = normalizeMenuUi(cafe?.menuUi);
   const activeSections = useMemo(() => getActiveSections(menu), [menu]);
   const backdrop = resolveMenuBackdrop(cafe);
 
@@ -108,7 +111,7 @@ export default function PublicMenuSectionsPage() {
   }, [cafe, t]);
 
   useEffect(() => {
-    if (!menu || !ui.sectionsEnabled) {
+    if (!menu) {
       return;
     }
 
@@ -119,7 +122,7 @@ export default function PublicMenuSectionsPage() {
     if (activeSections.length === 1) {
       navigate(getSectionMenuDestination(menu, paths), { replace: true });
     }
-  }, [menu, ui.sectionsEnabled, activeSections, navigate, paths]);
+  }, [menu, activeSections, navigate, paths]);
 
   if (loading) {
     return (
@@ -137,10 +140,6 @@ export default function PublicMenuSectionsPage() {
 
   if (errorStatus || !cafe) {
     return <SectionsStatus title={t('menu.missingTitle')} message={t('menu.missing')} />;
-  }
-
-  if (!ui.sectionsEnabled) {
-    return <Navigate to={paths.categories} replace />;
   }
 
   if (activeSections.length === 0) {

@@ -1,17 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import CategoryFormModal from '../components/dashboard/CategoryFormModal.jsx';
-import SectionsEnableWizard from '../components/dashboard/SectionsEnableWizard.jsx';
-import MaterialIcon from '../components/ui/MaterialIcon.jsx';
-import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
-import Pagination from '../components/ui/Pagination.jsx';
-import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
-import { useLocale } from '../hooks/useLocale.js';
-import { getMyCafe, updateMyCafe } from '../services/cafe.service.js';
 import {
   createCategory,
   deleteCategory,
-  listCategories,
   listCategoryOptions,
   updateCategory,
   uploadCategoryImage,
@@ -24,7 +13,15 @@ import {
 } from '../utils/categoryTree.js';
 import { categoryIcon } from '../utils/format.js';
 import { normalizeMenuUi, normalizeSectionVisibility } from '../utils/menuUi.js';
-import { MENU_SECTION_KEYS } from '../utils/menuSections.js';
+import { MAX_MENU_SECTIONS, sectionIcon, slugifySectionKey } from '../utils/menuSections.js';
+import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
+import CategoryFormModal from '../components/dashboard/CategoryFormModal.jsx';
+import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
+import { useLocale } from '../hooks/useLocale.js';
+import { getMyCafe, updateMyCafe } from '../services/cafe.service.js';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 const emptyForm = {
   name: '',
@@ -49,7 +46,7 @@ function CategoryIdentity({ category, parentName, t }) {
           <CloudinaryImage src={category.image} alt="" preset="thumb" className="h-full w-full object-cover" />
         ) : (
           <MaterialIcon
-            name={isSection ? (category.sectionKey === 'cafe' ? 'local_cafe' : 'restaurant') : categoryIcon(category.name)}
+            name={isSection ? sectionIcon(category.sectionKey) : categoryIcon(category.name)}
             className={isChild ? 'text-[20px]' : 'text-[24px]'}
           />
         )}
@@ -118,16 +115,14 @@ export default function CategoriesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cafe, setCafe] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
-  const [page, setPage] = useState(1);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [editingSectionKey, setEditingSectionKey] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [sectionsWizardOpen, setSectionsWizardOpen] = useState(false);
-  const [enablingSections, setEnablingSections] = useState(false);
-  const [wizardError, setWizardError] = useState('');
+  const [isSectionFormOpen, setIsSectionFormOpen] = useState(false);
+  const [sectionName, setSectionName] = useState('');
+  const [sectionSaving, setSectionSaving] = useState(false);
+  const [sectionError, setSectionError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -143,13 +138,7 @@ export default function CategoriesPage() {
     setError('');
 
     try {
-      const [categoryPage, categoryOptions, cafeData] = await Promise.all([
-        listCategories({ page, limit: 30 }),
-        listCategoryOptions(),
-        getMyCafe(),
-      ]);
-      setRows(categoryPage.items);
-      setPagination(categoryPage.pagination);
+      const [categoryOptions, cafeData] = await Promise.all([listCategoryOptions(), getMyCafe()]);
       setCategories(categoryOptions);
       setCafe(cafeData);
     } catch (err) {
@@ -159,17 +148,18 @@ export default function CategoriesPage() {
         setLoading(false);
       }
     }
-  }, [page, t]);
+  }, [t]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const sectionsEnabled = normalizeMenuUi(cafe?.menuUi).sectionsEnabled;
   const sectionVisibility = normalizeSectionVisibility(cafe?.menuUi?.sectionVisibility);
   const sectionRoots = useMemo(
     () =>
-      MENU_SECTION_KEYS.map((key) => categories.find((category) => category.sectionKey === key)).filter(Boolean),
+      categories
+        .filter((category) => category.sectionKey)
+        .sort((left, right) => (left.order - right.order) || left.name.localeCompare(right.name)),
     [categories],
   );
   const categoryById = useMemo(
@@ -214,6 +204,7 @@ export default function CategoriesPage() {
 
   function openCreateForm(parentId = '') {
     setEditingId(null);
+    setEditingSectionKey(null);
     setForm({ ...emptyForm, parentId: parentId || '', order: nextSiblingOrder(parentId || null) });
     setFormError('');
     setError('');
@@ -221,15 +212,15 @@ export default function CategoriesPage() {
   }
 
   useEffect(() => {
-    if (loading || searchParams.get('new') !== '1') {
+    if (loading || searchParams.get('new') !== '1' || sectionRoots.length === 0) {
       return;
     }
 
-    openCreateForm();
+    openCreateForm(sectionRoots[0]._id);
     const next = new URLSearchParams(searchParams);
     next.delete('new');
     setSearchParams(next, { replace: true });
-  }, [loading, searchParams, setSearchParams]);
+  }, [loading, searchParams, setSearchParams, sectionRoots]);
 
   function startEdit(category) {
     setEditingId(category._id);
@@ -264,12 +255,8 @@ export default function CategoriesPage() {
       order: Number.isNaN(form.order) ? 0 : form.order,
     };
 
-    if (!sectionsEnabled || editingSectionKey) {
-      if (!editingSectionKey) {
-        payload.parentId = form.parentId || null;
-      }
-    } else if (form.parentId) {
-      payload.parentId = form.parentId;
+    if (!editingSectionKey) {
+      payload.parentId = form.parentId || null;
     }
 
     try {
@@ -425,48 +412,12 @@ export default function CategoriesPage() {
     await persistSiblingOrder(category.parentId, next);
   }
 
-  async function handleToggleSections(enabled) {
-    setError('');
-
-    if (!enabled) {
-      try {
-        const updated = await updateMyCafe({
-          menuUi: { ...normalizeMenuUi(cafe?.menuUi), sectionsEnabled: false },
-        });
-        setCafe(updated);
-        clearPublicMenuCache();
-      } catch (err) {
-        setError(getApiError(err, t, 'categories.sectionsToggleError'));
-      }
-      return;
-    }
-
-    const hasFlatCategories = categories.some((category) => !category.parentId && !category.sectionKey);
-    const hasSectionRoots = sectionRoots.length > 0;
-
-    if (hasSectionRoots && !hasFlatCategories) {
-      try {
-        const updated = await updateMyCafe({
-          menuUi: { ...normalizeMenuUi(cafe?.menuUi), sectionsEnabled: true },
-        });
-        setCafe(updated);
-        clearPublicMenuCache();
-      } catch (err) {
-        setError(getApiError(err, t, 'categories.sectionsToggleError'));
-      }
-      return;
-    }
-
-    setWizardError('');
-    setSectionsWizardOpen(true);
-  }
-
   async function handleToggleSectionVisibility(sectionKey, visible) {
     const nextVisibility = {
       ...sectionVisibility,
       [sectionKey]: visible,
     };
-    const visibleCount = MENU_SECTION_KEYS.filter((key) => nextVisibility[key] !== false).length;
+    const visibleCount = sectionRoots.filter((section) => nextVisibility[section.sectionKey] !== false).length;
 
     if (visibleCount === 0) {
       setError(t('categories.sectionKeepOneVisible'));
@@ -490,53 +441,60 @@ export default function CategoriesPage() {
     }
   }
 
-  async function handleEnableSections({ sectionNames, assignments }) {
-    setEnablingSections(true);
-    setWizardError('');
+  function openSectionForm() {
+    setSectionName('');
+    setSectionError('');
+    setIsSectionFormOpen(true);
+  }
+
+  function closeSectionForm() {
+    setIsSectionFormOpen(false);
+    setSectionName('');
+    setSectionError('');
+  }
+
+  async function handleCreateSection(event) {
+    event.preventDefault();
+    const name = sectionName.trim();
+
+    if (!name) {
+      setSectionError(t('validation.nameRequired'));
+      return;
+    }
+
+    if (sectionRoots.length >= MAX_MENU_SECTIONS) {
+      setSectionError(t('categories.sectionMax', { max: MAX_MENU_SECTIONS }));
+      return;
+    }
+
+    const sectionKey = slugifySectionKey(name);
+
+    if (!sectionKey) {
+      setSectionError(t('categories.sectionKeyInvalid'));
+      return;
+    }
+
+    if (sectionRoots.some((section) => section.sectionKey === sectionKey)) {
+      setSectionError(t('categories.sectionKeyDuplicate'));
+      return;
+    }
+
+    setSectionSaving(true);
+    setSectionError('');
 
     try {
-      const existingRoots = Object.fromEntries(
-        categories.filter((category) => category.sectionKey).map((category) => [category.sectionKey, category]),
-      );
-      const rootIds = {};
-
-      for (const [index, sectionKey] of MENU_SECTION_KEYS.entries()) {
-        const name = sectionNames[sectionKey]?.trim() || sectionKey;
-
-        if (existingRoots[sectionKey]) {
-          await updateCategory(existingRoots[sectionKey]._id, { name });
-          rootIds[sectionKey] = existingRoots[sectionKey]._id;
-        } else {
-          const created = await createCategory({
-            name,
-            sectionKey,
-            order: index + 1,
-          });
-          rootIds[sectionKey] = created._id;
-        }
-      }
-
-      await Promise.all(
-        Object.entries(assignments).map(([categoryId, sectionKey]) =>
-          updateCategory(categoryId, { parentId: rootIds[sectionKey] }),
-        ),
-      );
-
-      const updated = await updateMyCafe({
-        menuUi: {
-          ...normalizeMenuUi(cafe?.menuUi),
-          sectionsEnabled: true,
-          sectionVisibility: normalizeSectionVisibility(cafe?.menuUi?.sectionVisibility),
-        },
+      await createCategory({
+        name,
+        sectionKey,
+        order: sectionRoots.length + 1,
       });
-      setCafe(updated);
-      setSectionsWizardOpen(false);
+      closeSectionForm();
       clearPublicMenuCache();
       await loadData(true);
     } catch (err) {
-      setWizardError(getApiError(err, t, 'categories.sectionsToggleError'));
+      setSectionError(getApiError(err, t, 'categories.sectionCreateError'));
     } finally {
-      setEnablingSections(false);
+      setSectionSaving(false);
     }
   }
 
@@ -556,7 +514,7 @@ export default function CategoriesPage() {
         onDragOver={handleDragOver}
         onDrop={(event) => handleDrop(event, category)}
         onDragEnd={handleDragEnd}
-        style={sectionsEnabled ? undefined : { marginInlineStart: `${category.depth * 1.5}rem` }}
+        style={undefined}
         className={`group rounded-2xl border transition-colors duration-200 ${
           isChild
             ? 'border-primary/20 bg-surface-container-low/70'
@@ -640,42 +598,17 @@ export default function CategoriesPage() {
           <h1 className="mb-1 font-display text-display-md font-bold tracking-tight text-on-surface lg:text-display-lg">
             {t('categories.title')}
           </h1>
-          <p className="max-w-2xl text-on-surface-variant">
-            {sectionsEnabled ? t('categories.subtitleSections') : t('categories.subtitle')}
-          </p>
+          <p className="max-w-2xl text-on-surface-variant">{t('categories.subtitleSections')}</p>
         </div>
-        {!sectionsEnabled ? (
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => openCreateForm()}
-            className="group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-on-primary transition-all duration-300 hover:bg-surface-tint hover:shadow-lg"
+            onClick={openSectionForm}
+            disabled={sectionRoots.length >= MAX_MENU_SECTIONS}
+            className="group inline-flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-5 py-3 text-on-surface transition-all duration-300 hover:bg-surface-container-high disabled:opacity-50"
           >
-            <MaterialIcon name="add" className="text-[20px] transition-transform duration-300 group-hover:rotate-90" />
-            <span className="text-label-lg font-semibold tracking-[0.05em]">{t('categories.add')}</span>
-          </button>
-        ) : null}
-      </div>
-
-      <div className="mb-stack-lg rounded-[18px] border border-outline-variant bg-surface-container-lowest p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-semibold text-on-surface">{t('categories.sectionsEnabled')}</p>
-            <p className="mt-1 text-sm text-on-surface-variant">{t('categories.sectionsEnabledHint')}</p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={sectionsEnabled}
-            onClick={() => handleToggleSections(!sectionsEnabled)}
-            className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
-              sectionsEnabled ? 'bg-primary' : 'bg-outline-variant'
-            }`}
-          >
-            <span
-              className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white transition-transform ${
-                sectionsEnabled ? 'translate-x-6' : ''
-              }`}
-            />
+            <MaterialIcon name="add" className="text-[20px]" />
+            <span className="text-label-lg font-semibold tracking-[0.05em]">{t('categories.addSection')}</span>
           </button>
         </div>
       </div>
@@ -691,20 +624,16 @@ export default function CategoriesPage() {
             <p className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-sm text-on-surface-variant">
               {t('categories.loading')}
             </p>
-          ) : categories.length === 0 ? (
-            <p className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-sm text-on-surface-variant">
-              {t('categories.empty')}
-            </p>
-          ) : sectionsEnabled ? (
+          ) : (
             <div className="flex flex-col gap-6">
-              {MENU_SECTION_KEYS.map((sectionKey) => {
-                const section = categories.find((category) => category.sectionKey === sectionKey);
-                const children = section ? siblingCategories(categories, section._id) : [];
+              {sectionRoots.map((section) => {
+                const sectionKey = section.sectionKey;
+                const children = siblingCategories(categories, section._id);
                 const sectionVisible = sectionVisibility[sectionKey] !== false;
 
                 return (
                   <section
-                    key={sectionKey}
+                    key={section._id}
                     className={`rounded-[18px] border bg-surface-container-lowest p-4 sm:p-5 ${
                       sectionVisible ? 'border-outline-variant' : 'border-dashed border-outline-variant/80 opacity-75'
                     }`}
@@ -715,12 +644,7 @@ export default function CategoriesPage() {
                           {t('categories.sectionLabel')}
                         </p>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-lg font-semibold text-on-surface">
-                            {section?.name ||
-                              (sectionKey === 'restaurant'
-                                ? t('categories.sectionRestaurantDefault')
-                                : t('categories.sectionCafeDefault'))}
-                          </h2>
+                          <h2 className="text-lg font-semibold text-on-surface">{section.name}</h2>
                           <span
                             className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                               sectionVisible
@@ -750,26 +674,32 @@ export default function CategoriesPage() {
                             }`}
                           />
                         </button>
-                        {section ? (
+                        <button
+                          type="button"
+                          onClick={() => startEdit(section)}
+                          className="inline-flex items-center gap-2 rounded-xl border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface"
+                        >
+                          <MaterialIcon name="edit" className="text-[18px]" />
+                          {t('categories.editSection')}
+                        </button>
+                        {sectionRoots.length > 1 ? (
                           <button
                             type="button"
-                            onClick={() => startEdit(section)}
-                            className="inline-flex items-center gap-2 rounded-xl border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface"
+                            onClick={() => handleDelete(section)}
+                            className="inline-flex items-center gap-2 rounded-xl border border-error/30 px-4 py-2 text-sm font-semibold text-error"
                           >
-                            <MaterialIcon name="edit" className="text-[18px]" />
-                            {t('categories.editSection')}
+                            <MaterialIcon name="delete" className="text-[18px]" />
+                            {t('common.delete')}
                           </button>
                         ) : null}
-                        {section ? (
-                          <button
-                            type="button"
-                            onClick={() => openCreateForm(section._id)}
-                            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-on-primary"
-                          >
-                            <MaterialIcon name="add" className="text-[18px]" />
-                            {t('categories.addInSection')}
-                          </button>
-                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => openCreateForm(section._id)}
+                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-on-primary"
+                        >
+                          <MaterialIcon name="add" className="text-[18px]" />
+                          {t('categories.addInSection')}
+                        </button>
                       </div>
                     </div>
                     {children.length ? (
@@ -783,36 +713,19 @@ export default function CategoriesPage() {
                 );
               })}
             </div>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {rows.map((category) => renderCategoryRow(category))}
-            </ul>
           )}
       </div>
-
-      <Pagination
-        page={pagination.page}
-        totalPages={pagination.totalPages}
-        total={pagination.total}
-        onPageChange={setPage}
-        disabled={loading || reordering}
-      />
 
       <CategoryFormModal
         open={isFormOpen}
         editing={Boolean(editingId)}
         form={form}
         parentOptions={parentOptions}
-        showParentSelect={!sectionsEnabled}
+        showParentSelect={false}
         sectionLabel={
           editingSectionKey
-            ? t('categories.sectionFixedLabel', {
-                name:
-                  editingSectionKey === 'restaurant'
-                    ? t('categories.sectionRestaurantDefault')
-                    : t('categories.sectionCafeDefault'),
-              })
-            : sectionsEnabled && form.parentId
+            ? t('categories.sectionFixedLabel', { name: categoryById.get(editingId)?.name || editingSectionKey })
+            : form.parentId
               ? t('categories.inside', { name: categoryById.get(form.parentId)?.name || '' })
               : ''
         }
@@ -826,14 +739,51 @@ export default function CategoriesPage() {
         onClearImage={() => setForm((current) => ({ ...current, image: '' }))}
       />
 
-      <SectionsEnableWizard
-        open={sectionsWizardOpen}
-        categories={categories}
-        saving={enablingSections}
-        error={wizardError}
-        onClose={() => setSectionsWizardOpen(false)}
-        onConfirm={handleEnableSections}
-      />
+      {isSectionFormOpen ? (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6">
+          <button type="button" className="absolute inset-0 bg-on-surface/40" aria-label={t('common.close')} onClick={closeSectionForm} />
+          <form
+            onSubmit={handleCreateSection}
+            className="relative z-10 w-full rounded-t-2xl bg-surface-container-lowest p-6 shadow-xl sm:max-w-md sm:rounded-2xl"
+          >
+            <h2 className="font-display text-headline-md font-semibold text-on-surface">{t('categories.addSection')}</h2>
+            <p className="mt-1 text-sm text-on-surface-variant">{t('categories.addSectionHint')}</p>
+            {sectionError ? (
+              <p className="mt-4 rounded-xl border border-error/20 bg-error-container px-4 py-3 text-sm text-error">
+                {sectionError}
+              </p>
+            ) : null}
+            <label className="mt-5 grid gap-2">
+              <span className="text-sm font-medium text-on-surface">{t('categories.sectionName')}</span>
+              <input
+                type="text"
+                value={sectionName}
+                onChange={(event) => setSectionName(event.target.value)}
+                maxLength={80}
+                placeholder={t('categories.sectionNamePlaceholder')}
+                className="rounded-xl border border-outline-variant bg-surface px-4 py-3 text-sm text-on-surface"
+                autoFocus
+              />
+            </label>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeSectionForm}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-on-surface-variant"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={sectionSaving}
+                className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-60"
+              >
+                {sectionSaving ? t('common.saving') : t('categories.addSection')}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
     </div>
   );
 }

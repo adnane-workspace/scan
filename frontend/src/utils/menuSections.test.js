@@ -87,6 +87,13 @@ test('getSectionMenuDestination opens first category when one section is visible
   assert.equal(destination, '/restaurant/cat-1');
 });
 
+test('isMenuSectionKey accepts custom slugs', () => {
+  assert.equal(isMenuSectionKey('cafe'), true);
+  assert.equal(isMenuSectionKey('bar'), true);
+  assert.equal(isMenuSectionKey('patisserie'), true);
+  assert.equal(isMenuSectionKey('Bad Key'), false);
+});
+
 test('legacy ids are detected', () => {
   assert.equal(isLegacyCategoryId('550e8400-e29b-41d4-a716-446655440000'), true);
   assert.equal(isLegacyCategoryId('restaurant'), false);

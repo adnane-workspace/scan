@@ -3,7 +3,7 @@ export const DEFAULT_MENU_UI = {
   showPhone: true,
   showAddress: true,
   showLanguage: true,
-  sectionsEnabled: false,
+  sectionsEnabled: true,
   sectionVisibility: {
     restaurant: true,
     cafe: true,
@@ -34,11 +34,22 @@ export function normalizeHexColor(value) {
 
 export function normalizeSectionVisibility(value) {
   const raw = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-
-  return {
-    restaurant: raw.restaurant !== false,
-    cafe: raw.cafe !== false,
+  const result = {
+    restaurant: true,
+    cafe: true,
   };
+
+  for (const [key, entry] of Object.entries(raw)) {
+    const slug = String(key || '').trim();
+
+    if (!slug) {
+      continue;
+    }
+
+    result[slug] = entry !== false;
+  }
+
+  return result;
 }
 
 export function normalizeMenuUi(value) {
@@ -57,7 +68,7 @@ export function normalizeMenuUi(value) {
     showPhone: raw.showPhone !== false,
     showAddress: raw.showAddress !== false,
     showLanguage: raw.showLanguage !== false,
-    sectionsEnabled: raw.sectionsEnabled === true,
+    sectionsEnabled: true,
     sectionVisibility: normalizeSectionVisibility(raw.sectionVisibility),
     bgMode,
     backgroundColor,

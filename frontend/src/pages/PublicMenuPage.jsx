@@ -12,7 +12,6 @@ import { useLocale } from '../hooks/useLocale.js';
 import { getMenuPaths } from '../utils/hosts.js';
 import { buildShareUrl } from '../utils/share.js';
 import { formatPrice } from '../utils/format.js';
-import { normalizeMenuUi } from '../utils/menuUi.js';
 import {
   findSectionByKey,
   findSectionKeyForCategory,
@@ -65,10 +64,9 @@ export default function PublicMenuPage({ fixedSectionKey = null }) {
   const { menu, loading, errorStatus } = usePublicMenu(slug);
   const selectedProductId = searchParams.get('product');
   const paths = getMenuPaths(slug);
-  const sectionsEnabled = normalizeMenuUi(menu?.cafe?.menuUi).sectionsEnabled;
   const activeSections = useMemo(() => getActiveSections(menu), [menu]);
   const sectionKey = fixedSectionKey || (isMenuSectionKey(sectionKeyParam) ? sectionKeyParam : null);
-  const isSectionMode = sectionsEnabled && Boolean(sectionKey);
+  const isSectionMode = Boolean(sectionKey);
   const flatCategoryId = isSectionMode ? null : categoryId;
 
   const section = useMemo(
@@ -195,7 +193,7 @@ export default function PublicMenuPage({ fixedSectionKey = null }) {
     );
   }
 
-  if (sectionsEnabled && !sectionKey) {
+  if (!sectionKey) {
     if (activeSections.length > 1) {
       return <Navigate to={paths.sections} replace />;
     }
@@ -221,7 +219,7 @@ export default function PublicMenuPage({ fixedSectionKey = null }) {
     );
   }
 
-  if (sectionsEnabled && !sectionKey && categoryId && isLegacyCategoryId(categoryId)) {
+  if (!sectionKey && categoryId && isLegacyCategoryId(categoryId)) {
     const legacySectionKey = findSectionKeyForCategory(menu, categoryId);
 
     if (legacySectionKey) {
