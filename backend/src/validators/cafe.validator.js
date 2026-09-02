@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ACTIVITY_ACTIONS } from '../services/activity.service.js';
 import { uuidSchema } from './id.schema.js';
+import { paginationFields } from './pagination.schema.js';
 
 export const updateCafeSchema = z.object({
   body: z
@@ -98,8 +99,19 @@ export const updatePlatformCafeEmailSchema = z.object({
   }),
 });
 
+export const listPlatformCafesSchema = z.object({
+  query: z.object({
+    ...paginationFields,
+    q: z.string().trim().max(120).optional().default(''),
+    status: z.enum(['all', 'active', 'inactive']).optional().default('all'),
+    from: z.string().trim().optional(),
+    to: z.string().trim().optional(),
+  }),
+});
+
 export const listActivityLogsSchema = z.object({
   query: z.object({
+    ...paginationFields,
     action: z
       .string()
       .refine((value) => ACTIVITY_ACTIONS.includes(value), 'Invalid action')
@@ -107,6 +119,7 @@ export const listActivityLogsSchema = z.object({
     cafeId: uuidSchema.optional(),
     from: z.string().trim().optional(),
     to: z.string().trim().optional(),
+    search: z.string().trim().max(120).optional().default(''),
   }),
 });
 

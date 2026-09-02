@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
+import { buildPaginationMeta, paginatedResult, parsePaginationQuery } from '../utils/pagination.js';
 import { assertUsableSlug, slugify } from '../utils/slug.js';
 import { recordActivity } from './activity.service.js';
 import { invalidatePublicMenu } from './menuCache.service.js';
@@ -99,26 +100,89 @@ export async function createPlatformCafe({ ownerName, email, password, cafeName,
   return getPlatformCafe(cafe.id);
 }
 
-export async function listPlatformCafes() {
+export async function getPlatformOverview() {
+  const [cafeCount, activeCafeCount, pendingQrCount] = await Promise.all([
+    prisma.cafe.count(),
+    prisma.cafe.count({ where: { isActive: true } }),
+    prisma.qrChangeRequest.count({ where: { status: 'pending' } }),
+  ]);
+
+  return { cafeCount, activeCafeCount, pendingQrCount };
+}
+
+export async function listPlatformCafeOptions() {
   const cafes = await prisma.cafe.findMany({
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      isActive: true,
-      createdAt: true,
-      qrGeneratedAt: true,
-      qrChangeAllowed: true,
-      trialRole: true,
-      ...ownerSelect,
-    },
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true, slug: true },
   });
+
+  return cafes.map((cafe) => ({
+    _id: cafe.id,
+    name: cafe.name,
+    slug: cafe.slug,
+  }));
+}
+
+export async function listPlatformCafes(query = {}) {
+  const { page, limit, skip } = parsePaginationQuery(query);
+  const search = String(query.q || query.search || '').trim().toLowerCase();
+  const status = query.status || 'all';
+  const from = query.from ? new Date(`${query.from}T00:00:00`) : null;
+  const to = query.to ? new Date(`${query.to}T23:59:59.999`) : null;
+
+  const where = {};
+
+  if (status === 'active') {
+    where.isActive = true;
+  } else if (status === 'inactive') {
+    where.isActive = false;
+  }
+
+  if (from || to) {
+    where.createdAt = {};
+
+    if (from) {
+      where.createdAt.gte = from;
+    }
+
+    if (to) {
+      where.createdAt.lte = to;
+    }
+  }
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { slug: { contains: search, mode: 'insensitive' } },
+      { users: { some: { role: 'admin', email: { contains: search, mode: 'insensitive' } } } },
+    ];
+  }
+
+  const [cafes, total] = await Promise.all([
+    prisma.cafe.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        isActive: true,
+        createdAt: true,
+        qrGeneratedAt: true,
+        qrChangeAllowed: true,
+        trialRole: true,
+        ...ownerSelect,
+      },
+    }),
+    prisma.cafe.count({ where }),
+  ]);
 
   const cafeIds = cafes.map((cafe) => cafe.id);
 
   if (cafeIds.length === 0) {
-    return [];
+    return paginatedResult([], buildPaginationMeta({ page, limit, total }));
   }
 
   const [productGroups, categoryGroups, pendingQrRequests] = await Promise.all([
@@ -142,13 +206,15 @@ export async function listPlatformCafes() {
   const categoryCountByCafe = new Map(categoryGroups.map((item) => [item.cafeId, item._count._all]));
   const pendingQrByCafe = new Set(pendingQrRequests.map((item) => item.cafeId));
 
-  return cafes.map((cafe) =>
+  const items = cafes.map((cafe) =>
     toPlatformCafe(cafe, {
       productCount: productCountByCafe.get(cafe.id) || 0,
       categoryCount: categoryCountByCafe.get(cafe.id) || 0,
       pendingQrChange: pendingQrByCafe.has(cafe.id),
     }),
   );
+
+  return paginatedResult(items, buildPaginationMeta({ page, limit, total }));
 }
 
 export async function updatePlatformCafe(cafeId, payload, actor) {

@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminProductCard from '../components/dashboard/AdminProductCard.jsx';
 import ProductFormModal from '../components/dashboard/ProductFormModal.jsx';
 import Field from '../components/ui/Field.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import Pagination from '../components/ui/Pagination.jsx';
 import { useLocale } from '../hooks/useLocale.js';
-import { listCategories } from '../services/category.service.js';
+import { listCategoryOptions } from '../services/category.service.js';
 import {
   createProduct,
   deleteProduct,
@@ -14,7 +15,7 @@ import {
   uploadProductImage,
 } from '../services/product.service.js';
 import { getApiError } from '../utils/apiError.js';
-import { categoryPathLabel, leafCategories, subtreeIds } from '../utils/categoryTree.js';
+import { categoryPathLabel, leafCategories } from '../utils/categoryTree.js';
 
 const emptyForm = {
   name: '',
@@ -43,28 +44,66 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const skipFilterDebounceRef = useRef(true);
 
-  const loadData = useCallback(async (silent = false) => {
-    if (!silent) {
-      setLoading(true);
-    }
-    setError('');
-
-    try {
-      const [productItems, categoryItems] = await Promise.all([getProducts(), listCategories()]);
-      setProducts(productItems);
-      setCategories(categoryItems);
-    } catch (err) {
-      setError(getApiError(err, t, 'products.loadError'));
-    } finally {
+  const loadData = useCallback(
+    async (silent = false) => {
       if (!silent) {
-        setLoading(false);
+        setLoading(true);
       }
-    }
-  }, [t]);
+      setError('');
+
+      try {
+        const params = { page, limit: 20 };
+
+        if (search.trim()) {
+          params.search = search.trim();
+        }
+
+        if (categoryFilter !== 'all') {
+          params.categoryId = categoryFilter;
+        }
+
+        if (availabilityFilter !== 'all') {
+          params.availability = availabilityFilter;
+        }
+
+        const [productResult, categoryItems] = await Promise.all([
+          getProducts(params),
+          listCategoryOptions(),
+        ]);
+        setProducts(productResult.items);
+        setPagination(productResult.pagination);
+        setCategories(categoryItems);
+      } catch (err) {
+        setError(getApiError(err, t, 'products.loadError'));
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
+      }
+    },
+    [availabilityFilter, categoryFilter, page, search, t],
+  );
 
   useEffect(() => {
-    loadData();
+    setPage(1);
+  }, [search, categoryFilter, availabilityFilter]);
+
+  useEffect(() => {
+    if (skipFilterDebounceRef.current) {
+      skipFilterDebounceRef.current = false;
+      loadData();
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      loadData();
+    }, 300);
+
+    return () => window.clearTimeout(timer);
   }, [loadData]);
 
   const leafOptions = useMemo(
@@ -75,23 +114,6 @@ export default function ProductsPage() {
       })),
     [categories],
   );
-
-  const filteredProducts = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    const allowedIds =
-      categoryFilter === 'all' ? null : subtreeIds(categories, categoryFilter);
-
-    return products.filter((product) => {
-      const matchesName = product.name.toLowerCase().includes(query);
-      const matchesCategory = !allowedIds || allowedIds.has(String(product.categoryId));
-      const matchesAvailability =
-        availabilityFilter === 'all' ||
-        (availabilityFilter === 'available' && product.available) ||
-        (availabilityFilter === 'unavailable' && !product.available);
-
-      return matchesName && matchesCategory && matchesAvailability;
-    });
-  }, [products, search, categoryFilter, availabilityFilter, categories]);
 
   function handleChange(event) {
     const { name, value, type, checked } = event.target;
@@ -327,13 +349,13 @@ export default function ProductsPage() {
 
       {loading ? (
         <p className="text-sm text-on-surface-variant">{t('products.loading')}</p>
-      ) : filteredProducts.length === 0 ? (
+      ) : products.length === 0 ? (
         <p className="rounded-xl bg-surface-container px-6 py-8 text-sm text-on-surface-variant">
           {t('products.empty')}
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-3">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <AdminProductCard
               key={product._id}
               product={product}
@@ -345,6 +367,14 @@ export default function ProductsPage() {
           ))}
         </div>
       )}
+
+      <Pagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        onPageChange={setPage}
+        disabled={loading}
+      />
 
       <ProductFormModal
         open={isFormOpen}

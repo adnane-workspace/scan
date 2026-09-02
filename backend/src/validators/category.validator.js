@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { uuidSchema } from './id.schema.js';
+import { paginationFields } from './pagination.schema.js';
 
 const objectIdSchema = uuidSchema;
 
@@ -51,5 +52,11 @@ export const updateCategorySchema = z.object({
 export const categoryIdSchema = z.object({
   params: z.object({
     id: objectIdSchema,
+  }),
+});
+
+export const listCategoriesSchema = z.object({
+  query: z.object({
+    ...paginationFields,
   }),
 });

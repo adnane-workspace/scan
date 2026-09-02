@@ -14,6 +14,7 @@
     "dev:frontend": "npm run dev -w frontend",
     "dev:backend": "npm run dev -w backend",
     "db:migrate": "npm run db:migrate -w backend",
+    "db:superadmin": "npm run db:superadmin -w backend",
     "lint": "npm run lint -w frontend && npm run lint -w backend",
     "cloudinary:purge": "npm run cloudinary:purge -w backend",
     "db:clear-images": "npm run db:clear-images -w backend",

@@ -19,7 +19,7 @@ export default function CreateCafePage() {
   const { user } = useAuth();
   const { t } = useLocale();
   const navigate = useNavigate();
-  const { refreshCafes } = useOutletContext();
+  const { refreshPlatformOverview } = useOutletContext();
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -46,7 +46,7 @@ export default function CreateCafePage() {
         cafeName: form.cafeName,
         slug: form.slug.trim() || undefined,
       });
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
       navigate(`/platform/cafes/${cafe._id}`, { replace: true });
     } catch (err) {
       setError(getApiError(err, t, 'platform.createError'));

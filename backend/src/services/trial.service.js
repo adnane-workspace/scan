@@ -1,4 +1,5 @@
 import { prisma } from '../config/prisma.js';
+import { buildPaginationMeta, paginatedResult, parsePaginationQuery } from '../utils/pagination.js';
 import { ApiError } from '../utils/ApiError.js';
 import { generateToken } from '../utils/token.js';
 import { recordActivity } from './activity.service.js';
@@ -209,19 +210,28 @@ export async function populateFromTemplate(targetId, actor) {
   return getPlatformCafe(target.id);
 }
 
-export async function listTrialLeads() {
-  const leads = await prisma.trialLead.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 200,
-  });
+export async function listTrialLeads(query = {}) {
+  const { page, limit, skip } = parsePaginationQuery(query);
 
-  return leads.map((lead) => ({
-    _id: lead.id,
-    name: lead.name,
-    email: lead.email,
-    phone: lead.phone,
-    cafeName: lead.cafeName,
-    city: lead.city,
-    createdAt: lead.createdAt,
-  }));
+  const [leads, total] = await Promise.all([
+    prisma.trialLead.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.trialLead.count(),
+  ]);
+
+  return paginatedResult(
+    leads.map((lead) => ({
+      _id: lead.id,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      cafeName: lead.cafeName,
+      city: lead.city,
+      createdAt: lead.createdAt,
+    })),
+    buildPaginationMeta({ page, limit, total }),
+  );
 }

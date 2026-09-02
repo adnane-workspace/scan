@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useOutletContext } from 'react-router-dom';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import Pagination from '../components/ui/Pagination.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { listQrChangeRequests, reviewQrChangeRequest } from '../services/platform.service.js';
@@ -12,57 +13,57 @@ import Field from '../components/ui/Field.jsx';
 export default function QrRequestsPage() {
   const { user } = useAuth();
   const { t, locale } = useLocale();
-  const { refreshCafes } = useOutletContext();
+  const { refreshPlatformOverview } = useOutletContext();
   const [status, setStatus] = useState('pending');
   const [requests, setRequests] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pendingId, setPendingId] = useState('');
   const [note, setNote] = useState('');
 
-  const filteredLabel = useMemo(() => {
-    if (status === 'pending') {
-      return t('qr.requestsPendingCount', { count: pendingCount });
-    }
+  const loadRequests = useCallback(async () => {
+    setLoading(true);
+    setError('');
 
-    return t('qr.requestsCount', { count: requests.length });
-  }, [pendingCount, requests.length, status, t]);
+    try {
+      const result = await listQrChangeRequests({
+        status,
+        page,
+        limit: 20,
+      });
+      setRequests(result.requests || []);
+      setPendingCount(result.pendingCount || 0);
+      setPagination(result.pagination || { page: 1, totalPages: 1, total: 0 });
+    } catch (err) {
+      setError(getApiError(err, t, 'qr.requestsLoadError'));
+      setRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, status, t]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [status]);
 
   useEffect(() => {
     if (user?.role !== 'superadmin') {
       return undefined;
     }
 
-    let cancelled = false;
-    setLoading(true);
-    setError('');
+    loadRequests();
+  }, [loadRequests, user?.role]);
 
-    listQrChangeRequests(status)
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
+  const filteredLabel = useMemo(() => {
+    if (status === 'pending') {
+      return t('qr.requestsPendingCount', { count: pendingCount });
+    }
 
-        setRequests(result.requests || []);
-        setPendingCount(result.pendingCount || 0);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(getApiError(err, t, 'qr.requestsLoadError'));
-          setRequests([]);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [status, t, user?.role]);
+    return t('qr.requestsCount', { count: pagination.total });
+  }, [pendingCount, pagination.total, status, t]);
 
   if (user?.role !== 'superadmin') {
     return <Navigate to={getHomePath(user)} replace />;
@@ -75,10 +76,8 @@ export default function QrRequestsPage() {
     try {
       await reviewQrChangeRequest(request._id, { decision, note: note.trim() || undefined });
       setNote('');
-      const result = await listQrChangeRequests(status);
-      setRequests(result.requests || []);
-      setPendingCount(result.pendingCount || 0);
-      await refreshCafes?.();
+      await loadRequests();
+      await refreshPlatformOverview?.();
     } catch (err) {
       setError(getApiError(err, t, 'qr.reviewError'));
     } finally {
@@ -209,6 +208,14 @@ export default function QrRequestsPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        onPageChange={setPage}
+        disabled={loading}
+      />
 
       <p className="flex items-center gap-2 text-sm text-on-surface-variant">
         <MaterialIcon name="info" className="text-[18px]" />

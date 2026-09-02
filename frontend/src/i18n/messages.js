@@ -169,6 +169,12 @@ export const messages = {
       openMenu: 'Ouvrir le menu',
       appName: 'Scanosh',
     },
+    pagination: {
+      summary: 'Page {page} / {totalPages} · {total} éléments',
+      total: '{total} éléments',
+      prev: 'Page précédente',
+      next: 'Page suivante',
+    },
     validation: {
       nameRequired: 'Le nom est requis',
       priceRequired: 'Le prix est requis',
@@ -1078,6 +1084,12 @@ export const messages = {
       closeMenu: 'إغلاق القائمة',
       openMenu: 'فتح القائمة',
       appName: 'Scanosh',
+    },
+    pagination: {
+      summary: 'صفحة {page} / {totalPages} · {total} عنصر',
+      total: '{total} عنصر',
+      prev: 'الصفحة السابقة',
+      next: 'الصفحة التالية',
     },
     validation: {
       nameRequired: 'الاسم مطلوب',

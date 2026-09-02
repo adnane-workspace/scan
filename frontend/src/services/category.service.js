@@ -1,8 +1,16 @@
 import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import api from './api.js';
 
-export async function listCategories() {
-  const { data } = await api.get('/me/categories');
+export async function listCategories(params = {}) {
+  const { data } = await api.get('/me/categories', { params });
+  return {
+    items: data.data.categories,
+    pagination: data.data.pagination,
+  };
+}
+
+export async function listCategoryOptions() {
+  const { data } = await api.get('/me/categories/options');
   return data.data.categories;
 }
 

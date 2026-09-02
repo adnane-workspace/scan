@@ -47,3 +47,13 @@ export const productIdSchema = z.object({
     id: objectIdSchema,
   }),
 });
+
+export const listProductsSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().min(1).optional().default(1),
+    limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+    search: z.string().trim().max(120).optional().default(''),
+    categoryId: objectIdSchema.optional(),
+    availability: z.enum(['all', 'available', 'unavailable']).optional().default('all'),
+  }),
+});

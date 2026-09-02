@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import Pagination from '../components/ui/Pagination.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { getStorageReport } from '../services/platform.service.js';
@@ -25,12 +26,14 @@ export default function StoragePage() {
   const { user } = useAuth();
   const { t, locale } = useLocale();
   const [report, setReport] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(
-    async (force = false) => {
+    async (force = false, nextPage = page) => {
       if (force) {
         setRefreshing(true);
       } else {
@@ -40,8 +43,9 @@ export default function StoragePage() {
       setError('');
 
       try {
-        const data = await getStorageReport(force);
+        const data = await getStorageReport({ refresh: force, page: nextPage, limit: 20 });
         setReport(data);
+        setPagination(data.pagination || { page: nextPage, totalPages: 1, total: 0 });
       } catch (err) {
         setError(getApiError(err, t, 'storage.loadError'));
       } finally {
@@ -49,12 +53,12 @@ export default function StoragePage() {
         setRefreshing(false);
       }
     },
-    [t],
+    [page, t],
   );
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load(false, page);
+  }, [load, page]);
 
   const totalBytes = report?.totals.bytes || 1;
   const cafes = useMemo(() => report?.cafes || [], [report]);
@@ -76,7 +80,7 @@ export default function StoragePage() {
         <button
           type="button"
           disabled={loading || refreshing}
-          onClick={() => load(true)}
+          onClick={() => load(true, page)}
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary shadow-md disabled:opacity-60"
         >
           <MaterialIcon name="refresh" className="text-[18px]" />
@@ -191,6 +195,14 @@ export default function StoragePage() {
               </tbody>
             </table>
           </div>
+
+          <Pagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            onPageChange={setPage}
+            disabled={loading || refreshing}
+          />
         </>
       ) : null}
     </section>

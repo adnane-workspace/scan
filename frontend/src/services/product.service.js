@@ -1,9 +1,12 @@
 import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import api from './api.js';
 
-export async function getProducts() {
-  const { data } = await api.get('/me/products');
-  return data.data.products;
+export async function getProducts(params = {}) {
+  const { data } = await api.get('/me/products', { params });
+  return {
+    items: data.data.products,
+    pagination: data.data.pagination,
+  };
 }
 
 export async function createProduct(payload) {

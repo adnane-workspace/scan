@@ -12,7 +12,7 @@ import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { generateCafeQr, requestQrChange } from '../services/cafe.service.js';
-import { getStorageReport } from '../services/platform.service.js';
+import { getStorageReport, listPlatformCafes } from '../services/platform.service.js';
 import { updateProduct } from '../services/product.service.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
 import { getApiError } from '../utils/apiError.js';
@@ -21,7 +21,9 @@ import { firstName, formatBytes, formatDate } from '../utils/format.js';
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t, locale } = useLocale();
-  const { stats, platformCafes = [], loading, error, refreshStats } = useOutletContext();
+  const { stats, platformOverview = {}, loading, error, refreshStats } = useOutletContext();
+  const [recentCafes, setRecentCafes] = useState([]);
+  const [recentLoading, setRecentLoading] = useState(false);
   const [actionError, setActionError] = useState('');
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [isQrRequestOpen, setIsQrRequestOpen] = useState(false);
@@ -41,10 +43,39 @@ export default function DashboardPage() {
     pendingRequest: null,
   };
   const greetingName = firstName(user?.name, t('dashboard.fallbackName'));
-  const activeCafes = platformCafes.filter((cafe) => cafe.isActive).length;
   const cafeSlug = stats.cafe?.slug || '';
   const [previewSeen, setPreviewSeen] = useState(false);
   const [setupDismissed, setSetupDismissed] = useState(false);
+
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    setRecentLoading(true);
+
+    listPlatformCafes({ page: 1, limit: 6 })
+      .then((result) => {
+        if (!cancelled) {
+          setRecentCafes(result.items);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRecentCafes([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setRecentLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSuperAdmin]);
 
   useEffect(() => {
     if (!isSuperAdmin) {
@@ -202,8 +233,8 @@ export default function DashboardPage() {
       <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {isSuperAdmin ? (
           <>
-            <StatCard label={t('dashboard.cafes')} value={platformCafes.length} icon="storefront" loading={loading} />
-            <StatCard label={t('dashboard.activeCafes')} value={activeCafes} icon="verified" loading={loading} />
+            <StatCard label={t('dashboard.cafes')} value={platformOverview.cafeCount || 0} icon="storefront" loading={loading} />
+            <StatCard label={t('dashboard.activeCafes')} value={platformOverview.activeCafeCount || 0} icon="verified" loading={loading} />
             <StatCard
               label={t('storage.photos')}
               value={storage ? storage.totals.photos : '—'}
@@ -301,20 +332,20 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
+                  {recentLoading ? (
                     <tr>
                       <td className="px-5 py-6 text-on-surface-variant" colSpan={5}>
                         {t('common.loading')}
                       </td>
                     </tr>
-                  ) : platformCafes.length === 0 ? (
+                  ) : recentCafes.length === 0 ? (
                     <tr>
                       <td className="px-5 py-6 text-on-surface-variant" colSpan={5}>
                         {t('platform.empty')}
                       </td>
                     </tr>
                   ) : (
-                    platformCafes.slice(0, 6).map((cafe) => (
+                    recentCafes.map((cafe) => (
                       <tr key={cafe._id} className="border-t border-outline-variant/15 hover:bg-surface-container-high/60">
                         <td className="px-5 py-3">
                           <Link to={`/platform/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">

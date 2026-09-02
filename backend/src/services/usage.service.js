@@ -1,5 +1,6 @@
 import { getPrismaForUrl, prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
+import { buildPaginationMeta, parsePaginationQuery } from '../utils/pagination.js';
 import { cloudinary, extractPublicId, isCloudinaryUrl } from './storage.service.js';
 
 const CACHE_TTL_MS = 60_000;
@@ -221,8 +222,10 @@ function buildCafeReport({ cafes, products, categories, folder, bytesByPublicId 
   return { cafesReport, referencedPublicIds };
 }
 
-export async function getStorageReport({ force = false } = {}) {
-  if (!force && cachedReport && Date.now() - cachedAt < CACHE_TTL_MS) {
+export async function getStorageReport({ force = false, page, limit } = {}) {
+  const pagination = parsePaginationQuery({ page, limit }, { defaultLimit: 20, maxLimit: 100 });
+
+  if (!force && cachedReport && Date.now() - cachedAt < CACHE_TTL_MS && !page) {
     return cachedReport;
   }
 
@@ -273,6 +276,8 @@ export async function getStorageReport({ force = false } = {}) {
   const linkedBytes = cafesReport.reduce((sum, item) => sum + item.bytes, 0);
   const cloudinaryBytes = resources.reduce((sum, item) => sum + Number(item.bytes || 0), 0);
 
+  const pagedCafes = cafesReport.slice(pagination.skip, pagination.skip + pagination.limit);
+
   const report = {
     folder,
     cloudName: env.CLOUDINARY_CLOUD_NAME,
@@ -293,11 +298,14 @@ export async function getStorageReport({ force = false } = {}) {
       orphanCount: orphans.length,
       orphanBytes: orphans.reduce((sum, item) => sum + Number(item.bytes || 0), 0),
     },
-    cafes: cafesReport,
+    cafes: pagedCafes,
+    pagination: buildPaginationMeta({ page: pagination.page, limit: pagination.limit, total: cafesReport.length }),
   };
 
-  cachedReport = report;
-  cachedAt = Date.now();
+  if (!page) {
+    cachedReport = report;
+    cachedAt = Date.now();
+  }
 
   return report;
 }

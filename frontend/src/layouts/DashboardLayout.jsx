@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { APP_NAME } from '../utils/constants.js';
 import { getDashboardStats } from '../services/dashboard.service.js';
-import { listPlatformCafes } from '../services/platform.service.js';
+import { getPlatformOverview } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 
 const emptyStats = {
@@ -21,6 +21,12 @@ const emptyStats = {
   recentProducts: [],
   categories: [],
   cafe: null,
+};
+
+const emptyPlatformOverview = {
+  cafeCount: 0,
+  activeCafeCount: 0,
+  pendingQrCount: 0,
 };
 
 const headerSubtitleKeys = {
@@ -46,7 +52,7 @@ export default function DashboardLayout() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [stats, setStats] = useState(emptyStats);
-  const [platformCafes, setPlatformCafes] = useState([]);
+  const [platformOverview, setPlatformOverview] = useState(emptyPlatformOverview);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const hasLoadedRef = useRef(false);
@@ -71,14 +77,14 @@ export default function DashboardLayout() {
     }
   }, [t]);
 
-  const loadPlatformCafes = useCallback(async (silent = false) => {
+  const loadPlatformOverview = useCallback(async (silent = false) => {
     if (!silent) {
       setLoading(true);
     }
 
     try {
-      const cafes = await listPlatformCafes();
-      setPlatformCafes(cafes);
+      const overview = await getPlatformOverview();
+      setPlatformOverview(overview);
       setError('');
       hasLoadedRef.current = true;
     } catch (err) {
@@ -99,8 +105,8 @@ export default function DashboardLayout() {
       return undefined;
     }
 
-    loadPlatformCafes();
-  }, [isSuperAdmin, loadPlatformCafes]);
+    loadPlatformOverview();
+  }, [isSuperAdmin, loadPlatformOverview]);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -115,18 +121,18 @@ export default function DashboardLayout() {
   }, [isSuperAdmin, location.pathname, loadStats]);
 
   const refreshStats = useCallback(() => loadStats(true), [loadStats]);
-  const refreshCafes = useCallback(() => loadPlatformCafes(true), [loadPlatformCafes]);
+  const refreshPlatformOverview = useCallback(() => loadPlatformOverview(true), [loadPlatformOverview]);
 
   const outletContext = useMemo(
     () => ({
       stats,
-      platformCafes,
+      platformOverview,
       loading,
       error,
       refreshStats,
-      refreshCafes,
+      refreshPlatformOverview,
     }),
-    [stats, platformCafes, loading, error, refreshStats, refreshCafes],
+    [stats, platformOverview, loading, error, refreshStats, refreshPlatformOverview],
   );
 
   async function handleLogout() {
@@ -134,7 +140,7 @@ export default function DashboardLayout() {
     navigate('/login', { replace: true });
   }
 
-  const qrRequestCount = platformCafes.filter((item) => item.pendingQrChange).length;
+  const qrRequestCount = platformOverview.pendingQrCount || 0;
   const subtitleKey = headerSubtitleKeys[location.pathname];
   const headerSubtitle = subtitleKey
     ? t(subtitleKey)

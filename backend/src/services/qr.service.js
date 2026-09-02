@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
+import { buildPaginationMeta, parsePaginationQuery } from '../utils/pagination.js';
 import { recordActivity } from './activity.service.js';
 import { sendQrChangeRequestAlert } from './mail.service.js';
 
@@ -254,34 +255,41 @@ async function notifySuperAdminsOfQrChange(payload) {
   }
 }
 
-export async function listQrChangeRequests(status) {
+export async function listQrChangeRequests(status, query = {}) {
   const where = {};
+  const pagination = parsePaginationQuery(query);
 
   if (status && status !== 'all') {
     where.status = status;
   }
 
   const rank = { pending: 0, approved: 1, rejected: 2 };
-  const requests = await prisma.qrChangeRequest.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    take: 200,
-    include: {
-      cafe: {
-        select: { id: true, name: true, slug: true },
-      },
-      requester: {
-        select: { id: true, name: true, email: true },
-      },
-      reviewer: {
-        select: { id: true, name: true, email: true },
-      },
-    },
-  });
 
-  const pendingCount = await prisma.qrChangeRequest.count({ where: { status: 'pending' } });
+  const [requests, total, pendingCount] = await Promise.all([
+    prisma.qrChangeRequest.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: pagination.skip,
+      take: pagination.limit,
+      include: {
+        cafe: {
+          select: { id: true, name: true, slug: true },
+        },
+        requester: {
+          select: { id: true, name: true, email: true },
+        },
+        reviewer: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    }),
+    prisma.qrChangeRequest.count({ where }),
+    prisma.qrChangeRequest.count({ where: { status: 'pending' } }),
+  ]);
+
   const sorted = [...requests].sort((left, right) => {
     const diff = (rank[left.status] ?? 9) - (rank[right.status] ?? 9);
+
     if (diff !== 0) {
       return diff;
     }
@@ -292,6 +300,7 @@ export async function listQrChangeRequests(status) {
   return {
     requests: sorted.map(toRequestResponse),
     pendingCount,
+    pagination: buildPaginationMeta({ page: pagination.page, limit: pagination.limit, total }),
   };
 }
 

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Navigate, useOutletContext } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
+import Pagination from '../components/ui/Pagination.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
-import { listActivityLogs } from '../services/platform.service.js';
+import { listActivityLogs, listPlatformCafeOptions } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { formatDateTime, formatRelativeTime } from '../utils/format.js';
 import { getHomePath } from '../utils/paths.js';
@@ -157,9 +158,10 @@ function SummaryCard({ icon, label, value, tone = 'warn' }) {
 export default function ActivityLogsPage() {
   const { user } = useAuth();
   const { t, locale } = useLocale();
-  const { platformCafes = [] } = useOutletContext();
+  const [cafeOptions, setCafeOptions] = useState([]);
   const [logs, setLogs] = useState([]);
   const [summary, setSummary] = useState({ today: 0, cafes: 0, security: 0, deletions: 0, total: 0 });
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
@@ -167,6 +169,7 @@ export default function ActivityLogsPage() {
   const [cafeId, setCafeId] = useState('all');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [page, setPage] = useState(1);
 
   const fetchLogs = useCallback(
     ({ silent = false } = {}) => {
@@ -175,7 +178,7 @@ export default function ActivityLogsPage() {
         setError('');
       }
 
-      const params = {};
+      const params = { page, limit: 30 };
 
       if (action !== 'all') {
         params.action = action;
@@ -193,10 +196,15 @@ export default function ActivityLogsPage() {
         params.to = to;
       }
 
+      if (query.trim()) {
+        params.search = query.trim();
+      }
+
       return listActivityLogs(params)
         .then((result) => {
           setLogs(result.logs || []);
           setSummary(result.summary || { today: 0, cafes: 0, security: 0, deletions: 0, total: 0 });
+          setPagination(result.pagination || { page: 1, totalPages: 1, total: 0 });
           setError('');
         })
         .catch((err) => {
@@ -211,8 +219,22 @@ export default function ActivityLogsPage() {
           }
         });
     },
-    [action, cafeId, from, to, t],
+    [action, cafeId, from, page, query, t, to],
   );
+
+  useEffect(() => {
+    if (user?.role !== 'superadmin') {
+      return undefined;
+    }
+
+    listPlatformCafeOptions()
+      .then((items) => setCafeOptions(items || []))
+      .catch(() => setCafeOptions([]));
+  }, [user?.role]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [action, cafeId, from, query, to]);
 
   const skipFilterDebounceRef = useRef(true);
 
@@ -230,34 +252,7 @@ export default function ActivityLogsPage() {
     return () => window.clearTimeout(timer);
   }, [fetchLogs]);
 
-  const filteredLogs = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-
-    if (!needle) {
-      return logs;
-    }
-
-    return logs.filter((item) => {
-      const haystack = [
-        item.actor?.name,
-        item.actor?.email,
-        item.cafe?.name,
-        item.cafe?.slug,
-        item.metadata?.ownerEmail,
-        item.metadata?.cafeName,
-        item.metadata?.slug,
-        item.metadata?.email,
-        item.metadata?.productName,
-        item.metadata?.categoryName,
-        t(`logs.${item.action}`),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      return haystack.includes(needle);
-    });
-  }, [logs, query, t]);
+  const filteredLogs = logs;
 
   if (user?.role !== 'superadmin') {
     return <Navigate to={getHomePath(user)} replace />;
@@ -310,7 +305,7 @@ export default function ActivityLogsPage() {
         </Field>
         <Field as="select" size="compact" label={t('logs.cafe')} value={cafeId} onChange={(event) => setCafeId(event.target.value)}>
           <option value="all">{t('logs.cafeAll')}</option>
-          {platformCafes.map((cafe) => (
+          {cafeOptions.map((cafe) => (
             <option key={cafe._id} value={cafe._id}>
               {cafe.name}
             </option>
@@ -382,6 +377,14 @@ export default function ActivityLogsPage() {
           </ul>
         )}
       </div>
+
+      <Pagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        onPageChange={setPage}
+        disabled={loading}
+      />
     </section>
   );
 }

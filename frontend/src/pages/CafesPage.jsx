@@ -1,61 +1,83 @@
-import { useMemo, useState } from 'react';
-import { Link, Navigate, useOutletContext } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
+import Pagination from '../components/ui/Pagination.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
-import { updatePlatformCafe } from '../services/platform.service.js';
+import { listPlatformCafes, updatePlatformCafe } from '../services/platform.service.js';
 import { getApiError } from '../utils/apiError.js';
 import { formatDate } from '../utils/format.js';
 import { getPublicMenuUrl } from '../utils/constants.js';
 import { getHomePath } from '../utils/paths.js';
 import Field from '../components/ui/Field.jsx';
 
-function matchesDateRange(createdAt, from, to) {
-  const time = new Date(createdAt).setHours(0, 0, 0, 0);
-
-  if (from) {
-    const start = new Date(from).setHours(0, 0, 0, 0);
-    if (time < start) {
-      return false;
-    }
-  }
-
-  if (to) {
-    const end = new Date(to).setHours(0, 0, 0, 0);
-    if (time > end) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 export default function CafesPage() {
   const { user } = useAuth();
   const { t, locale } = useLocale();
-  const { platformCafes = [], loading, error, refreshCafes } = useOutletContext();
+  const [cafes, setCafes] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
   const [pendingId, setPendingId] = useState('');
+  const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const skipFilterDebounceRef = useRef(true);
 
-  const filteredCafes = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+  const loadCafes = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) {
+        setLoading(true);
+      }
 
-    return platformCafes.filter((cafe) => {
-      const matchesQuery =
-        !needle ||
-        cafe.name.toLowerCase().includes(needle) ||
-        cafe.slug.toLowerCase().includes(needle) ||
-        (cafe.ownerEmail || '').toLowerCase().includes(needle);
+      setError('');
 
-      const matchesStatus =
-        status === 'all' || (status === 'active' ? cafe.isActive : !cafe.isActive);
+      try {
+        const result = await listPlatformCafes({
+          page,
+          limit: 20,
+          q: query.trim(),
+          status,
+          from: from || undefined,
+          to: to || undefined,
+        });
+        setCafes(result.items);
+        setPagination(result.pagination);
+      } catch (err) {
+        setError(getApiError(err, t, 'dashboard.loadCafesError'));
+        setCafes([]);
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
+      }
+    },
+    [from, page, query, status, t, to],
+  );
 
-      return matchesQuery && matchesStatus && matchesDateRange(cafe.createdAt, from, to);
-    });
-  }, [platformCafes, query, status, from, to]);
+  useEffect(() => {
+    setPage(1);
+  }, [query, status, from, to]);
+
+  useEffect(() => {
+    if (user?.role !== 'superadmin') {
+      return undefined;
+    }
+
+    if (skipFilterDebounceRef.current) {
+      skipFilterDebounceRef.current = false;
+      loadCafes();
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      loadCafes();
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [loadCafes, user?.role]);
 
   if (user?.role !== 'superadmin') {
     return <Navigate to={getHomePath(user)} replace />;
@@ -67,7 +89,7 @@ export default function CafesPage() {
 
     try {
       await updatePlatformCafe(cafe._id, { isActive: !cafe.isActive });
-      await refreshCafes?.();
+      await loadCafes({ silent: true });
     } catch (err) {
       setActionError(getApiError(err, t, 'platform.updateError'));
     } finally {
@@ -119,7 +141,7 @@ export default function CafesPage() {
       <p className="text-sm text-on-surface-variant">
         {loading
           ? t('common.loading')
-          : t('platform.count', { filtered: filteredCafes.length, total: platformCafes.length })}
+          : t('platform.count', { filtered: cafes.length, total: pagination.total })}
       </p>
 
       <div className="overflow-x-auto rounded-2xl bg-surface-container-lowest shadow-sm ring-1 ring-outline-variant/20">
@@ -142,14 +164,14 @@ export default function CafesPage() {
                   {t('common.loading')}
                 </td>
               </tr>
-            ) : filteredCafes.length === 0 ? (
+            ) : cafes.length === 0 ? (
               <tr>
                 <td className="px-4 py-6 text-on-surface-variant" colSpan={7}>
                   {t('platform.empty')}
                 </td>
               </tr>
             ) : (
-              filteredCafes.map((cafe) => (
+              cafes.map((cafe) => (
                 <tr key={cafe._id} className="border-t border-outline-variant/20 hover:bg-surface-container-high/50">
                   <td className="px-4 py-3">
                     <Link to={`/platform/cafes/${cafe._id}`} className="font-medium text-primary hover:underline">
@@ -209,6 +231,14 @@ export default function CafesPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        onPageChange={setPage}
+        disabled={loading}
+      />
     </section>
   );
 }

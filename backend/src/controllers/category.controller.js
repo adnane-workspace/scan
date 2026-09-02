@@ -5,6 +5,7 @@ import {
   deleteCategory,
   getCategoryById,
   listCategories,
+  listCategoryOptions,
   updateCategory,
 } from '../services/category.service.js';
 import { uploadProductImage } from '../services/storage.service.js';
@@ -20,7 +21,19 @@ export const create = asyncHandler(async (req, res) => {
 });
 
 export const list = asyncHandler(async (req, res) => {
-  const categories = await listCategories(req.user);
+  const result = await listCategories(req.user, req.validated?.query || req.query);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      categories: result.items,
+      pagination: result.pagination,
+    },
+  });
+});
+
+export const listOptions = asyncHandler(async (req, res) => {
+  const categories = await listCategoryOptions(req.user);
 
   res.status(200).json({
     success: true,

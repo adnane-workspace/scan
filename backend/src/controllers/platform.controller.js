@@ -5,6 +5,8 @@ import {
   createPlatformCafe,
   deletePlatformCafe,
   getPlatformCafe,
+  getPlatformOverview,
+  listPlatformCafeOptions,
   listPlatformCafes,
   resetPlatformCafePassword,
   updatePlatformCafe,
@@ -21,8 +23,29 @@ export const createCafe = asyncHandler(async (req, res) => {
   });
 });
 
-export const listCafes = asyncHandler(async (_req, res) => {
-  const cafes = await listPlatformCafes();
+export const listCafes = asyncHandler(async (req, res) => {
+  const result = await listPlatformCafes(req.validated?.query || req.query);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      cafes: result.items,
+      pagination: result.pagination,
+    },
+  });
+});
+
+export const getOverview = asyncHandler(async (_req, res) => {
+  const overview = await getPlatformOverview();
+
+  res.status(200).json({
+    success: true,
+    data: { overview },
+  });
+});
+
+export const listCafeOptions = asyncHandler(async (_req, res) => {
+  const cafes = await listPlatformCafeOptions();
 
   res.status(200).json({
     success: true,
@@ -49,7 +72,12 @@ export const listLogs = asyncHandler(async (req, res) => {
 });
 
 export const getStorage = asyncHandler(async (req, res) => {
-  const report = await getStorageReport({ force: req.query?.refresh === '1' });
+  const query = req.validated?.query || req.query;
+  const report = await getStorageReport({
+    force: query?.refresh === '1',
+    page: query?.page,
+    limit: query?.limit,
+  });
 
   res.status(200).json({
     success: true,

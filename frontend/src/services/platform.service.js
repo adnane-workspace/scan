@@ -1,8 +1,22 @@
 import api from './api.js';
 
-export async function getStorageReport(refresh = false) {
+export async function getPlatformOverview() {
+  const { data } = await api.get('/platform/overview');
+  return data.data.overview;
+}
+
+export async function listPlatformCafeOptions() {
+  const { data } = await api.get('/platform/cafes/options');
+  return data.data.cafes;
+}
+
+export async function getStorageReport({ refresh = false, page = 1, limit = 20 } = {}) {
   const { data } = await api.get('/platform/storage', {
-    params: refresh ? { refresh: '1' } : undefined,
+    params: {
+      page,
+      limit,
+      ...(refresh ? { refresh: '1' } : {}),
+    },
   });
   return data.data.report;
 }
@@ -12,9 +26,12 @@ export async function listActivityLogs(params = {}) {
   return data.data;
 }
 
-export async function listPlatformCafes() {
-  const { data } = await api.get('/platform/cafes');
-  return data.data.cafes;
+export async function listPlatformCafes(params = {}) {
+  const { data } = await api.get('/platform/cafes', { params });
+  return {
+    items: data.data.cafes,
+    pagination: data.data.pagination,
+  };
 }
 
 export async function createPlatformCafe(payload) {
@@ -47,10 +64,8 @@ export async function updatePlatformCafeOwnerEmail(id, email) {
   return data.data;
 }
 
-export async function listQrChangeRequests(status = 'pending') {
-  const { data } = await api.get('/platform/qr-requests', {
-    params: status && status !== 'all' ? { status } : undefined,
-  });
+export async function listQrChangeRequests(params = {}) {
+  const { data } = await api.get('/platform/qr-requests', { params });
   return data.data;
 }
 
@@ -74,7 +89,10 @@ export async function resetTrialCafe(id) {
   return data.data.cafe;
 }
 
-export async function listTrialLeads() {
-  const { data } = await api.get('/platform/trial-leads');
-  return data.data.leads;
+export async function listTrialLeads(params = {}) {
+  const { data } = await api.get('/platform/trial-leads', { params });
+  return {
+    items: data.data.leads,
+    pagination: data.data.pagination,
+  };
 }

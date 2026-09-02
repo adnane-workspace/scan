@@ -28,7 +28,10 @@ export const createQrChangeRequest = asyncHandler(async (req, res) => {
 });
 
 export const listQrRequests = asyncHandler(async (req, res) => {
-  const result = await listQrChangeRequests(req.validated?.query?.status || req.query.status);
+  const result = await listQrChangeRequests(
+    req.validated?.query?.status || req.query.status,
+    req.validated?.query || req.query,
+  );
 
   res.status(200).json({
     success: true,

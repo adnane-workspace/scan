@@ -35,6 +35,21 @@ export function collectDescendantIds(categories, categoryId) {
   return ids;
 }
 
+export function siblingCategories(categories, parentId = null) {
+  const key = parentId || null;
+
+  return categories
+    .filter((category) => (category.parentId || null) === key)
+    .sort((left, right) => (left.order - right.order) || left.name.localeCompare(right.name));
+}
+
+export function walkPreOrder(categories, parentId = null, depth = 0) {
+  return siblingCategories(categories, parentId).flatMap((category) => [
+    { ...category, depth },
+    ...walkPreOrder(categories, category._id || category.id, depth + 1),
+  ]);
+}
+
 export function nodeDepth(categories, categoryId) {
   const byId = new Map(categories.map((category) => [category.id, category]));
   let depth = 0;

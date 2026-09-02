@@ -4,6 +4,7 @@ import CategoryFormModal from '../components/dashboard/CategoryFormModal.jsx';
 import SectionsEnableWizard from '../components/dashboard/SectionsEnableWizard.jsx';
 import MaterialIcon from '../components/ui/MaterialIcon.jsx';
 import CloudinaryImage from '../components/ui/CloudinaryImage.jsx';
+import Pagination from '../components/ui/Pagination.jsx';
 import { clearPublicMenuCache } from '../hooks/usePublicMenu.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { getMyCafe, updateMyCafe } from '../services/cafe.service.js';
@@ -11,6 +12,7 @@ import {
   createCategory,
   deleteCategory,
   listCategories,
+  listCategoryOptions,
   updateCategory,
   uploadCategoryImage,
 } from '../services/category.service.js';
@@ -116,6 +118,9 @@ export default function CategoriesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cafe, setCafe] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [page, setPage] = useState(1);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [editingSectionKey, setEditingSectionKey] = useState(null);
@@ -138,8 +143,14 @@ export default function CategoriesPage() {
     setError('');
 
     try {
-      const [categoryItems, cafeData] = await Promise.all([listCategories(), getMyCafe()]);
-      setCategories(categoryItems);
+      const [categoryPage, categoryOptions, cafeData] = await Promise.all([
+        listCategories({ page, limit: 30 }),
+        listCategoryOptions(),
+        getMyCafe(),
+      ]);
+      setRows(categoryPage.items);
+      setPagination(categoryPage.pagination);
+      setCategories(categoryOptions);
       setCafe(cafeData);
     } catch (err) {
       setError(getApiError(err, t, 'categories.loadError'));
@@ -148,13 +159,12 @@ export default function CategoriesPage() {
         setLoading(false);
       }
     }
-  }, [t]);
+  }, [page, t]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const rows = useMemo(() => walkPreOrder(categories), [categories]);
   const sectionsEnabled = normalizeMenuUi(cafe?.menuUi).sectionsEnabled;
   const sectionVisibility = normalizeSectionVisibility(cafe?.menuUi?.sectionVisibility);
   const sectionRoots = useMemo(
@@ -779,6 +789,14 @@ export default function CategoriesPage() {
             </ul>
           )}
       </div>
+
+      <Pagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        onPageChange={setPage}
+        disabled={loading || reordering}
+      />
 
       <CategoryFormModal
         open={isFormOpen}

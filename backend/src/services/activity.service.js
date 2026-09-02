@@ -1,4 +1,5 @@
 import { prisma } from '../config/prisma.js';
+import { buildPaginationMeta, parsePaginationQuery } from '../utils/pagination.js';
 
 export const ACTIVITY_ACTIONS = [
   'cafe_created',
@@ -85,7 +86,8 @@ function todayWhere(where, today) {
   };
 }
 
-export async function listActivityLogs({ action, cafeId, from, to, limit = 300 } = {}) {
+export async function listActivityLogs({ action, cafeId, from, to, search, page, limit } = {}) {
+  const pagination = parsePaginationQuery({ page, limit }, { defaultLimit: 30, maxLimit: 100 });
   const where = {
     action: { in: ACTIVITY_ACTIONS },
   };
@@ -110,7 +112,17 @@ export async function listActivityLogs({ action, cafeId, from, to, limit = 300 }
     }
   }
 
-  const take = Math.min(Number(limit) || 300, 500);
+  const needle = String(search || '').trim();
+
+  if (needle) {
+    where.OR = [
+      { actor: { email: { contains: needle, mode: 'insensitive' } } },
+      { actor: { name: { contains: needle, mode: 'insensitive' } } },
+      { cafe: { name: { contains: needle, mode: 'insensitive' } } },
+      { cafe: { slug: { contains: needle, mode: 'insensitive' } } },
+    ];
+  }
+
   const today = startOfToday();
   const cafeWhere = countWhereForActions(where, CAFE_ACTIONS);
   const securityWhere = countWhereForActions(where, SECURITY_ACTIONS);
@@ -120,7 +132,8 @@ export async function listActivityLogs({ action, cafeId, from, to, limit = 300 }
     prisma.activityLog.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      take,
+      skip: pagination.skip,
+      take: pagination.limit,
       include: {
         actor: {
           select: { id: true, name: true, email: true, role: true },
@@ -167,5 +180,6 @@ export async function listActivityLogs({ action, cafeId, from, to, limit = 300 }
       security: securityCount,
       deletions: deletedCount,
     },
+    pagination: buildPaginationMeta({ page: pagination.page, limit: pagination.limit, total }),
   };
 }

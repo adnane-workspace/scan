@@ -5,6 +5,7 @@ import { handleUploadError, productImageUpload } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
 import {
   createProductSchema,
+  listProductsSchema,
   productIdSchema,
   updateProductSchema,
 } from '../validators/product.validator.js';
@@ -14,7 +15,7 @@ const productRouter = Router();
 productRouter.use(authenticate, requireAdmin);
 
 productRouter.post('/', validate(createProductSchema), create);
-productRouter.get('/', list);
+productRouter.get('/', validate(listProductsSchema), list);
 productRouter.post('/upload', productImageUpload.single('image'), handleUploadError, uploadImage);
 productRouter.get('/:id', validate(productIdSchema), getById);
 productRouter.put('/:id', validate(updateProductSchema), update);

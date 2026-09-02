@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import Pagination from '../components/ui/Pagination.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLocale } from '../hooks/useLocale.js';
 import { listTrialLeads } from '../services/platform.service.js';
@@ -11,40 +12,34 @@ export default function TrialLeadsPage() {
   const { user } = useAuth();
   const { t, locale } = useLocale();
   const [leads, setLeads] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const loadLeads = useCallback(async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const result = await listTrialLeads({ page, limit: 20 });
+      setLeads(result.items);
+      setPagination(result.pagination);
+    } catch (err) {
+      setError(getApiError(err, t, 'platform.trialLeadsError'));
+      setLeads([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, t]);
 
   useEffect(() => {
     if (user?.role !== 'superadmin') {
       return undefined;
     }
 
-    let cancelled = false;
-    setLoading(true);
-    setError('');
-
-    listTrialLeads()
-      .then((items) => {
-        if (!cancelled) {
-          setLeads(items || []);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(getApiError(err, t, 'platform.trialLeadsError'));
-          setLeads([]);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [t, user?.role]);
+    loadLeads();
+  }, [loadLeads, user?.role]);
 
   if (user?.role !== 'superadmin') {
     return <Navigate to={getHomePath(user)} replace />;
@@ -101,6 +96,14 @@ export default function TrialLeadsPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        onPageChange={setPage}
+        disabled={loading}
+      />
     </section>
   );
 }

@@ -27,7 +27,7 @@ export default function CafeDetailPage() {
   const { user } = useAuth();
   const { t, locale } = useLocale();
   const toast = useToast();
-  const { refreshCafes } = useOutletContext();
+  const { refreshPlatformOverview } = useOutletContext();
   const navigate = useNavigate();
   const [cafe, setCafe] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ export default function CafeDetailPage() {
     try {
       const updated = await updatePlatformCafe(cafe._id, { isActive: !cafe.isActive });
       setCafe((current) => ({ ...current, ...updated }));
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
     } catch (err) {
       setError(getApiError(err, t, 'platform.updateError'));
     } finally {
@@ -160,7 +160,7 @@ export default function CafeDetailPage() {
       setOwnerEmail(updated.ownerEmail || result.email);
       setShowEmailForm(false);
       toast.success(t('platform.emailUpdated', { email: result.email }));
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
     } catch (err) {
       setError(getApiError(err, t, 'platform.emailUpdateError'));
     } finally {
@@ -179,7 +179,7 @@ export default function CafeDetailPage() {
     try {
       const qr = await unlockCafeQr(cafe._id);
       setCafe((current) => ({ ...current, qr, qrChangeAllowed: true, pendingQrChange: false }));
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
     } catch (err) {
       setError(getApiError(err, t, 'qr.unlockError'));
     } finally {
@@ -202,7 +202,7 @@ export default function CafeDetailPage() {
       const data = await getPlatformCafe(id);
       setCafe(data);
       setReviewNote('');
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
     } catch (err) {
       setError(getApiError(err, t, 'qr.reviewError'));
     } finally {
@@ -228,7 +228,7 @@ export default function CafeDetailPage() {
             ? t('platform.trialSetTemplate')
             : t('platform.trialCleared'),
       );
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
     } catch (err) {
       setError(getApiError(err, t, 'platform.updateError'));
     } finally {
@@ -248,7 +248,7 @@ export default function CafeDetailPage() {
       const updated = await resetTrialCafe(cafe._id);
       setCafe(updated);
       toast.success(t('platform.trialResetDone'));
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
     } catch (err) {
       setError(getApiError(err, t, 'platform.trialResetError'));
     } finally {
@@ -268,7 +268,7 @@ export default function CafeDetailPage() {
       const updated = await populateCafeContent(cafe._id);
       setCafe(updated);
       toast.success(t('platform.populateSuccess'));
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
     } catch (err) {
       setError(getApiError(err, t, 'platform.populateError'));
     } finally {
@@ -286,7 +286,7 @@ export default function CafeDetailPage() {
 
     try {
       await deletePlatformCafe(cafe._id);
-      await refreshCafes?.();
+      await refreshPlatformOverview?.();
       navigate('/platform/cafes', { replace: true });
     } catch (err) {
       setError(getApiError(err, t, 'platform.deleteError'));

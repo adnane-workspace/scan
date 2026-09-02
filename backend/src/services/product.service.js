@@ -1,9 +1,11 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
+import { buildPaginationMeta, paginatedResult, parsePaginationQuery } from '../utils/pagination.js';
 import { recordActivity } from './activity.service.js';
 import { invalidatePublicMenu } from './menuCache.service.js';
 import { deleteCloudinaryImage, deleteReplacedImage, normalizeImageUrl } from './storage.service.js';
 import { assertLeafCategory } from './category.service.js';
+import { collectDescendantIds } from '../utils/categoryTree.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
@@ -71,16 +73,49 @@ export async function createProduct(user, payload) {
   return toProductResponse(product);
 }
 
-export async function listProducts(user) {
+export async function listProducts(user, query = {}) {
   const cafeId = requireCafeId(user);
+  const { page, limit, skip } = parsePaginationQuery(query);
+  const search = String(query.search || '').trim();
+  const availability = query.availability;
 
-  const products = await prisma.product.findMany({
-    where: { cafeId },
-    include: { category: { select: { name: true } } },
-    orderBy: [{ order: 'asc' }, { name: 'asc' }],
-  });
+  const where = { cafeId };
 
-  return products.map(toProductResponse);
+  if (search) {
+    where.name = { contains: search, mode: 'insensitive' };
+  }
+
+  if (availability === 'available') {
+    where.available = true;
+  } else if (availability === 'unavailable') {
+    where.available = false;
+  }
+
+  if (query.categoryId) {
+    const categories = await prisma.category.findMany({
+      where: { cafeId },
+      select: { id: true, parentId: true },
+    });
+
+    const allowedIds = collectDescendantIds(categories, query.categoryId);
+    allowedIds.push(query.categoryId);
+    where.categoryId = { in: allowedIds };
+  }
+
+  const [products, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      include: { category: { select: { name: true } } },
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+      skip,
+      take: limit,
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  const pagination = buildPaginationMeta({ page, limit, total });
+
+  return paginatedResult(products.map(toProductResponse), pagination);
 }
 
 export async function getProductById(user, productId) {

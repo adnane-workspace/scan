@@ -20,11 +20,14 @@ export const create = asyncHandler(async (req, res) => {
 });
 
 export const list = asyncHandler(async (req, res) => {
-  const products = await listProducts(req.user);
+  const result = await listProducts(req.user, req.validated.query);
 
   res.status(200).json({
     success: true,
-    data: { products },
+    data: {
+      products: result.items,
+      pagination: result.pagination,
+    },
   });
 });
 

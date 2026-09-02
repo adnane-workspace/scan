@@ -11,12 +11,15 @@ export const startTrialSession = asyncHandler(async (req, res) => {
   });
 });
 
-export const getTrialLeads = asyncHandler(async (_req, res) => {
-  const leads = await listTrialLeads();
+export const getTrialLeads = asyncHandler(async (req, res) => {
+  const result = await listTrialLeads(req.validated?.query || req.query);
 
   res.status(200).json({
     success: true,
-    data: { leads },
+    data: {
+      leads: result.items,
+      pagination: result.pagination,
+    },
   });
 });
 

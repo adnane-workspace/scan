@@ -11,7 +11,9 @@ import {
   nodeDepth,
   subtreeHeight,
   subtreeProductCounts,
+  walkPreOrder,
 } from '../utils/categoryTree.js';
+import { buildPaginationMeta, paginatedResult, parsePaginationQuery } from '../utils/pagination.js';
 
 function requireCafeId(user) {
   if (!user.cafeId) {
@@ -241,7 +243,23 @@ export async function createCategory(user, payload) {
   return toCategoryResponse(category);
 }
 
-export async function listCategories(user) {
+export async function listCategoryOptions(user) {
+  return loadMappedCategories(user);
+}
+
+export async function listCategories(user, query = {}) {
+  const pagination = parsePaginationQuery(query, { defaultLimit: 30, maxLimit: 100 });
+  const categories = await loadMappedCategories(user);
+  const rows = walkPreOrder(categories);
+  const items = rows.slice(pagination.skip, pagination.skip + pagination.limit);
+
+  return paginatedResult(
+    items,
+    buildPaginationMeta({ page: pagination.page, limit: pagination.limit, total: rows.length }),
+  );
+}
+
+async function loadMappedCategories(user) {
   const cafeId = requireCafeId(user);
 
   const categories = await prisma.category.findMany({

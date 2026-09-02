@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { uuidSchema } from './id.schema.js';
+import { paginationFields } from './pagination.schema.js';
 
 export const createQrChangeRequestSchema = z.object({
   body: z.object({
@@ -9,7 +10,14 @@ export const createQrChangeRequestSchema = z.object({
 
 export const listQrChangeRequestsSchema = z.object({
   query: z.object({
+    ...paginationFields,
     status: z.enum(['pending', 'approved', 'rejected', 'all']).optional(),
+  }),
+});
+
+export const listTrialLeadsSchema = z.object({
+  query: z.object({
+    ...paginationFields,
   }),
 });
 

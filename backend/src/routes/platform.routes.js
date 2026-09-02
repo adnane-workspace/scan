@@ -3,7 +3,9 @@ import {
   createCafe,
   deleteCafe,
   getCafe,
+  getOverview,
   getStorage,
+  listCafeOptions,
   listCafes,
   listLogs,
   resetCafePassword,
@@ -17,23 +19,27 @@ import { validate } from '../middleware/validate.js';
 import {
   createPlatformCafeSchema,
   listActivityLogsSchema,
+  listPlatformCafesSchema,
   platformCafeIdSchema,
   resetPlatformCafePasswordSchema,
   updatePlatformCafeEmailSchema,
   updatePlatformCafeSchema,
 } from '../validators/cafe.validator.js';
-import { listQrChangeRequestsSchema, reviewQrChangeRequestSchema } from '../validators/qr.validator.js';
+import { listQrChangeRequestsSchema, listTrialLeadsSchema, reviewQrChangeRequestSchema } from '../validators/qr.validator.js';
+import { listStorageSchema } from '../validators/pagination.schema.js';
 
 const platformRouter = Router();
 
 platformRouter.use(authenticate, requireSuperAdmin);
 
-platformRouter.get('/storage', getStorage);
+platformRouter.get('/overview', getOverview);
+platformRouter.get('/cafes/options', listCafeOptions);
+platformRouter.get('/storage', validate(listStorageSchema), getStorage);
 platformRouter.get('/logs', validate(listActivityLogsSchema), listLogs);
 platformRouter.get('/qr-requests', validate(listQrChangeRequestsSchema), listQrRequests);
 platformRouter.post('/qr-requests/:id/review', validate(reviewQrChangeRequestSchema), reviewQrRequest);
-platformRouter.get('/trial-leads', getTrialLeads);
-platformRouter.get('/cafes', listCafes);
+platformRouter.get('/trial-leads', validate(listTrialLeadsSchema), getTrialLeads);
+platformRouter.get('/cafes', validate(listPlatformCafesSchema), listCafes);
 platformRouter.post('/cafes', validate(createPlatformCafeSchema), createCafe);
 platformRouter.get('/cafes/:id', validate(platformCafeIdSchema), getCafe);
 platformRouter.patch('/cafes/:id', validate(updatePlatformCafeSchema), updateCafeStatus);
