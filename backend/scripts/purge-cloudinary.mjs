@@ -48,7 +48,7 @@ async function purge() {
   if (!confirm) {
     console.log('\nDry run only. To delete everything, run:');
     console.log('  npm run cloudinary:purge -- --confirm');
-    console.log('\nWarning: local AND prod menus will lose photos until re-upload or re-seed.');
+    console.log('\nWarning: local AND prod menus will lose photos until re-upload.');
     return;
   }
 

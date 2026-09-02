@@ -52,7 +52,14 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-export const env = parsed.data;
+const data = parsed.data;
+
+if (!String(data.DIRECT_URL || '').trim()) {
+  data.DIRECT_URL = data.DATABASE_URL;
+  process.env.DIRECT_URL = data.DATABASE_URL;
+}
+
+export const env = data;
 
 export function normalizeOrigin(value) {
   return String(value || '')
